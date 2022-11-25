@@ -1,9 +1,9 @@
-from gmsPython import gmsPy, GmsPython
+from gmsPython import gmsPy, GmsPythonSimple
 import pyDatabases, pandas as pd
 from pyDatabases.gpyDB_wheels import adj
 from pyDatabases import gpy, OrdSet
 
-class shareRAS(GmsPython):
+class shareRAS(GmsPythonSimple):
 	def __init__(self, v0, vBar, name=None, s = None, s_kwargs = None, leaveCols = None, leaveRows = None):
 		super().__init__(name=pyDatabases.noneInit(name, 'someName'), s=s, s_kwargs = s_kwargs)
 		self.initData(v0,vBar, leaveCols = leaveCols, leaveRows = leaveRows)
@@ -29,21 +29,15 @@ class shareRAS(GmsPython):
 		self.s.db['activeRow'] = self.get('active').levels[0] if leaveRows is None else adj.rc_pd(self.get('active').levels[0], ('not', leaveRows))
 		self.s.db['activeCol'] = self.get('active').levels[1] if leaveCols is None else adj.rc_pd(self.get('active').levels[1], ('not', leaveCols))
 
-	def states(self):
-		return {'B': self.s.standardInstance(state='B') | {attr: getattr(self,attr)() for attr in ('g_endo','g_exo','blocks','args','solve')}}
-	def solve(self):
+	def solve(self, state):
 		return f"""vD.lo[{self.n('i')},{self.n('j')}]$(active[{self.n('i')},{self.n('j')}]) = 0; solve {self.s['name']} minimizing object using QCP;"""
-	def args(self):
+	def args(self, state):
 		return {'RAS_Blocks': self.rasText}
-	def blocks(self):
+	def blocks(self, state):
 		return OrdSet(['B_RAS'])
-	def g_endo(self):
+	def g_endo(self, state):
 		return OrdSet([f"G_endo"])
-	def g_exo(self):
-		return OrdSet()
-	def groups(self):
-		return {g.name: g for g in self.groups_()}
-	def groups_(self):
+	def _groups(self, m=None):
 		return [gmsPy.Group(f"G_endo",
 				v = [('vD', self.g('active')), ('etaRow', self.g('active')), ('etaCol', self.g('active'))])]
 

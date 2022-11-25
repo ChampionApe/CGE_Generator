@@ -1,30 +1,26 @@
-from gmsPython import gmsPy, GmsPython, stackIndices
+from gmsPython import gmsPy, GmsPythonSimple, stackIndices
 import pyDatabases, pandas as pd
 from pyDatabases import OrdSet, adjMultiIndex
 from pyDatabases.gpyDB_wheels import aggregateDB, adj
 import gamsProduction, gamsHouseholds
 
-class valueShares(GmsPython):
+class valueShares(GmsPythonSimple):
 	def __init__(self, tree, db_IO, s=None, s_kwargs = None, valueFromQP = True):
 		""" Initialize from nesting tree 'tree'. """
 		super().__init__(name=f"valueShare_{tree.name}", s=s, s_kwargs = pyDatabases.noneInit(s_kwargs, {}) | {'db': db_IO})
 		self.setsFromTree(tree)
 		self.initValues(tree, valueFromQP = valueFromQP)
-	def states(self):
-		return {'B': self.s.standardInstance(state='B') | {attr: getattr(self,attr)() for attr in ('g_endo','g_exo','blocks','args','solve')}}
-	def solve(self):
+	def solve(self, state):
 		return f"""@SolveEmptyNLP({self.s['name']})"""
-	def args(self):
+	def args(self, state):
 		return {'valueShare_Blocks': gamsProduction.valueShares()}
-	def blocks(self):
+	def blocks(self, state):
 		return OrdSet(['B_ValueShares'])
-	def g_endo(self):
+	def g_endo(self, state):
 		return OrdSet([f"G_{self.name}_endo"])
-	def g_exo(self):
+	def g_exo(self, state):
 		return OrdSet([f"G_{self.name}_exo"])
-	def groups(self):
-		return {g.name: g for g in self.groups_()}
-	def groups_(self):
+	def _groups(self,m=None):
 		return [gmsPy.Group(f"G_{self.name}_exo",
 				v = [('vS', self.g('output')), ('vD', self.g('input'))]
 				),
@@ -81,10 +77,10 @@ class SimpleRamsey(valueShares):
 		self.s.db['mu'] = adjMultiIndex.bc(pd.Series(1, index = tIndex), Tree.get('map'))
 		self.s.db['vD'] = self.initvD(valueFromQP=valueFromQP).combine_first(adjMultiIndex.bc(pd.Series(1, index = tIndex), Tree.get('int').union(Tree.get('output'))))
 
-	def args(self):
+	def args(self, state):
 		return {'valueShare_Blocks': gamsHouseholds.valueShares()}
 
-	def groups_(self):
+	def _groups(self, m=None):
 		return [gmsPy.Group(f"G_{self.name}_exo",
 				v = [('vD', self.g('input'))]
 				),
