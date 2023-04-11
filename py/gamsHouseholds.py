@@ -1,4 +1,4 @@
-from gamsSnippets import *
+from gamsSnippets_noOut import *
 
 # 1: Labor supply function
 def IsoFrisch(name, m):
@@ -18,7 +18,7 @@ $BLOCK B_{name}
 $ENDBLOCK
 """
 
-# 3
+# 3.1
 def priceWedge(name,m):
 	return f"""
 $BLOCK B_{name}
@@ -26,6 +26,17 @@ $BLOCK B_{name}
 	E_pwInp_{name}[t,s,n]$(input_{m}[s,n] and txE[t])..	pD[t,s,n]		=E= p[t,n]+tauD[t,s,n];
 	E_TaxRev_{name}[t,s]$(s_{m}[s] and txE[t])..		TotalTax[t,s]	=E= tauLump[t,s]+sum(n$(input_{m}[s,n]), tauD[t,s,n] * qD[t,s,n])+sum(n$(labor_{m}[s,n]), tauS[t,s,n]*qS[t,s,n]);
 	E_sp_{name}[t,s]$(s_{m}[s] and txE[t])..			sp[t,s]			=E= sum(n$(labor_{m}[s,n]), pS[t,s,n]*qS[t,s,n]) - sum(n$(input_{m}[s,n]), pD[t,s,n]*qD[t,s,n])-tauLump[t,s];
+$ENDBLOCK
+"""
+
+# 3.2
+def priceWedgeStatic(name,m):
+	return f"""
+$BLOCK B_{name}
+	E_pwOut_{name}[t,s,n]$(labor_{m}[s,n] and txE[t])..	pS[t,s,n] 		=E= p[t,n]-tauS[t,s,n];
+	E_pwInp_{name}[t,s,n]$(input_{m}[s,n] and txE[t])..	pD[t,s,n]		=E= p[t,n]+tauD[t,s,n];
+	E_TaxRev_{name}[t,s]$(s_{m}[s] and txE[t])..		TotalTax[t,s]	=E= tauLump[t,s]+sum(n$(input_{m}[s,n]), tauD[t,s,n] * qD[t,s,n])+sum(n$(labor_{m}[s,n]), tauS[t,s,n]*qS[t,s,n]);
+	E_sp_{name}[t,s]$(s_{m}[s] and txE[t])..			jTerm[s]		=E= sum(n$(labor_{m}[s,n]), pS[t,s,n]*qS[t,s,n]) - sum(n$(input_{m}[s,n]), pD[t,s,n]*qD[t,s,n])-tauLump[t,s];
 $ENDBLOCK
 """
 

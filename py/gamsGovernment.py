@@ -1,33 +1,29 @@
-from gamsSnippets import *
+from gamsSnippets_noOut import *
 
-# 1: Simple dynamics
-def simpleDynamics(name, m):
+# Block of equations for stand alone, baseline model:
+def standAloneBaseline(name, m):
 	return f"""
 $BLOCK B_{name}
-	E_lom_{name}[t,s]$(s_{m}[s] and txE[t])..				vAssets[t+1,s,'total']	=E= (vAssets[t,s,'total']*iRate[t]+sp[t,s])/((1+g_LR)*(1+infl_LR));
-	E_pwInp_{name}[t,s,n]$(input_{m}[s,n] and txE[t])..				pD[t,s,n]		=E= p[t,n]+tauD[t,s,n];
-	E_TaxRev_{name}[t,s]$(s_{m}[s] and txE[t])..					TotalTax[t,s]	=E= sum(n$(input_{m}[s,n]), tauD[t,s,n] * qD[t,s,n]);
-	E_sp_{name}[t,s]$(s_{m}[s] and txE[t])..						sp[t,s]			=E= sum(ss$(d_TotalTax[ss]), TotalTax[t,ss])- sum(n$(input_{m}[s,n]), pD[t,s,n]*qD[t,s,n])+jG_budget;
+	E_pw_{name}[t,s,n]$(input_{m}[s,n] and txE[t])..		pD[t,s,n] =E= p[t,n]+tauD[t,s,n];
+	E_taxRev_{name}[t,s]$(s_{m}[s] and txE[t])..	TotalTax[t,s] =E= sum(n$(input_{m}[s,n]), tauD[t,s,n] * qD[t,s,n]);
 $ENDBLOCK
 """
 
-# 2: Calibration block
-def calibrationFlat(name, m):
+def standAloneCalibrate(name, m):
 	return f"""
 $BLOCK B_{name}
-	E_flatCalib_{name}[t,s,n]$(input_{m}[s,n] and txE[t])..		tauD[t,s,n]	=E= tauD0[t,s,n]*tauG_calib;
+	E_ctaxRev_{name}[t,s,n]$(input_{m}[s,n] and txE[t])..	tauD[t,s,n] =E= tauD0[t,s,n]*tauG_calib;
 $ENDBLOCK
 """
 
-# 3: Balanced budget
 def balancedBudget(name, m):
 	return f"""
 $BLOCK B_{name}
-	E_bb_{name}[t,s]$(s_{m}[s] and tx0E[t]).. sp[t,s] =E= 0;
+	E_bb_{name}[t,s]$(s_{m}[s] and txE[t])..	jTerm[s] =E= sum(ss$(d_TotalTax[ss]), TotalTax[t,ss])-sum(n$(input_{m}[s,n]), pD[t,s,n]*qD[t,s,n]);
 $ENDBLOCK
 """
 
-# 4: System of value shares
+# 5: System of value shares
 def valueShares():
 	return f"""
 $BLOCK B_ValueShares
@@ -40,3 +36,4 @@ $BLOCK B_ValueShares
 	E_Inp_shares2no[t,s,n,nn]$(mapInp[s,n,nn] and branch2NOut[s,nn])..	mu[t,s,n,nn]=E= vD[t,s,nn]/vD[t,s,n];
 $ENDBLOCK
 """
+

@@ -1,0 +1,95 @@
+=1
+=2
+=0CONOPT 3         38.1.0 a1a3b545 Jan 31, 2022          WEI x86 64bit/MS Window
+=1
+ 
+ 
+    C O N O P T 3   version 3.17K
+    Copyright (C)   ARKI Consulting and Development A/S
+                    Bagsvaerdvej 246 A
+                    DK-2880 Bagsvaerd, Denmark
+ 
+=2
+    1  INPUT                                                                  (DEFAULT)
+    2  BRANCH * MAJERR MINERR JACERR                                          (DEFAULT)
+    3  OPTIMIZE                                                               (DEFAULT)
+    4  BRANCH * * * * * * MAJERR                                              (DEFAULT)
+    5  OUTPUT                                                                 (DEFAULT)
+    6  EXIT                                                                   (DEFAULT)
+    7  MAJERR MESSAGE MAJOR ERROR - TERMINATE                                 (DEFAULT)
+    8  EXIT                                                                   (DEFAULT)
+    9  MINERR MESSAGE MINOR ERROR - TERMINATE                                 (DEFAULT)
+   10  EXIT                                                                   (DEFAULT)
+   11  JACERR MESSAGE FUNCTION OR DERIVATIVE ERROR                            (DEFAULT)
+   12  OUTPUT                                                                 (DEFAULT)
+   13  EXIT                                                                   (DEFAULT)
+ 
+  ***  Line    1  INPUT
+ 
+  ***  Line    0  SET       LSAZRW   = TRUE
+ 
+  ***  Line    0  SET       LFEERR   =           0
+ 
+  ***  Line    0  SET       LFITER   =  2147483647
+ 
+  ***  Line    0  SET       RVTIME   =     1.0000000000E+10
+=1
+ 
+    The model has 9892 variables and 3424 constraints
+    with 22116 Jacobian elements, 6594 of which are nonlinear.
+    The Hessian of the Lagrangian has 6594 elements on the diagonal,
+    0 elements below the diagonal, and 6594 nonlinear variables.
+=2
+=1
+ 
+ ** Warning **  The value of LFITER is out of range.
+                LFITER is decreased from 2147483647 to 1000000000.
+=2
+ 
+Search for a first feasible solution
+ 
+ 
+   Iter Phase Ninf   Infeasibility   RGmax    NSB   Step InItr MX OK
+      0   0        8.4809915693E+02 (Input point)
+=1
+ 
+ ** Warning **  The number of nonlinear derivatives equal to zero
+                in the initial point is large (= 29 percent).
+                A better initial point will probably help the
+                optimization.
+ 
+=2
+=1
+ 
+                   Pre-triangular equations:   19
+                   Post-triangular equations:  3280
+ 
+=2
+      1   0        4.2697491566E+02 (After pre-processing)
+      2   0        5.3691850544E-01 (After scaling)
+      3   0     1  5.3691850544E-01               0.0E+00      T  T
+      4   0     1  5.3691850544E-01               0.0E+00      T  T
+      5   0     1  7.1467422366E-15               1.0E+00      F  T
+ 
+ ** Feasible solution. Value of objective =    6308785398.19
+ 
+Search for an optimal solution.
+ 
+ 
+   Iter Phase Ninf     Objective     RGmax    NSB   Step InItr MX OK
+      6   3        6.3087853982E+09 0.0E+00     0 0.0E+00    0 F  T
+      7   3        6.3173288215E+07 2.0E+12  5466 5.0E-03    1 F  T
+      8   3        5.7217456822E+07 1.8E+10  5505 4.8E-15      F  T
+      9   4        5.6521881961E+07 7.0E+09  5505 9.6E-15      F  T
+     10   4        3.8254861738E+06 2.5E+09  6469 1.0E+00   12 F  T
+     11   4        9.1728050443E+05 3.7E+08  6469 1.0E+00   20 F  T
+     12   4        2.7649213191E+04 4.9E+07  6469 1.0E+00  577 F  T
+     13   4        3.0684860996E+03 6.1E+06  6469 1.0E+00 1228 F  T
+     14   4        2.2203656072E+03 7.7E+05  6469 1.0E+00 3357 F  T
+     15   4        1.7859417170E+03 4.8E+04  6469 1.0E+0012939 F  T
+     16   4        1.7844861784E+03 2.1E+05  6469 1.0E+00  163 F  T
+     17   4        1.7252179618E+03 2.1E+04  6469 1.0E+0012939 F  T
+     18   4        1.7118760858E+03 1.1E+04  6469 1.0E+0012939 F  T
+     19   4        1.7118260242E+03 1.9E+05  6469 1.0E+00  145 F  T
+     20   4        1.7093228614E+03 6.3E+03  6469 1.0E+00 8226 F  T
+     21   4        1.7074451352E+03 2.7E+

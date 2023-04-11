@@ -1,0 +1,1761 @@
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 5
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+ 783  sets
+ 784          l1
+ 785  ;
+ 786   
+ 787   
+ 788  sets
+ 789          tauS_shock_ss[t,s,n]
+ 790  ;
+ 791   
+GDXIN   C:\Users\sxj477\Documents\GitHub\CGE_Generator\work_folder\grids.gdx
+--- LOAD  l1 = 4:l1
+--- LOAD  tauS_shock_ss = 5:tauS_shock_ss
+ 798   
+ 799  parameters
+ 800          tauS_shock[l1,t,s,n]
+ 801          sol_qS_shock[l1,t,s,n]
+ 802          sol_qD_shock[l1,t,s,n]
+ 803          sol_pD_shock[l1,t,s,n]
+ 804          sol_p_shock[l1,t,n]
+ 805  ;
+ 806   
+GDXIN   C:\Users\sxj477\Documents\GitHub\CGE_Generator\work_folder\grids.gdx
+--- LOAD  tauS_shock = 6:tauS_shock
+ 812   
+ 813  loop(l1,
+ 814          tauS.fx[t,s,n]$(tauS_shock_ss[t,s,n]) = tauS_shock[l1,t,s,n];
+ 815          solve m_GE_2018_B using CNS;
+ 816          sol_qS_shock[l1,t,s,n] = qS.l[t,s,n];
+ 817          sol_qD_shock[l1,t,s,n] = qD.l[t,s,n];
+ 818          sol_pD_shock[l1,t,s,n] = pD.l[t,s,n];
+ 819          sol_p_shock[l1,t,n] = p.l[t,n];
+ 820  );
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 6
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Include File Summary
+
+
+   SEQ   GLOBAL TYPE      PARENT   LOCAL  FILENAME
+
+     1        1 INPUT          0       0  C:\Users\sxj477\Documents\GitHub\CGE_Generator\work_folder\_gams_py_gjo1.gms
+     2      792 GDXIN          1      10  C:\Users\sxj477\Documents\GitHub\CGE_Generator\work_folder\grids.gdx
+     3      807 GDXIN          1      25  C:\Users\sxj477\Documents\GitHub\CGE_Generator\work_folder\grids.gdx
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 MB  38.1.0 a1a3b545 WEX-WEI
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 7
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 815
+
+
+LOOPS                                   l1   l1_1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.016 SECONDS      4 MB  38.1.0 a1a3b545 WEX-WEI
+               L O O P S                 l1 l1_1
+
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 8
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 815
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  815
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.000 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.004 seconds
+   of which: Function evaluations             0.000 =  0.0%
+             1st Derivative evaluations       0.000 =  0.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 9
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 815
+
+
+LOOPS                                   l1   l1_2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.000 SECONDS      4 MB  38.1.0 a1a3b545 WEX-WEI
+               L O O P S                 l1 l1_2
+
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 10
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 815
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  815
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.031 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.004 seconds
+   of which: Function evaluations             0.000 =  0.0%
+             1st Derivative evaluations       0.001 = 25.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 11
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 815
+
+
+LOOPS                                   l1   l1_3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.016 SECONDS      4 MB  38.1.0 a1a3b545 WEX-WEI
+               L O O P S                 l1 l1_3
+
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 12
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 815
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  815
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.015 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.005 seconds
+   of which: Function evaluations             0.000 =  0.0%
+             1st Derivative evaluations       0.000 =  0.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 13
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 815
+
+
+LOOPS                                   l1   l1_4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.000 SECONDS      4 MB  38.1.0 a1a3b545 WEX-WEI
+               L O O P S                 l1 l1_4
+
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 14
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 815
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  815
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.016 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.005 seconds
+   of which: Function evaluations             0.000 =  0.0%
+             1st Derivative evaluations       0.000 =  0.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 15
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 815
+
+
+LOOPS                                   l1   l1_5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.015 SECONDS      5 MB  38.1.0 a1a3b545 WEX-WEI
+               L O O P S                 l1 l1_5
+
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 16
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 815
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  815
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.016 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.004 seconds
+   of which: Function evaluations             0.000 =  0.0%
+             1st Derivative evaluations       0.001 = 25.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 17
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 815
+
+
+LOOPS                                   l1   l1_6
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.000 SECONDS      5 MB  38.1.0 a1a3b545 WEX-WEI
+               L O O P S                 l1 l1_6
+
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 18
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 815
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  815
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.016 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.005 seconds
+   of which: Function evaluations             0.000 =  0.0%
+             1st Derivative evaluations       0.001 = 20.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 19
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 815
+
+
+LOOPS                                   l1   l1_7
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.000 SECONDS      5 MB  38.1.0 a1a3b545 WEX-WEI
+               L O O P S                 l1 l1_7
+
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 20
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 815
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  815
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.000 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.005 seconds
+   of which: Function evaluations             0.002 = 40.0%
+             1st Derivative evaluations       0.001 = 20.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 21
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 815
+
+
+LOOPS                                   l1   l1_8
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.015 SECONDS      5 MB  38.1.0 a1a3b545 WEX-WEI
+               L O O P S                 l1 l1_8
+
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 22
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 815
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  815
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.015 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.006 seconds
+   of which: Function evaluations             0.001 = 16.7%
+             1st Derivative evaluations       0.000 =  0.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 23
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 815
+
+
+LOOPS                                   l1   l1_9
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.000 SECONDS      5 MB  38.1.0 a1a3b545 WEX-WEI
+               L O O P S                 l1 l1_9
+
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 24
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 815
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  815
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.015 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.004 seconds
+   of which: Function evaluations             0.000 =  0.0%
+             1st Derivative evaluations       0.000 =  0.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 25
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 815
+
+
+LOOPS                                   l1   l1_10
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.016 SECONDS      5 MB  38.1.0 a1a3b545 WEX-WEI
+               L O O P S                 l1 l1_10
+
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 26
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 815
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  815
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.016 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.004 seconds
+   of which: Function evaluations             0.002 = 50.0%
+             1st Derivative evaluations       0.000 =  0.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 27
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 815
+
+
+LOOPS                                   l1   l1_11
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.000 SECONDS      5 MB  38.1.0 a1a3b545 WEX-WEI
+               L O O P S                 l1 l1_11
+
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 28
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 815
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  815
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.015 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.005 seconds
+   of which: Function evaluations             0.000 =  0.0%
+             1st Derivative evaluations       0.001 = 20.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 29
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 815
+
+
+LOOPS                                   l1   l1_12
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.000 SECONDS      5 MB  38.1.0 a1a3b545 WEX-WEI
+               L O O P S                 l1 l1_12
+
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 30
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 815
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  815
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.000 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.005 seconds
+   of which: Function evaluations             0.001 = 20.0%
+             1st Derivative evaluations       0.001 = 20.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 31
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 815
+
+
+LOOPS                                   l1   l1_13
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.016 SECONDS      5 MB  38.1.0 a1a3b545 WEX-WEI
+               L O O P S                 l1 l1_13
+
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 32
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 815
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  815
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.016 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.005 seconds
+   of which: Function evaluations             0.002 = 40.0%
+             1st Derivative evaluations       0.000 =  0.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 33
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 815
+
+
+LOOPS                                   l1   l1_14
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.000 SECONDS      5 MB  38.1.0 a1a3b545 WEX-WEI
+               L O O P S                 l1 l1_14
+
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 34
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 815
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  815
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.000 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.005 seconds
+   of which: Function evaluations             0.000 =  0.0%
+             1st Derivative evaluations       0.000 =  0.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 35
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 815
+
+
+LOOPS                                   l1   l1_15
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.016 SECONDS      5 MB  38.1.0 a1a3b545 WEX-WEI
+               L O O P S                 l1 l1_15
+
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 36
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 815
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  815
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.016 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.005 seconds
+   of which: Function evaluations             0.001 = 20.0%
+             1st Derivative evaluations       0.001 = 20.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 37
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 815
+
+
+LOOPS                                   l1   l1_16
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.016 SECONDS      5 MB  38.1.0 a1a3b545 WEX-WEI
+               L O O P S                 l1 l1_16
+
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 38
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 815
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  815
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.016 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.005 seconds
+   of which: Function evaluations             0.000 =  0.0%
+             1st Derivative evaluations       0.001 = 20.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 39
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 815
+
+
+LOOPS                                   l1   l1_17
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.000 SECONDS      5 MB  38.1.0 a1a3b545 WEX-WEI
+               L O O P S                 l1 l1_17
+
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 40
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 815
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  815
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.015 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.005 seconds
+   of which: Function evaluations             0.001 = 20.0%
+             1st Derivative evaluations       0.001 = 20.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 41
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 815
+
+
+LOOPS                                   l1   l1_18
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.000 SECONDS      5 MB  38.1.0 a1a3b545 WEX-WEI
+               L O O P S                 l1 l1_18
+
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 42
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 815
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  815
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.015 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.005 seconds
+   of which: Function evaluations             0.001 = 20.0%
+             1st Derivative evaluations       0.000 =  0.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 43
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 815
+
+
+LOOPS                                   l1   l1_19
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.000 SECONDS      5 MB  38.1.0 a1a3b545 WEX-WEI
+               L O O P S                 l1 l1_19
+
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 44
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 815
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  815
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.015 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.005 seconds
+   of which: Function evaluations             0.001 = 20.0%
+             1st Derivative evaluations       0.000 =  0.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 45
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 815
+
+
+LOOPS                                   l1   l1_20
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.016 SECONDS      5 MB  38.1.0 a1a3b545 WEX-WEI
+               L O O P S                 l1 l1_20
+
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 46
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 815
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  815
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.016 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.005 seconds
+   of which: Function evaluations             0.000 =  0.0%
+             1st Derivative evaluations       0.001 = 20.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 47
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 815
+
+
+LOOPS                                   l1   l1_21
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.000 SECONDS      5 MB  38.1.0 a1a3b545 WEX-WEI
+               L O O P S                 l1 l1_21
+
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 48
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 815
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  815
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.000 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.005 seconds
+   of which: Function evaluations             0.000 =  0.0%
+             1st Derivative evaluations       0.001 = 20.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 49
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 815
+
+
+LOOPS                                   l1   l1_22
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.000 SECONDS      5 MB  38.1.0 a1a3b545 WEX-WEI
+               L O O P S                 l1 l1_22
+
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 50
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 815
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  815
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.016 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.006 seconds
+   of which: Function evaluations             0.001 = 16.7%
+             1st Derivative evaluations       0.001 = 16.7%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 51
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 815
+
+
+LOOPS                                   l1   l1_23
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.000 SECONDS      5 MB  38.1.0 a1a3b545 WEX-WEI
+               L O O P S                 l1 l1_23
+
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 52
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 815
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  815
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.000 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.005 seconds
+   of which: Function evaluations             0.000 =  0.0%
+             1st Derivative evaluations       0.001 = 20.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 53
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 815
+
+
+LOOPS                                   l1   l1_24
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.015 SECONDS      5 MB  38.1.0 a1a3b545 WEX-WEI
+               L O O P S                 l1 l1_24
+
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 54
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 815
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  815
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.015 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.004 seconds
+   of which: Function evaluations             0.000 =  0.0%
+             1st Derivative evaluations       0.000 =  0.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 55
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 815
+
+
+LOOPS                                   l1   l1_25
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.000 SECONDS      5 MB  38.1.0 a1a3b545 WEX-WEI
+               L O O P S                 l1 l1_25
+
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 56
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 815
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  815
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.015 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.005 seconds
+   of which: Function evaluations             0.001 = 20.0%
+             1st Derivative evaluations       0.001 = 20.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 57
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 815
+
+
+LOOPS                                   l1   l1_26
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.000 SECONDS      5 MB  38.1.0 a1a3b545 WEX-WEI
+               L O O P S                 l1 l1_26
+
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 58
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 815
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  815
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.015 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.005 seconds
+   of which: Function evaluations             0.000 =  0.0%
+             1st Derivative evaluations       0.001 = 20.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:19 Page 59
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+E x e c u t i o n
+
+
+EXECUTION TIME       =        1.891 SECONDS      5 MB  38.1.0 a1a3b545 WEX-WEI
+
+
+USER: Large MUD - 20 User License                    G211207|0002CA-WIN
+      DREAM, Danish Rational Economic Agents Model                DC620
+
+
+**** FILE SUMMARY
+
+Restart    C:\Users\sxj477\Documents\GitHub\CGE_Generator\work_folder\_gams_py_gcp0.g00
+Input      C:\Users\sxj477\Documents\GitHub\CGE_Generator\work_folder\_gams_py_gjo1.gms
+Output     C:\Users\sxj477\Documents\GitHub\CGE_Generator\work_folder\_gams_py_gjo1.lst
+Save       C:\Users\sxj477\Documents\GitHub\CGE_Generator\work_folder\_gams_py_gcp1.g00
+
+**** WARNING - COMPILER OPTIONS ARE NON DEFAULT     ONEMPTY
+     EOLCOM # 

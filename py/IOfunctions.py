@@ -52,9 +52,9 @@ class readIO:
 				   'i': read.simpleLoad(file_i),
 				   'k': read.simpleLoad(file_k)}
 		self.IO = {'v': pd.DataFrame(self.wb['v']['IO'].values),
-				   'i': {k: pd.DataFrame(self.wb['i'][k].values) for k in read.sheetnames_from_wb(self.wb['i']) if not k.startswith('told')},
-				   'k': pd.DataFrame(self.wb['k']['K'].values),
-				   'depr': pd.DataFrame(self.wb['k']['Depr'].values)}
+				   'i': {k: pd.DataFrame(self.wb['i'][k].values) for k in read.sheetnames_from_wb(self.wb['i']) if not k.startswith(('told','customs'))},
+				   'k': pd.DataFrame(self.wb['k']['K'].values) if file_k else None,
+				   'depr': pd.DataFrame(self.wb['k']['Depr'].values) if file_k else None}
 		self.locs = {}
 		self.blocks = {}
 		self.s = {}

@@ -48,6 +48,7 @@ $BLOCK B_{name}
 $ENDBLOCK
 """
 
+
 # 1.2: Scale-preserving nests:
 def Fnorm_input(ftype,name,m,inclusiveVal = False):
 	return f"""

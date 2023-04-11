@@ -1,0 +1,867 @@
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:18 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   3  ;
+   4  OPTION SYSOUT=OFF, SOLPRINT=OFF, LIMROW=0, LIMCOL=0, DECIMALS=6;
+   5   
+   6   
+   7  # ----------------------------------------------------------------------------------------------------
+   8  #  Define function: SolveEmptyNLP
+   9  # ----------------------------------------------------------------------------------------------------
+  10   
+  11  sets
+  12          alias_set
+  13          alias_map2
+  14          t
+  15          n
+  16          s
+  17          taxTypes
+  18  ;
+  19   
+  20  alias(n,nn,nnn);
+  21  alias(s,ss);
+  22   
+  23  sets
+  24          alias_[alias_set,alias_map2]
+  25          t0[t]
+  26          tE[t]
+  27          t2E[t]
+  28          tx0[t]
+  29          txE[t]
+  30          tx2E[t]
+  31          tx0E[t]
+  32          tx02E[t]
+  33          map_m_G[s,n,nn]
+  34          map_spinp_m_G[s,n,nn]
+  35          map_spout_m_G[s,n,nn]
+  36          knout_m_G[s,n]
+  37          kninp_m_G[s,n]
+  38          spout_m_G[s,n]
+  39          spinp_m_G[s,n]
+  40          input_m_G[s,n]
+  41          output_m_G[s,n]
+  42          int_m_G[s,n]
+  43          map_m_G_ces[s,n,nn]
+  44          knot_m_G_ces[s,n]
+  45          branch_m_G_ces[s,n]
+  46          knot_o_m_G_ces[s,n]
+  47          knot_no_m_G_ces[s,n]
+  48          branch2o_m_G_ces[s,n]
+  49          branch2no_m_G_ces[s,n]
+  50          endo_mu_m_G[s,n,nn]
+  51          input_n_m_G[n]
+  52          s_m_G[s]
+  53          labor[s,n]
+  54          d_TotalTax[s]
+  55          map_m_HH[s,n,nn]
+  56          map_spinp_m_HH[s,n,nn]
+  57          map_spout_m_HH[s,n,nn]
+  58          knout_m_HH[s,n]
+  59          kninp_m_HH[s,n]
+  60          spout_m_HH[s,n]
+  61          spinp_m_HH[s,n]
+  62          input_m_HH[s,n]
+  63          output_m_HH[s,n]
+  64          int_m_HH[s,n]
+  65          map_m_HH_ces[s,n,nn]
+  66          knot_m_HH_ces[s,n]
+  67          branch_m_HH_ces[s,n]
+  68          knot_o_m_HH_ces[s,n]
+  69          knot_no_m_HH_ces[s,n]
+  70          branch2o_m_HH_ces[s,n]
+  71          branch2no_m_HH_ces[s,n]
+  72          endo_mu_m_HH[s,n,nn]
+  73          L2C_m_HH[s,n,nn]
+  74          labor_m_HH[s,n]
+  75          output_n_m_HH[n]
+  76          input_n_m_HH[n]
+  77          s_m_HH[s]
+  78          s_p[s]
+  79          n_p[n]
+  80          n_F[n]
+  81          s_HH[s]
+  82          s_G[s]
+  83          s_i[s]
+  84          s_f[s]
+  85          dur2inv[s,n,nn]
+  86          dur_p[s,n]
+  87          inv_p[s,n]
+  88          nEqui[n]
+  89          d_qS[s,n]
+  90          d_qD[s,n]
+  91          d_qSEqui[s,n]
+  92          d_pEqui[n]
+  93          dom2for[n,nn]
+  94          dExport[s,n]
+  95          dImport[s,n,nn]
+  96          dImport_dom[s,n]
+  97          dImport_for[s,n]
+  98          nestProduction[s,n,nn]
+  99          nestInvestment[s,n,nn]
+ 100          nestHH[s,n,nn]
+ 101          L2C[s,n,nn]
+ 102          nestG[s,n,nn]
+ 103          s_itory[s]
+ 104          d_itory[s,n]
+ 105          map_m_I[s,n,nn]
+ 106          map_spinp_m_I[s,n,nn]
+ 107          map_spout_m_I[s,n,nn]
+ 108          knout_m_I[s,n]
+ 109          kninp_m_I[s,n]
+ 110          spout_m_I[s,n]
+ 111          spinp_m_I[s,n]
+ 112          input_m_I[s,n]
+ 113          output_m_I[s,n]
+ 114          int_m_I[s,n]
+ 115          map_m_I_ces[s,n,nn]
+ 116          knot_m_I_ces[s,n]
+ 117          branch_m_I_ces[s,n]
+ 118          knot_o_m_I_ces[s,n]
+ 119          knot_no_m_I_ces[s,n]
+ 120          branch2o_m_I_ces[s,n]
+ 121          branch2no_m_I_ces[s,n]
+ 122          exomu_m_I[s,n,nn]
+ 123          endo_qD_m_I[s,n]
+ 124          endo_qS_m_I[s,n]
+ 125          endo_pS_m_I[s,n]
+ 126          dur_m_I[s,n]
+ 127          inv_m_I[s,n]
+ 128          input_n[n]
+ 129          output_n_m_I[n]
+ 130          input_n_m_I[n]
+ 131          s_m_I[s]
+ 132          map_m_P[s,n,nn]
+ 133          map_spinp_m_P[s,n,nn]
+ 134          map_spout_m_P[s,n,nn]
+ 135          knout_m_P[s,n]
+ 136          kninp_m_P[s,n]
+ 137          spout_m_P[s,n]
+ 138          spinp_m_P[s,n]
+ 139          input_m_P[s,n]
+ 140          output_m_P[s,n]
+ 141          int_m_P[s,n]
+ 142          map_m_P_ces[s,n,nn]
+ 143          knot_m_P_ces[s,n]
+ 144          branch_m_P_ces[s,n]
+ 145          knot_o_m_P_ces[s,n]
+ 146          knot_no_m_P_ces[s,n]
+ 147          branch2o_m_P_ces[s,n]
+ 148          branch2no_m_P_ces[s,n]
+ 149          endo_mu_m_P[s,n,nn]
+ 150          endo_qD_m_P[s,n]
+ 151          dur_m_P[s,n]
+ 152          inv_m_P[s,n]
+ 153          output_n_m_P[n]
+ 154          input_n_m_P[n]
+ 155          s_m_P[s]
+ 156          dExport_m_Trade[s,n]
+ 157          nOut_m_Trade[n]
+ 158          s_m_Trade[s]
+ 159  ;
+GDXIN   C:\Users\sxj477\Documents\GitHub\CGE_Generator\work_folder\rname.gdx
+--- LOAD  alias_set = 2:alias_set
+--- LOAD  alias_map2 = 3:alias_map2
+--- LOAD  t = 4:t
+--- LOAD  n = 16:n
+--- LOAD  s = 17:s
+--- LOAD  taxTypes = 85:taxTypes
+--- LOAD  alias_ = 1:alias_
+--- LOAD  t0 = 5:t0
+--- LOAD  tE = 6:tE
+--- LOAD  t2E = 7:t2E
+--- LOAD  tx0 = 8:tx0
+--- LOAD  txE = 9:txE
+--- LOAD  tx2E = 10:tx2E
+--- LOAD  tx0E = 11:tx0E
+--- LOAD  tx02E = 12:tx02E
+--- LOAD  map_m_G = 18:map_m_G
+--- LOAD  map_spinp_m_G = 19:map_spinp_m_G
+--- LOAD  map_spout_m_G = 20:map_spout_m_G
+--- LOAD  knout_m_G = 21:knout_m_G
+--- LOAD  kninp_m_G = 22:kninp_m_G
+--- LOAD  spout_m_G = 23:spout_m_G
+--- LOAD  spinp_m_G = 24:spinp_m_G
+--- LOAD  input_m_G = 25:input_m_G
+--- LOAD  output_m_G = 26:output_m_G
+--- LOAD  int_m_G = 27:int_m_G
+--- LOAD  map_m_G_ces = 28:map_m_G_ces
+--- LOAD  knot_m_G_ces = 29:knot_m_G_ces
+--- LOAD  branch_m_G_ces = 30:branch_m_G_ces
+--- LOAD  knot_o_m_G_ces = 31:knot_o_m_G_ces
+--- LOAD  knot_no_m_G_ces = 32:knot_no_m_G_ces
+--- LOAD  branch2o_m_G_ces = 33:branch2o_m_G_ces
+--- LOAD  branch2no_m_G_ces = 34:branch2no_m_G_ces
+--- LOAD  endo_mu_m_G = 35:endo_mu_m_G
+--- LOAD  input_n_m_G = 36:input_n_m_G
+--- LOAD  s_m_G = 37:s_m_G
+--- LOAD  labor = 38:labor
+--- LOAD  d_TotalTax = 39:d_TotalTax
+--- LOAD  map_m_HH = 53:map_m_HH
+--- LOAD  map_spinp_m_HH = 54:map_spinp_m_HH
+--- LOAD  map_spout_m_HH = 55:map_spout_m_HH
+--- LOAD  knout_m_HH = 56:knout_m_HH
+--- LOAD  kninp_m_HH = 57:kninp_m_HH
+--- LOAD  spout_m_HH = 58:spout_m_HH
+--- LOAD  spinp_m_HH = 59:spinp_m_HH
+--- LOAD  input_m_HH = 60:input_m_HH
+--- LOAD  output_m_HH = 61:output_m_HH
+--- LOAD  int_m_HH = 62:int_m_HH
+--- LOAD  map_m_HH_ces = 63:map_m_HH_ces
+--- LOAD  knot_m_HH_ces = 64:knot_m_HH_ces
+--- LOAD  branch_m_HH_ces = 65:branch_m_HH_ces
+--- LOAD  knot_o_m_HH_ces = 66:knot_o_m_HH_ces
+--- LOAD  knot_no_m_HH_ces = 67:knot_no_m_HH_ces
+--- LOAD  branch2o_m_HH_ces = 68:branch2o_m_HH_ces
+--- LOAD  branch2no_m_HH_ces = 69:branch2no_m_HH_ces
+--- LOAD  endo_mu_m_HH = 70:endo_mu_m_HH
+--- LOAD  L2C_m_HH = 71:L2C_m_HH
+--- LOAD  labor_m_HH = 72:labor_m_HH
+--- LOAD  output_n_m_HH = 73:output_n_m_HH
+--- LOAD  input_n_m_HH = 74:input_n_m_HH
+--- LOAD  s_m_HH = 75:s_m_HH
+--- LOAD  s_p = 86:s_p
+--- LOAD  n_p = 87:n_p
+--- LOAD  n_F = 88:n_F
+--- LOAD  s_HH = 89:s_HH
+--- LOAD  s_G = 90:s_G
+--- LOAD  s_i = 91:s_i
+--- LOAD  s_f = 92:s_f
+--- LOAD  dur2inv = 93:dur2inv
+--- LOAD  dur_p = 94:dur_p
+--- LOAD  inv_p = 95:inv_p
+--- LOAD  nEqui = 96:nEqui
+--- LOAD  d_qS = 97:d_qS
+--- LOAD  d_qD = 98:d_qD
+--- LOAD  d_qSEqui = 99:d_qSEqui
+--- LOAD  d_pEqui = 100:d_pEqui
+--- LOAD  dom2for = 101:dom2for
+--- LOAD  dExport = 102:dExport
+--- LOAD  dImport = 103:dImport
+--- LOAD  dImport_dom = 104:dImport_dom
+--- LOAD  dImport_for = 105:dImport_for
+--- LOAD  nestProduction = 106:nestProduction
+--- LOAD  nestInvestment = 107:nestInvestment
+--- LOAD  nestHH = 108:nestHH
+--- LOAD  L2C = 109:L2C
+--- LOAD  nestG = 110:nestG
+--- LOAD  s_itory = 111:s_itory
+--- LOAD  d_itory = 112:d_itory
+--- LOAD  map_m_I = 122:map_m_I
+--- LOAD  map_spinp_m_I = 123:map_spinp_m_I
+--- LOAD  map_spout_m_I = 124:map_spout_m_I
+--- LOAD  knout_m_I = 125:knout_m_I
+--- LOAD  kninp_m_I = 126:kninp_m_I
+--- LOAD  spout_m_I = 127:spout_m_I
+--- LOAD  spinp_m_I = 128:spinp_m_I
+--- LOAD  input_m_I = 129:input_m_I
+--- LOAD  output_m_I = 130:output_m_I
+--- LOAD  int_m_I = 131:int_m_I
+--- LOAD  map_m_I_ces = 132:map_m_I_ces
+--- LOAD  knot_m_I_ces = 133:knot_m_I_ces
+--- LOAD  branch_m_I_ces = 134:branch_m_I_ces
+--- LOAD  knot_o_m_I_ces = 135:knot_o_m_I_ces
+--- LOAD  knot_no_m_I_ces = 136:knot_no_m_I_ces
+--- LOAD  branch2o_m_I_ces = 137:branch2o_m_I_ces
+--- LOAD  branch2no_m_I_ces = 138:branch2no_m_I_ces
+--- LOAD  exomu_m_I = 139:exomu_m_I
+--- LOAD  endo_qD_m_I = 140:endo_qD_m_I
+--- LOAD  endo_qS_m_I = 141:endo_qS_m_I
+--- LOAD  endo_pS_m_I = 142:endo_pS_m_I
+--- LOAD  dur_m_I = 143:dur_m_I
+--- LOAD  inv_m_I = 144:inv_m_I
+--- LOAD  input_n = 145:input_n
+--- LOAD  output_n_m_I = 146:output_n_m_I
+--- LOAD  input_n_m_I = 147:input_n_m_I
+--- LOAD  s_m_I = 148:s_m_I
+--- LOAD  map_m_P = 158:map_m_P
+--- LOAD  map_spinp_m_P = 159:map_spinp_m_P
+--- LOAD  map_spout_m_P = 160:map_spout_m_P
+--- LOAD  knout_m_P = 161:knout_m_P
+--- LOAD  kninp_m_P = 162:kninp_m_P
+--- LOAD  spout_m_P = 163:spout_m_P
+--- LOAD  spinp_m_P = 164:spinp_m_P
+--- LOAD  input_m_P = 165:input_m_P
+--- LOAD  output_m_P = 166:output_m_P
+--- LOAD  int_m_P = 167:int_m_P
+--- LOAD  map_m_P_ces = 168:map_m_P_ces
+--- LOAD  knot_m_P_ces = 169:knot_m_P_ces
+--- LOAD  branch_m_P_ces = 170:branch_m_P_ces
+--- LOAD  knot_o_m_P_ces = 171:knot_o_m_P_ces
+--- LOAD  knot_no_m_P_ces = 172:knot_no_m_P_ces
+--- LOAD  branch2o_m_P_ces = 173:branch2o_m_P_ces
+--- LOAD  branch2no_m_P_ces = 174:branch2no_m_P_ces
+--- LOAD  endo_mu_m_P = 175:endo_mu_m_P
+--- LOAD  endo_qD_m_P = 176:endo_qD_m_P
+--- LOAD  dur_m_P = 177:dur_m_P
+--- LOAD  inv_m_P = 178:inv_m_P
+--- LOAD  output_n_m_P = 179:output_n_m_P
+--- LOAD  input_n_m_P = 180:input_n_m_P
+--- LOAD  s_m_P = 181:s_m_P
+--- LOAD  dExport_m_Trade = 182:dExport_m_Trade
+--- LOAD  nOut_m_Trade = 183:nOut_m_Trade
+--- LOAD  s_m_Trade = 184:s_m_Trade
+ 305   
+ 306  parameters
+ 307          R_LR
+ 308          g_LR
+ 309          infl_LR
+ 310          qnorm_inp[t,s,n]
+ 311          qnorm_out[t,s,n]
+ 312          inventoryAR[s,n]
+ 313  ;
+GDXIN   C:\Users\sxj477\Documents\GitHub\CGE_Generator\work_folder\rname.gdx
+--- LOAD  R_LR = 13:R_LR
+--- LOAD  g_LR = 14:g_LR
+--- LOAD  infl_LR = 15:infl_LR
+--- LOAD  qnorm_inp = 40:qnorm_inp
+--- LOAD  qnorm_out = 76:qnorm_out
+--- LOAD  inventoryAR = 113:inventoryAR
+ 324   
+ 325  variables
+ 326          pD[t,s,n]
+ 327          qD[t,s,n]
+ 328          qiv_inp[t,s,n]
+ 329          TotalTax[t,s]
+ 330          tauS[t,s,n]
+ 331          sigma[s,n]
+ 332          mu[s,n,nn]
+ 333          tauD0[t,s,n]
+ 334          p[t,n]
+ 335          tauG_calib
+ 336          tauD[t,s,n]
+ 337          jTerm[s]
+ 338          qS[t,s,n]
+ 339          qiv_out[t,s,n]
+ 340          pS[t,s,n]
+ 341          eta[s,n]
+ 342          frisch[s,n]
+ 343          crra[s,n]
+ 344          tauLump[t,s]
+ 345          Lscale[s,n]
+ 346          vTax[t,s,taxTypes]
+ 347          vD[t,s,n]
+ 348          vD_dur[t,s,n]
+ 349          vD_inv[t,s,n]
+ 350          vD_depr[t,s,n]
+ 351          rDepr[t,s,n]
+ 352          vS[t,s,n]
+ 353          pD_dur[t,s,n]
+ 354          outShare[t,s,n]
+ 355          ic[t,s]
+ 356          markup[s]
+ 357          Rrate[t]
+ 358          icpar[s,n]
+ 359          K_tvc[s,n]
+ 360          Fscale[s,n]
+ 361  ;
+GDXIN   C:\Users\sxj477\Documents\GitHub\CGE_Generator\work_folder\rname.gdx
+--- LOAD  pD = 41:pD
+--- LOAD  qD = 42:qD
+--- LOAD  qiv_inp = 43:qiv_inp
+--- LOAD  TotalTax = 44:TotalTax
+--- LOAD  tauS = 45:tauS
+--- LOAD  sigma = 46:sigma
+--- LOAD  mu = 47:mu
+--- LOAD  tauD0 = 48:tauD0
+--- LOAD  p = 49:p
+--- LOAD  tauG_calib = 50:tauG_calib
+--- LOAD  tauD = 51:tauD
+--- LOAD  jTerm = 52:jTerm
+--- LOAD  qS = 77:qS
+--- LOAD  qiv_out = 78:qiv_out
+--- LOAD  pS = 79:pS
+--- LOAD  eta = 80:eta
+--- LOAD  frisch = 81:frisch
+--- LOAD  crra = 82:crra
+--- LOAD  tauLump = 83:tauLump
+--- LOAD  Lscale = 84:Lscale
+--- LOAD  vTax = 114:vTax
+--- LOAD  vD = 115:vD
+--- LOAD  vD_dur = 116:vD_dur
+--- LOAD  vD_inv = 117:vD_inv
+--- LOAD  vD_depr = 118:vD_depr
+--- LOAD  rDepr = 119:rDepr
+--- LOAD  vS = 120:vS
+--- LOAD  pD_dur = 121:pD_dur
+--- LOAD  outShare = 152:outShare
+--- LOAD  ic = 153:ic
+--- LOAD  markup = 154:markup
+--- LOAD  Rrate = 155:Rrate
+--- LOAD  icpar = 156:icpar
+--- LOAD  K_tvc = 157:K_tvc
+--- LOAD  Fscale = 185:Fscale
+ 401   
+ 402   
+ 403   
+ 404   
+ 405  # ----------------------------------------------B_m_G_ces---------------------------------------------
+ 406  #  Initialize B_m_G_ces equation block
+ 407  # ----------------------------------------------------------------------------------------------------
+ 408  EQUATION E_zp_m_G_ces[t,s,n];
+ 409  E_zp_m_G_ces[t,s,n]$(knot_m_g_ces[s,n] and txe[t])..    pD[t,s,n]*qD[t,s,n]  =E=  sum(nn$(map_m_G_ces[s,n,nn]), qD[t,s,nn]*pD[t,s,nn]);
+ 410  EQUATION E_q_m_G_ces[t,s,n];
+ 411  E_q_m_G_ces[t,s,n]$(branch_m_g_ces[s,n] and txe[t])..   qD[t,s,n]  =E=  sum(nn$(map_m_G_ces[s,nn,n]), mu[s,nn,n] * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn]);
+ 412   
+ 413  # ----------------------------------------------------------------------------------------------------
+ 414  #  Define B_m_G_ces model
+ 415  # ----------------------------------------------------------------------------------------------------
+ 416  Model B_m_G_ces /
+ 417  E_zp_m_G_ces, E_q_m_G_ces
+ 418  /;
+ 419   
+ 420   
+ 421   
+ 422   
+ 423  # ----------------------------------------------B_m_G_BSA---------------------------------------------
+ 424  #  Initialize B_m_G_BSA equation block
+ 425  # ----------------------------------------------------------------------------------------------------
+ 426  EQUATION E_pw_m_G_BSA[t,s,n];
+ 427  E_pw_m_G_BSA[t,s,n]$(input_m_g[s,n] and txe[t])..               pD[t,s,n]  =E=  p[t,n]+tauD[t,s,n];
+ 428  EQUATION E_taxRev_m_G_BSA[t,s];
+ 429  E_taxRev_m_G_BSA[t,s]$(s_m_g[s] and txe[t])..   TotalTax[t,s]  =E=  sum(n$(input_m_G[s,n]), tauD[t,s,n] * qD[t,s,n]);
+ 430   
+ 431  # ----------------------------------------------------------------------------------------------------
+ 432  #  Define B_m_G_BSA model
+ 433  # ----------------------------------------------------------------------------------------------------
+ 434  Model B_m_G_BSA /
+ 435  E_pw_m_G_BSA, E_taxRev_m_G_BSA
+ 436  /;
+ 437   
+ 438   
+ 439   
+ 440   
+ 441  # ----------------------------------------------B_m_G_CSA---------------------------------------------
+ 442  #  Initialize B_m_G_CSA equation block
+ 443  # ----------------------------------------------------------------------------------------------------
+ 444  EQUATION E_ctaxRev_m_G_CSA[t,s,n];
+ 445  E_ctaxRev_m_G_CSA[t,s,n]$(input_m_g[s,n] and txe[t])..  tauD[t,s,n]  =E=  tauD0[t,s,n]*tauG_calib;
+ 446   
+ 447  # ----------------------------------------------------------------------------------------------------
+ 448  #  Define B_m_G_CSA model
+ 449  # ----------------------------------------------------------------------------------------------------
+ 450  Model B_m_G_CSA /
+ 451  E_ctaxRev_m_G_CSA
+ 452  /;
+ 453   
+ 454   
+ 455   
+ 456   
+ 457  # ----------------------------------------------B_m_G_bb----------------------------------------------
+ 458  #  Initialize B_m_G_bb equation block
+ 459  # ----------------------------------------------------------------------------------------------------
+ 460  EQUATION E_bb_m_G_bb[t,s];
+ 461  E_bb_m_G_bb[t,s]$(s_m_g[s] and txe[t])..        jTerm[s]  =E=  sum(ss$(d_TotalTax[ss]), TotalTax[t,ss])-sum(n$(input_m_G[s,n]), pD[t,s,n]*qD[t,s,n]);
+ 462   
+ 463  # ----------------------------------------------------------------------------------------------------
+ 464  #  Define B_m_G_bb model
+ 465  # ----------------------------------------------------------------------------------------------------
+ 466  Model B_m_G_bb /
+ 467  E_bb_m_G_bb
+ 468  /;
+ 469   
+ 470   
+ 471   
+ 472   
+ 473  # ---------------------------------------------B_m_HH_ces---------------------------------------------
+ 474  #  Initialize B_m_HH_ces equation block
+ 475  # ----------------------------------------------------------------------------------------------------
+ 476  EQUATION E_zp_m_HH_ces[t,s,n];
+ 477  E_zp_m_HH_ces[t,s,n]$(knot_m_hh_ces[s,n] and txe[t])..  pD[t,s,n]*qD[t,s,n]  =E=  sum(nn$(map_m_HH_ces[s,n,nn]), qD[t,s,nn]*pD[t,s,nn]);
+ 478  EQUATION E_q_m_HH_ces[t,s,n];
+ 479  E_q_m_HH_ces[t,s,n]$(branch_m_hh_ces[s,n] and txe[t])..         qD[t,s,n]  =E=  sum(nn$(map_m_HH_ces[s,nn,n]), mu[s,nn,n] * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn]);
+ 480   
+ 481  # ----------------------------------------------------------------------------------------------------
+ 482  #  Define B_m_HH_ces model
+ 483  # ----------------------------------------------------------------------------------------------------
+ 484  Model B_m_HH_ces /
+ 485  E_zp_m_HH_ces, E_q_m_HH_ces
+ 486  /;
+ 487   
+ 488   
+ 489   
+ 490   
+ 491  # --------------------------------------------B_m_HH_labor--------------------------------------------
+ 492  #  Initialize B_m_HH_labor equation block
+ 493  # ----------------------------------------------------------------------------------------------------
+ 494  EQUATION E_labor_m_HH_labor[t,s,n];
+ 495  E_labor_m_HH_labor[t,s,n]$(labor_m_hh[s,n] and txe[t])..        qS[t,s,n]        =E=    Lscale[s,n] * ( sum(nn$(L2C_m_HH[s,n,nn]), pS[t,s,n]/(pD[t,s,nn]*(qD[t,s,nn]**(crra[s,nn]))))**(frisch[s,n]));
+ 496   
+ 497  # ----------------------------------------------------------------------------------------------------
+ 498  #  Define B_m_HH_labor model
+ 499  # ----------------------------------------------------------------------------------------------------
+ 500  Model B_m_HH_labor /
+ 501  E_labor_m_HH_labor
+ 502  /;
+ 503   
+ 504   
+ 505   
+ 506   
+ 507  # ----------------------------------------------B_m_HH_pw---------------------------------------------
+ 508  #  Initialize B_m_HH_pw equation block
+ 509  # ----------------------------------------------------------------------------------------------------
+ 510  EQUATION E_pwOut_m_HH_pw[t,s,n];
+ 511  E_pwOut_m_HH_pw[t,s,n]$(labor_m_hh[s,n] and txe[t])..   pS[t,s,n]                =E=  p[t,n]-tauS[t,s,n];
+ 512  EQUATION E_pwInp_m_HH_pw[t,s,n];
+ 513  E_pwInp_m_HH_pw[t,s,n]$(input_m_hh[s,n] and txe[t])..   pD[t,s,n]                =E=  p[t,n]+tauD[t,s,n];
+ 514  EQUATION E_TaxRev_m_HH_pw[t,s];
+ 515  E_TaxRev_m_HH_pw[t,s]$(s_m_hh[s] and txe[t])..          TotalTax[t,s]    =E=  tauLump[t,s]+sum(n$(input_m_HH[s,n]), tauD[t,s,n] * qD[t,s,n])+sum(n$(labor_m_HH[s,n]), tauS[t,s,n]*qS[t,s,n]);
+ 516  EQUATION E_sp_m_HH_pw[t,s];
+ 517  E_sp_m_HH_pw[t,s]$(s_m_hh[s] and txe[t])..                      jTerm[s]                 =E=  sum(n$(labor_m_HH[s,n]), pS[t,s,n]*qS[t,s,n]) - sum(n$(input_m_HH[s,n]), pD[t,s,n]*qD[t,s,n])-tauLump[t,s];
+ 518   
+ 519  # ----------------------------------------------------------------------------------------------------
+ 520  #  Define B_m_HH_pw model
+ 521  # ----------------------------------------------------------------------------------------------------
+ 522  Model B_m_HH_pw /
+ 523  E_pwOut_m_HH_pw, E_pwInp_m_HH_pw, E_TaxRev_m_HH_pw, E_sp_m_HH_pw
+ 524  /;
+ 525   
+ 526   
+ 527   
+ 528   
+ 529  # ----------------------------------------------B_m_itory---------------------------------------------
+ 530  #  Initialize B_m_itory equation block
+ 531  # ----------------------------------------------------------------------------------------------------
+ 532  EQUATION E_m_itory[t,s,n];
+ 533  E_m_itory[t,s,n]$(d_itory[s,n] and tx0e[t])..   qD[t,s,n]  =E=  inventoryAR[s,n] * qD[t-1,s,n];
+ 534   
+ 535  # ----------------------------------------------------------------------------------------------------
+ 536  #  Define B_m_itory model
+ 537  # ----------------------------------------------------------------------------------------------------
+ 538  Model B_m_itory /
+ 539  E_m_itory
+ 540  /;
+ 541   
+ 542   
+ 543   
+ 544   
+ 545  # ----------------------------------------------B_m_I_ces---------------------------------------------
+ 546  #  Initialize B_m_I_ces equation block
+ 547  # ----------------------------------------------------------------------------------------------------
+ 548  EQUATION E_zp_out_m_I_ces[t,s,n];
+ 549  E_zp_out_m_I_ces[t,s,n]$(knot_o_m_i_ces[s,n] and txe[t])..      pS[t,s,n]*qS[t,s,n]  =E=  sum(nn$(map_m_I_ces[s,n,nn]), qD[t,s,nn]*pD[t,s,nn]);
+ 550  EQUATION E_zp_nout_m_I_ces[t,s,n];
+ 551  E_zp_nout_m_I_ces[t,s,n]$(knot_no_m_i_ces[s,n] and txe[t])..    pD[t,s,n]*qD[t,s,n]  =E=  sum(nn$(map_m_I_ces[s,n,nn]), qD[t,s,nn]*pD[t,s,nn]);
+ 552  EQUATION E_q_out_m_I_ces[t,s,n];
+ 553  E_q_out_m_I_ces[t,s,n]$(branch2o_m_i_ces[s,n] and txe[t])..     qD[t,s,n]  =E=  sum(nn$(map_m_I_ces[s,nn,n]), mu[s,nn,n] * (pS[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qS[t,s,nn]);
+ 554  EQUATION E_q_nout_m_I_ces[t,s,n];
+ 555  E_q_nout_m_I_ces[t,s,n]$(branch2no_m_i_ces[s,n] and txe[t])..   qD[t,s,n]  =E=  sum(nn$(map_m_I_ces[s,nn,n]), mu[s,nn,n] * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn]);
+ 556   
+ 557  # ----------------------------------------------------------------------------------------------------
+ 558  #  Define B_m_I_ces model
+ 559  # ----------------------------------------------------------------------------------------------------
+ 560  Model B_m_I_ces /
+ 561  E_zp_out_m_I_ces, E_zp_nout_m_I_ces, E_q_out_m_I_ces, E_q_nout_m_I_ces
+ 562  /;
+ 563   
+ 564   
+ 565   
+ 566   
+ 567  # ----------------------------------------------B_m_I_IC----------------------------------------------
+ 568  #  Initialize B_m_I_IC equation block
+ 569  # ----------------------------------------------------------------------------------------------------
+ 570  EQUATION E_lom_m_I_IC[t,s,n];
+ 571  E_lom_m_I_IC[t,s,n]$(dur_m_i[s,n] and txe[t])..                 qD[t+1,s,n]      =E=  (qD[t,s,n]*(1-rDepr[t,s,n])+sum(nn$(dur2inv[s,n,nn]), qD[t,s,nn]))/(1+g_LR);
+ 572  EQUATION E_pk_m_I_IC[t,s,n];
+ 573  E_pk_m_I_IC[t,s,n]$(dur_m_i[s,n] and tx02e[t])..        pD[t,s,n]        =E=  sqrt(sqr(sum(nn$(dur2inv[s,n,nn]), Rrate[t]*pD[t-1,s,nn]*(1+icpar[s,n]*(qD[t-1,s,nn]/qD[t-1,s,n]-(rDepr[t-1,s,n]+g_LR)))/(1+infl_LR)+pD[t,s,nn]*(icpar[s,n]*0.5*(sqr(rDepr[t,s,n]+g_LR)-sqr(qD[t,s,nn]/qD[t,s,n]))-(1-rDepr[t,s,n])*(1+icpar[s,n]*(qD[t,s,nn]/qD[t,s,n]-(rDepr[t,s,n]+g_LR)))))));
+ 574  EQUATION E_pkT_m_I_IC[t,s,n];
+ 575  E_pkT_m_I_IC[t,s,n]$(dur_m_i[s,n] and t2e[t])..                 pD[t,s,n]        =E=  sum(nn$(dur2inv[s,n,nn]), Rrate[t]*pD[t-1,s,nn] * (1+icpar[s,n]*(qD[t-1,s,nn]/qD[t-1,s,n]-(rDepr[t-1,s,n]+g_LR)))/(1+infl_LR) + (rDepr[t,s,n]-1)*pD[t,s,nn]);
+ 576  EQUATION E_Ktvc_m_I_IC[t,s,n];
+ 577  E_Ktvc_m_I_IC[t,s,n]$(dur_m_i[s,n] and te[t])..                 qD[t,s,n]        =E=  (1+K_tvc[s,n])*qD[t-1,s,n];
+ 578  EQUATION E_instcost_m_I_IC[t,s];
+ 579  E_instcost_m_I_IC[t,s]$(s_m_i[s] and txe[t])..          ic[t,s]          =E=  sum([n,nn]$(dur2inv[s,n,nn]), pD[t,s,nn] * icpar[s,n]*0.5*qD[t,s,n]*sqr(qD[t,s,nn]/qD[t,s,n]-(rDepr[t,s,n]+g_LR)));
+ 580   
+ 581  # ----------------------------------------------------------------------------------------------------
+ 582  #  Define B_m_I_IC model
+ 583  # ----------------------------------------------------------------------------------------------------
+ 584  Model B_m_I_IC /
+ 585  E_lom_m_I_IC, E_pk_m_I_IC, E_pkT_m_I_IC, E_Ktvc_m_I_IC, E_instcost_m_I_IC
+ 586  /;
+ 587   
+ 588   
+ 589   
+ 590   
+ 591  # --------------------------------------------B_m_I_pWedge--------------------------------------------
+ 592  #  Initialize B_m_I_pWedge equation block
+ 593  # ----------------------------------------------------------------------------------------------------
+ 594  EQUATION E_pwInp_m_I_pWedge[t,s,n];
+ 595  E_pwInp_m_I_pWedge[t,s,n]$(input_m_i[s,n] and txe[t])..                         pD[t,s,n]                =E=  p[t,n]+tauD[t,s,n];
+ 596  EQUATION E_pwOut_m_I_pWedge[t,s,n];
+ 597  E_pwOut_m_I_pWedge[t,s,n]$(output_m_i[s,n] and txe[t])..                p[t,n]                   =E=  (1+markup[s])*(pS[t,s,n]+tauS[t,s,n]+(outShare[t,s,n]/qS[t,s,n])*(ic[t,s]+tauLump[t,s]));
+ 598  EQUATION E_outShare_m_I_pWedge[t,s,n];
+ 599  E_outShare_m_I_pWedge[t,s,n]$(output_m_i[s,n] and txe[t])..             outShare[t,s,n]  =E=  qS[t,s,n]*pS[t,s,n]/(sum(nn$(output_m_I[s,nn]), qS[t,s,nn]*pS[t,s,nn]));
+ 600  EQUATION E_TaxRev_m_I_pWedge[t,s];
+ 601  E_TaxRev_m_I_pWedge[t,s]$(s_m_i[s] and txe[t])..                                TotalTax[t,s]    =E=  tauLump[t,s]+sum(n$(input_m_I[s,n]), tauD[t,s,n] * qD[t,s,n])+sum(n$(output_m_I[s,n]), tauS[t,s,n]*qS[t,s,n]);
+ 602   
+ 603  # ----------------------------------------------------------------------------------------------------
+ 604  #  Define B_m_I_pWedge model
+ 605  # ----------------------------------------------------------------------------------------------------
+ 606  Model B_m_I_pWedge /
+ 607  E_pwInp_m_I_pWedge, E_pwOut_m_I_pWedge, E_outShare_m_I_pWedge, E_TaxRev_m_I_pWedge
+ 608  /;
+ 609   
+ 610   
+ 611   
+ 612   
+ 613  # ----------------------------------------------B_m_P_ces---------------------------------------------
+ 614  #  Initialize B_m_P_ces equation block
+ 615  # ----------------------------------------------------------------------------------------------------
+ 616  EQUATION E_zp_out_m_P_ces[t,s,n];
+ 617  E_zp_out_m_P_ces[t,s,n]$(knot_o_m_p_ces[s,n] and txe[t])..      pS[t,s,n]*qS[t,s,n]  =E=  sum(nn$(map_m_P_ces[s,n,nn]), qD[t,s,nn]*pD[t,s,nn]);
+ 618  EQUATION E_zp_nout_m_P_ces[t,s,n];
+ 619  E_zp_nout_m_P_ces[t,s,n]$(knot_no_m_p_ces[s,n] and txe[t])..    pD[t,s,n]*qD[t,s,n]  =E=  sum(nn$(map_m_P_ces[s,n,nn]), qD[t,s,nn]*pD[t,s,nn]);
+ 620  EQUATION E_q_out_m_P_ces[t,s,n];
+ 621  E_q_out_m_P_ces[t,s,n]$(branch2o_m_p_ces[s,n] and txe[t])..     qD[t,s,n]  =E=  sum(nn$(map_m_P_ces[s,nn,n]), mu[s,nn,n] * (pS[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qS[t,s,nn]);
+ 622  EQUATION E_q_nout_m_P_ces[t,s,n];
+ 623  E_q_nout_m_P_ces[t,s,n]$(branch2no_m_p_ces[s,n] and txe[t])..   qD[t,s,n]  =E=  sum(nn$(map_m_P_ces[s,nn,n]), mu[s,nn,n] * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn]);
+ 624   
+ 625  # ----------------------------------------------------------------------------------------------------
+ 626  #  Define B_m_P_ces model
+ 627  # ----------------------------------------------------------------------------------------------------
+ 628  Model B_m_P_ces /
+ 629  E_zp_out_m_P_ces, E_zp_nout_m_P_ces, E_q_out_m_P_ces, E_q_nout_m_P_ces
+ 630  /;
+ 631   
+ 632   
+ 633   
+ 634   
+ 635  # ----------------------------------------------B_m_P_IC----------------------------------------------
+ 636  #  Initialize B_m_P_IC equation block
+ 637  # ----------------------------------------------------------------------------------------------------
+ 638  EQUATION E_lom_m_P_IC[t,s,n];
+ 639  E_lom_m_P_IC[t,s,n]$(dur_m_p[s,n] and txe[t])..                 qD[t+1,s,n]      =E=  (qD[t,s,n]*(1-rDepr[t,s,n])+sum(nn$(dur2inv[s,n,nn]), qD[t,s,nn]))/(1+g_LR);
+ 640  EQUATION E_pk_m_P_IC[t,s,n];
+ 641  E_pk_m_P_IC[t,s,n]$(dur_m_p[s,n] and tx02e[t])..        pD[t,s,n]        =E=  sqrt(sqr(sum(nn$(dur2inv[s,n,nn]), Rrate[t]*pD[t-1,s,nn]*(1+icpar[s,n]*(qD[t-1,s,nn]/qD[t-1,s,n]-(rDepr[t-1,s,n]+g_LR)))/(1+infl_LR)+pD[t,s,nn]*(icpar[s,n]*0.5*(sqr(rDepr[t,s,n]+g_LR)-sqr(qD[t,s,nn]/qD[t,s,n]))-(1-rDepr[t,s,n])*(1+icpar[s,n]*(qD[t,s,nn]/qD[t,s,n]-(rDepr[t,s,n]+g_LR)))))));
+ 642  EQUATION E_pkT_m_P_IC[t,s,n];
+ 643  E_pkT_m_P_IC[t,s,n]$(dur_m_p[s,n] and t2e[t])..                 pD[t,s,n]        =E=  sum(nn$(dur2inv[s,n,nn]), Rrate[t]*pD[t-1,s,nn] * (1+icpar[s,n]*(qD[t-1,s,nn]/qD[t-1,s,n]-(rDepr[t-1,s,n]+g_LR)))/(1+infl_LR) + (rDepr[t,s,n]-1)*pD[t,s,nn]);
+ 644  EQUATION E_Ktvc_m_P_IC[t,s,n];
+ 645  E_Ktvc_m_P_IC[t,s,n]$(dur_m_p[s,n] and te[t])..                 qD[t,s,n]        =E=  (1+K_tvc[s,n])*qD[t-1,s,n];
+ 646  EQUATION E_instcost_m_P_IC[t,s];
+ 647  E_instcost_m_P_IC[t,s]$(s_m_p[s] and txe[t])..          ic[t,s]          =E=  sum([n,nn]$(dur2inv[s,n,nn]), pD[t,s,nn] * icpar[s,n]*0.5*qD[t,s,n]*sqr(qD[t,s,nn]/qD[t,s,n]-(rDepr[t,s,n]+g_LR)));
+ 648   
+ 649  # ----------------------------------------------------------------------------------------------------
+ 650  #  Define B_m_P_IC model
+ 651  # ----------------------------------------------------------------------------------------------------
+ 652  Model B_m_P_IC /
+ 653  E_lom_m_P_IC, E_pk_m_P_IC, E_pkT_m_P_IC, E_Ktvc_m_P_IC, E_instcost_m_P_IC
+ 654  /;
+ 655   
+ 656   
+ 657   
+ 658   
+ 659  # --------------------------------------------B_m_P_pWedge--------------------------------------------
+ 660  #  Initialize B_m_P_pWedge equation block
+ 661  # ----------------------------------------------------------------------------------------------------
+ 662  EQUATION E_pwInp_m_P_pWedge[t,s,n];
+ 663  E_pwInp_m_P_pWedge[t,s,n]$(input_m_p[s,n] and txe[t])..                         pD[t,s,n]                =E=  p[t,n]+tauD[t,s,n];
+ 664  EQUATION E_pwOut_m_P_pWedge[t,s,n];
+ 665  E_pwOut_m_P_pWedge[t,s,n]$(output_m_p[s,n] and txe[t])..                p[t,n]                   =E=  (1+markup[s])*(pS[t,s,n]+tauS[t,s,n]+(outShare[t,s,n]/qS[t,s,n])*(ic[t,s]+tauLump[t,s]));
+ 666  EQUATION E_outShare_m_P_pWedge[t,s,n];
+ 667  E_outShare_m_P_pWedge[t,s,n]$(output_m_p[s,n] and txe[t])..             outShare[t,s,n]  =E=  qS[t,s,n]*pS[t,s,n]/(sum(nn$(output_m_P[s,nn]), qS[t,s,nn]*pS[t,s,nn]));
+ 668  EQUATION E_TaxRev_m_P_pWedge[t,s];
+ 669  E_TaxRev_m_P_pWedge[t,s]$(s_m_p[s] and txe[t])..                                TotalTax[t,s]    =E=  tauLump[t,s]+sum(n$(input_m_P[s,n]), tauD[t,s,n] * qD[t,s,n])+sum(n$(output_m_P[s,n]), tauS[t,s,n]*qS[t,s,n]);
+ 670   
+ 671  # ----------------------------------------------------------------------------------------------------
+ 672  #  Define B_m_P_pWedge model
+ 673  # ----------------------------------------------------------------------------------------------------
+ 674  Model B_m_P_pWedge /
+ 675  E_pwInp_m_P_pWedge, E_pwOut_m_P_pWedge, E_outShare_m_P_pWedge, E_TaxRev_m_P_pWedge
+ 676  /;
+ 677   
+ 678   
+ 679   
+ 680   
+ 681  # ----------------------------------------------B_m_Trade---------------------------------------------
+ 682  #  Initialize B_m_Trade equation block
+ 683  # ----------------------------------------------------------------------------------------------------
+ 684  EQUATION E_armington_m_Trade[t,s,n];
+ 685  E_armington_m_Trade[t,s,n]$(dexport_m_trade[s,n] and txe[t])..  qD[t,s,n]                =E=  sum(nn$(dom2for[n,nn]), Fscale[s,n] * (p[t,nn]/pD[t,s,n]))**(sigma[s,n]);
+ 686  EQUATION E_pwInp_m_Trade[t,s,n];
+ 687  E_pwInp_m_Trade[t,s,n]$(dexport_m_trade[s,n] and txe[t])..              pD[t,s,n]                =E=  p[t,n] + tauD[t,s,n];
+ 688  EQUATION E_TaxRev_m_Trade[t,s];
+ 689  E_TaxRev_m_Trade[t,s]$(s_m_trade[s] and txe[t])..                               TotalTax[t,s]    =E=  tauLump[t,s]+sum(n$(dExport_m_Trade[s,n]), tauD[t,s,n]*qD[t,s,n]);
+ 690   
+ 691  # ----------------------------------------------------------------------------------------------------
+ 692  #  Define B_m_Trade model
+ 693  # ----------------------------------------------------------------------------------------------------
+ 694  Model B_m_Trade /
+ 695  E_armington_m_Trade, E_pwInp_m_Trade, E_TaxRev_m_Trade
+ 696  /;
+ 697   
+ 698   
+ 699   
+ 700   
+ 701  # ------------------------------------------B_m_equi_baseline-----------------------------------------
+ 702  #  Initialize B_m_equi_baseline equation block
+ 703  # ----------------------------------------------------------------------------------------------------
+ 704  EQUATION E_equi_m_equi[t,n];
+ 705  E_equi_m_equi[t,n]$(nequi[n] and txe[t])..       sum(s$(d_qS[s,n]), qS[t,s,n])  =E=  sum(s$(d_qD[s,n]), qD[t,s,n]);
+ 706   
+ 707  # ----------------------------------------------------------------------------------------------------
+ 708  #  Define B_m_equi_baseline model
+ 709  # ----------------------------------------------------------------------------------------------------
+ 710  Model B_m_equi_baseline /
+ 711  E_equi_m_equi
+ 712  /;
+ 713   
+ 714   
+ 715  # ----------------------------------------B_m_equi_calibration----------------------------------------
+ 716  #  Initialize B_m_equi_calibration equation block
+ 717  # ----------------------------------------------------------------------------------------------------
+ 718  EQUATION E_equi_m_equi_tx0E[t,n];
+ 719  E_equi_m_equi_tx0E[t,n]$(nequi[n] and tx0e[t])..         sum(s$(d_qS[s,n]), qS[t,s,n])  =E=  sum(s$(d_qD[s,n]), qD[t,s,n]);
+ 720   
+ 721  # ----------------------------------------------------------------------------------------------------
+ 722  #  Define B_m_equi_calibration model
+ 723  # ----------------------------------------------------------------------------------------------------
+ 724  Model B_m_equi_calibration /
+ 725  E_equi_m_equi_tx0E
+ 726  /;
+ 727   
+ 728   
+ 729  sigma.fx[s,n]$((kninp_m_G[s,n] or kninp_m_HH[s,n] or kninp_m_I[s,n] or kninp_m_P[s,n] or dExport_m_Trade[s,n])) = sigma.l[s,n];
+ 730  mu.fx[s,n,nn]$(((map_m_G[s,n,nn] and ( not (endo_mu_m_G[s,n,nn]))) or endo_mu_m_G[s,n,nn] or (map_m_HH[s,n,nn] and ( not (endo_mu_m_HH[s,n,nn]))) or endo_mu_m_HH[s,n,nn] or exomu_m_I[s,n,nn] or (map_m_I[s,n,nn] and ( not (exomu_m_I[s,n,nn]))) or (map_m_P[s,n,nn] and ( not (endo_mu_m_P[s,n,nn]))) or endo_mu_m_P[s,n,nn])) = mu.l[s,n,nn];
+ 731  tauD0.fx[t,s,n]$(input_m_G[s,n]) = tauD0.l[t,s,n];
+ 732  TotalTax.fx[t,s]$((d_TotalTax[s] and ( not (s_m_G[s])))) = TotalTax.l[t,s];
+ 733  qD.fx[t,s,n]$((output_m_G[s,n] or (t0[t] and d_itory[s,n]) or (dur_m_I[s,n] and t0[t]) or (dur_m_P[s,n] and t0[t]))) = qD.l[t,s,n];
+ 734  p.fx[t,n]$((input_n_m_G[n] or (output_n_m_HH[n] or input_n_m_HH[n]) or (input_n_m_I[n] and ( not (output_n_m_I[n]))) or (input_n_m_P[n] and ( not (output_n_m_P[n]))) or nOut_m_Trade[n])) = p.l[t,n];
+ 735  tauG_calib.fx = tauG_calib.l;
+ 736  tauD.fx[t,s,n]$((input_m_G[s,n] or input_m_HH[s,n] or input_m_I[s,n] or input_m_P[s,n] or dExport_m_Trade[s,n])) = tauD.l[t,s,n];
+ 737  jTerm.fx[s]$((s_m_G[s] or s_m_HH[s])) = jTerm.l[s];
+ 738  eta.fx[s,n]$((knout_m_HH[s,n] or knout_m_I[s,n] or knout_m_P[s,n])) = eta.l[s,n];
+ 739  frisch.fx[s,n]$(labor_m_HH[s,n]) = frisch.l[s,n];
+ 740  crra.fx[s,n]$(output_m_HH[s,n]) = crra.l[s,n];
+ 741  tauS.fx[t,s,n]$((labor_m_HH[s,n] or output_m_I[s,n] or output_m_P[s,n])) = tauS.l[t,s,n];
+ 742  tauLump.fx[t,s]$(((s_m_HH[s] and tx0E[t]) or (s_m_HH[s] and t0[t]) or (s_m_I[s] and tx0E[t]) or (s_m_I[s] and t0[t]) or (s_m_P[s] and tx0E[t]) or (s_m_P[s] and t0[t]) or (s_m_Trade[s] and tx0E[t]) or (s_m_Trade[s] and t0[t]))) = tauLump.l[t,s];
+ 743  Lscale.fx[s,n]$(labor_m_HH[s,n]) = Lscale.l[s,n];
+ 744  qS.fx[t,s,n]$(((output_m_I[s,n] and ( not ((endo_qS_m_I[s,n] and t0[t])))) or (endo_qS_m_I[s,n] and t0[t]) or output_m_P[s,n])) = qS.l[t,s,n];
+ 745  markup.fx[s]$((s_m_I[s] or s_m_P[s])) = markup.l[s];
+ 746  Rrate.fx[t] = Rrate.l[t];
+ 747  rDepr.fx[t,s,n]$((dur_m_I[s,n] or dur_m_P[s,n])) = rDepr.l[t,s,n];
+ 748  icpar.fx[s,n]$((dur_m_I[s,n] or dur_m_P[s,n])) = icpar.l[s,n];
+ 749  K_tvc.fx[s,n]$((dur_m_I[s,n] or dur_m_P[s,n])) = K_tvc.l[s,n];
+ 750  Fscale.fx[s,n]$(dExport_m_Trade[s,n]) = Fscale.l[s,n];
+ 751  pD.lo[t,s,n]$(((int_m_G[s,n] or input_m_G[s,n] or output_m_G[s,n]) or ((int_m_HH[s,n] or input_m_HH[s,n]) or (output_m_HH[s,n] and tx0E[t])) or (output_m_HH[s,n] and t0[t]) or (int_m_I[s,n] or input_m_I[s,n]) or (dur_m_I[s,n] and txE[t]) or (int_m_P[s,n] or input_m_P[s,n]) or (dur_m_P[s,n] and txE[t]) or dExport_m_Trade[s,n])) = -inf;
+ 752  pD.up[t,s,n]$(((int_m_G[s,n] or input_m_G[s,n] or output_m_G[s,n]) or ((int_m_HH[s,n] or input_m_HH[s,n]) or (output_m_HH[s,n] and tx0E[t])) or (output_m_HH[s,n] and t0[t]) or (int_m_I[s,n] or input_m_I[s,n]) or (dur_m_I[s,n] and txE[t]) or (int_m_P[s,n] or input_m_P[s,n]) or (dur_m_P[s,n] and txE[t]) or dExport_m_Trade[s,n])) = inf;
+ 753  qD.lo[t,s,n]$((((input_m_G[s,n] and tx0E[t]) or int_m_G[s,n]) or (input_m_G[s,n] and t0[t]) or ((input_m_HH[s,n] and tx0E[t]) or (int_m_HH[s,n] or output_m_HH[s,n])) or (input_m_HH[s,n] and t0[t]) or (tx0E[t] and d_itory[s,n]) or (((int_m_I[s,n] or input_m_I[s,n]) and tx0[t]) or (endo_qD_m_I[s,n] and t0[t])) or (((int_m_I[s,n] or input_m_I[s,n]) and t0[t]) and ( not ((endo_qD_m_I[s,n] and t0[t])))) or (dur_m_I[s,n] and tx0[t]) or (int_m_P[s,n] or (input_m_P[s,n] and tx0[t]) or (endo_qD_m_P[s,n] and t0[t])) or ((input_m_P[s,n] and t0[t]) and ( not ((endo_qD_m_P[s,n] and t0[t])))) or (dur_m_P[s,n] and tx0[t]) or (dExport_m_Trade[s,n] and tx0E[t]) or (dExport_m_Trade[s,n] and t0[t]))) = -inf;
+ 754  qD.up[t,s,n]$((((input_m_G[s,n] and tx0E[t]) or int_m_G[s,n]) or (input_m_G[s,n] and t0[t]) or ((input_m_HH[s,n] and tx0E[t]) or (int_m_HH[s,n] or output_m_HH[s,n])) or (input_m_HH[s,n] and t0[t]) or (tx0E[t] and d_itory[s,n]) or (((int_m_I[s,n] or input_m_I[s,n]) and tx0[t]) or (endo_qD_m_I[s,n] and t0[t])) or (((int_m_I[s,n] or input_m_I[s,n]) and t0[t]) and ( not ((endo_qD_m_I[s,n] and t0[t])))) or (dur_m_I[s,n] and tx0[t]) or (int_m_P[s,n] or (input_m_P[s,n] and tx0[t]) or (endo_qD_m_P[s,n] and t0[t])) or ((input_m_P[s,n] and t0[t]) and ( not ((endo_qD_m_P[s,n] and t0[t])))) or (dur_m_P[s,n] and tx0[t]) or (dExport_m_Trade[s,n] and tx0E[t]) or (dExport_m_Trade[s,n] and t0[t]))) = inf;
+ 755  qiv_inp.lo[t,s,n]$((spinp_m_G[s,n] or spinp_m_HH[s,n] or spinp_m_I[s,n] or spinp_m_P[s,n])) = -inf;
+ 756  qiv_inp.up[t,s,n]$((spinp_m_G[s,n] or spinp_m_HH[s,n] or spinp_m_I[s,n] or spinp_m_P[s,n])) = inf;
+ 757  TotalTax.lo[t,s]$(((s_m_G[s] and tx0E[t]) or (s_m_G[s] and t0[t]) or (s_m_HH[s] and tx0E[t]) or (s_m_HH[s] and t0[t]) or (s_m_I[s] and tx0E[t]) or (s_m_I[s] and t0[t]) or (s_m_P[s] and tx0E[t]) or (s_m_P[s] and t0[t]) or (s_m_Trade[s] and tx0E[t]) or (s_m_Trade[s] and t0[t]))) = -inf;
+ 758  TotalTax.up[t,s]$(((s_m_G[s] and tx0E[t]) or (s_m_G[s] and t0[t]) or (s_m_HH[s] and tx0E[t]) or (s_m_HH[s] and t0[t]) or (s_m_I[s] and tx0E[t]) or (s_m_I[s] and t0[t]) or (s_m_P[s] and tx0E[t]) or (s_m_P[s] and t0[t]) or (s_m_Trade[s] and tx0E[t]) or (s_m_Trade[s] and t0[t]))) = inf;
+ 759  tauS.lo[t,s,n]$(((labor[s,n] and tx0E[t]) or (labor[s,n] and t0[t]))) = -inf;
+ 760  tauS.up[t,s,n]$(((labor[s,n] and tx0E[t]) or (labor[s,n] and t0[t]))) = inf;
+ 761  qS.lo[t,s,n]$(((labor_m_HH[s,n] and tx0E[t]) or (labor_m_HH[s,n] and t0[t]) or (d_qSEqui[s,n] and tx0E[t]) or (d_qSEqui[s,n] and t0[t]))) = -inf;
+ 762  qS.up[t,s,n]$(((labor_m_HH[s,n] and tx0E[t]) or (labor_m_HH[s,n] and t0[t]) or (d_qSEqui[s,n] and tx0E[t]) or (d_qSEqui[s,n] and t0[t]))) = inf;
+ 763  qiv_out.lo[t,s,n]$((spout_m_HH[s,n] or spout_m_I[s,n] or spout_m_P[s,n])) = -inf;
+ 764  qiv_out.up[t,s,n]$((spout_m_HH[s,n] or spout_m_I[s,n] or spout_m_P[s,n])) = inf;
+ 765  pS.lo[t,s,n]$((labor_m_HH[s,n] or output_m_I[s,n] or output_m_P[s,n])) = -inf;
+ 766  pS.up[t,s,n]$((labor_m_HH[s,n] or output_m_I[s,n] or output_m_P[s,n])) = inf;
+ 767  p.lo[t,n]$(((output_n_m_I[n] and tx0[t]) or (output_n_m_I[n] and t0[t]) or (output_n_m_P[n] and tx0[t]) or (output_n_m_P[n] and t0[t]) or (d_pEqui[n] and tx0E[t]) or (d_pEqui[n] and t0[t]))) = -inf;
+ 768  p.up[t,n]$(((output_n_m_I[n] and tx0[t]) or (output_n_m_I[n] and t0[t]) or (output_n_m_P[n] and tx0[t]) or (output_n_m_P[n] and t0[t]) or (d_pEqui[n] and tx0E[t]) or (d_pEqui[n] and t0[t]))) = inf;
+ 769  outShare.lo[t,s,n]$((output_m_I[s,n] or output_m_P[s,n])) = -inf;
+ 770  outShare.up[t,s,n]$((output_m_I[s,n] or output_m_P[s,n])) = inf;
+ 771  ic.lo[t,s]$(((s_m_I[s] and txE[t]) or (s_m_P[s] and txE[t]))) = -inf;
+ 772  ic.up[t,s]$(((s_m_I[s] and txE[t]) or (s_m_P[s] and txE[t]))) = inf;
+ 773   
+ 774  # ----------------------------------------------------------------------------------------------------
+ 775  #  Define m_GE_2018_B model
+ 776  # ----------------------------------------------------------------------------------------------------
+ 777  Model m_GE_2018_B /
+ 778  E_zp_m_G_ces, E_q_m_G_ces, E_pw_m_G_BSA, E_taxRev_m_G_BSA, E_bb_m_G_bb, E_zp_m_HH_ces, E_q_m_HH_ces, E_labor_m_HH_labor, E_pwOut_m_HH_pw, E_pwInp_m_HH_pw, E_TaxRev_m_HH_pw, E_sp_m_HH_pw, E_m_itory, E_zp_out_m_I_ces, E_zp_nout_m_I_ces, E_q_out_m_I_ces, E_q_nout_m_I_ces, E_lom_m_I_IC, E_pk_m_I_IC, E_pkT_m_I_IC, E_Ktvc_m_I_IC, E_instcost_m_I_IC, E_pwInp_m_I_pWedge, E_pwOut_m_I_pWedge, E_outShare_m_I_pWedge, E_TaxRev_m_I_pWedge, E_zp_out_m_P_ces, E_zp_nout_m_P_ces, E_q_out_m_P_ces, E_q_nout_m_P_ces, E_lom_m_P_IC, E_pk_m_P_IC, E_pkT_m_P_IC, E_Ktvc_m_P_IC, E_instcost_m_P_IC, E_pwInp_m_P_pWedge, E_pwOut_m_P_pWedge, E_outShare_m_P_pWedge, E_TaxRev_m_P_pWedge, E_armington_m_Trade, E_pwInp_m_Trade, E_TaxRev_m_Trade, E_equi_m_equi
+ 779  /;
+ 780   
+ 781   
+ 782  solve m_GE_2018_B using CNS;
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:18 Page 2
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Include File Summary
+
+
+   SEQ   GLOBAL TYPE      PARENT   LOCAL  FILENAME
+
+     1        1 INPUT          0       0  C:\Users\sxj477\Documents\GitHub\CGE_Generator\work_folder\_gams_py_gjo0.gms
+     2      160 GDXIN          1     160  C:\Users\sxj477\Documents\GitHub\CGE_Generator\work_folder\rname.gdx
+     3      314 GDXIN          1     314  C:\Users\sxj477\Documents\GitHub\CGE_Generator\work_folder\rname.gdx
+     4      362 GDXIN          1     362  C:\Users\sxj477\Documents\GitHub\CGE_Generator\work_folder\rname.gdx
+
+
+COMPILATION TIME     =        0.031 SECONDS      3 MB  38.1.0 a1a3b545 WEX-WEI
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:18 Page 3
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m_GE_2018_B Using CNS From line 782
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          43     SINGLE EQUATIONS          426
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES          722
+NON ZERO ELEMENTS         2,416     NON LINEAR N-Z          1,746
+CODE LENGTH               3,394     CONSTANT POOL              19
+SINGLE =E|X= EQUS           426     SINGLE UNFIXED VARS       426
+
+
+GENERATION TIME      =        0.000 SECONDS      4 MB  38.1.0 a1a3b545 WEX-WEI
+GAMS 38.1.0  a1a3b545 Jan 31, 2022          WEX-WEI x86 64bit/MS Windows - 04/11/23 12:10:18 Page 4
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m_GE_2018_B Using CNS From line 782
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_GE_2018_B         
+     TYPE    CNS                 
+     SOLVER  CONOPT4             FROM LINE  782
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.016 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.25
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+ 
+    The user model has 426 constraints and 722 variables
+    with 2416 Jacobian elements, 1746 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 46 constraints and 342 variables.
+ 
+    Preprocessed model has 380 constraints and 380 variables
+    with 1550 Jacobian elements, 1098 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.004 seconds
+   of which: Function evaluations             0.000 =  0.0%
+             1st Derivative evaluations       0.000 =  0.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+
+
+EXECUTION TIME       =        0.063 SECONDS      4 MB  38.1.0 a1a3b545 WEX-WEI
+
+
+USER: Large MUD - 20 User License                    G211207|0002CA-WIN
+      DREAM, Danish Rational Economic Agents Model                DC620
+
+
+**** FILE SUMMARY
+
+Input      C:\Users\sxj477\Documents\GitHub\CGE_Generator\work_folder\_gams_py_gjo0.gms
+Output     C:\Users\sxj477\Documents\GitHub\CGE_Generator\work_folder\_gams_py_gjo0.lst
+Save       C:\Users\sxj477\Documents\GitHub\CGE_Generator\work_folder\_gams_py_gcp0.g00
+
+**** WARNING - COMPILER OPTIONS ARE NON DEFAULT     ONEMPTY
+     EOLCOM # 

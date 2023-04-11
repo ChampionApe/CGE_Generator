@@ -7,7 +7,7 @@ import gamsProduction
 class Production(GmsPythonSimple):
 	def __init__(self, f=None, tree=None, ns=None, s=None, glob=None, s_kwargs = None, g_kwargs = None, dur_kwargs = None):
 		""" Initialize from a pickle file 'f' or nesting tree 'tree'. """
-		super().__init__(name=tree.name if tree else None, f=f, s=s, glob=glob, ns=ns, s_kwargs = s_kwargs, g_kwargs=g_kwargs, checkStates = ['B','C'])
+		super().__init__(checkStates = ['B','C'], **dict(name=tree.name if tree else None, f=f, s=s, glob=glob, ns=ns, s_kwargs = s_kwargs, g_kwargs=g_kwargs))
 		if f is None:
 			self.readTree(tree)
 			self.addDurables(**pyDatabases.noneInit(dur_kwargs, {}))
@@ -15,7 +15,8 @@ class Production(GmsPythonSimple):
 
 	@property
 	def _symbols(self):
-		return ['pS','qS','pD','qD','mu','eta','sigma','qnorm_inp','qnorm_out','qiv_out','Rrate','rDepr','icpar','K_tvc','ic','p','markup','tauS','tauD','outShare','TotalTax','tauLump']
+		""" which symbols are initialized when calling self.initDB """
+		return ['pS','qS','pD','qD','mu','eta','sigma','qnorm_inp','qnorm_out','qiv_out','qiv_inp','Rrate','rDepr','icpar','K_tvc','ic','p','markup','tauS','tauD','outShare','TotalTax','tauLump']
 
 	def addDurables(self, dur = None, f = None, dur2inv = None):
 		self.ns.update({k: f"{k}_{self.name}" for k in ('dur','inv')})
@@ -96,25 +97,37 @@ class Production(GmsPythonSimple):
 	def _init_sigma(self, m = None):
 		return self.initSymbolFlat(.5, name= 'sigma', indices = self.get('kninp',m=m))
 	def _init_qnorm_out(self, m = None):
-		return self.initSymbolFlat(.5, name= 'qnorm_out',indices = [self.get('txE'),self.get('knout',m=m)])
+		return self.initSymbolFlat(.5, name= 'qnorm_out',indices = [self.get('txE'),self.get('knout',m=m)], **{'type':'parameter'})
 	def _init_qnorm_inp(self, m = None):
-		return self.initSymbolFlat(.5, name= 'qnorm_inp',indices =[self.get('txE'),self.get('kninp',m=m)])
+		return self.initSymbolFlat(.5, name= 'qnorm_inp',indices =[self.get('txE'),self.get('kninp',m=m)], **{'type':'parameter'})
+	def _init_qiv_out(self, m = None):
+		return self.initSymbolFlat(1, name = 'qiv_out', indices = [self.get('txE'),self.get('spout',m=m)])
+	def _init_qiv_inp(self, m = None):
+		return self.initSymbolFlat(1, name = 'qiv_inp', indices = [self.get('txE'),self.get('spinp',m=m)])
 	def _init_Rrate(self, m = None):
-		return self.initSymbolFlat(.5, name= 'Rrate',indices = self.get('t'))
-
-
-	def initSymbols(self,m=None):
-		return {self.n('rDepr'): gpy(pd.Series(0.075, index = adjMultiIndexDB.mergeDomains([self.get('t'),self.get('dur',m=m)],self.s.db), name = self.n('rDepr',m=m))),
-				self.n('icpar'): gpy(pd.Series(1, index = self.get('dur',m=m), name= self.n('icpar',m=m))),
-				self.n('K_tvc'): gpy(pd.Series(0, index = self.get('dur',m=m), name=self.n('K_tvc',m=m))),
-				self.n('ic'): gpy(pd.Series(0, index = adjMultiIndexDB.mergeDomains([self.get('txE'), self.get('s')], self.s.db), name= self.n('ic',m=m))),
-				self.n('p'): gpy(pd.Series(1, index = adjMultiIndexDB.mergeDomains([self.get('txE'),self.get('output_n',m=m).union(self.get('input_n',m=m))],self.s.db), name=self.n('p'))),
-				self.n('markup'): gpy(pd.Series(1, index = self.get('s',m=m)), name = self.n('markup')),
-				self.n('tauS'): gpy(pd.Series(0, index = adjMultiIndexDB.mergeDomains([self.get('txE'),self.get('output',m=m)],self.s.db), name=self.n('tauS'))),
-				self.n('tauD'): gpy(pd.Series(0, index = adjMultiIndexDB.mergeDomains([self.get('txE'),self.get('input',m=m)], self.s.db), name=self.n('tauD'))),
-				self.n('outShare'): gpy(pd.Series(1, index = adjMultiIndexDB.mergeDomains([self.get('txE'), self.get('output',m=m)], self.s.db), name = self.n('outShare'))),
-				self.n('TotalTax'): gpy(pd.Series(0, index = adjMultiIndexDB.mergeDomains([self.get('txE'), self.get('s')], self.s.db), name = self.n('TotalTax'))),
-				self.n('tauLump'): gpy(pd.Series(0, index = adjMultiIndexDB.mergeDomains([self.get('txE'), self.get('s')], self.s.db), name = self.n('tauLump')))}
+		return self.initSymbolFlat(self.get('R_LR'), name= 'Rrate',indices = self.get('t'))
+	def _init_rDepr(self, m=None):
+		return self.initSymbolFlat(.075, name = 'rDepr', indices = [self.get('t'), self.get('dur',m=m)])
+	def _init_icpar(self, m=None):
+		return self.initSymbolFlat(1, name= 'icpar', indices = self.get('dur',m=m))
+	def _init_K_tvc(self, m=None):
+		return self.initSymbolFlat(0, name = 'K_tvc', indices = self.get('dur',m=m))
+	def _init_ic(self, m=None):
+		return self.initSymbolFlat(0, name = 'ic', indices = [self.get('txE'), self.get('s')])
+	def _init_p(self, m=None):
+		return self.initSymbolFlat(1, name = 'p', indices = [self.get('txE'), self.get('output_n',m=m).union(self.get('input_n',m=m))])
+	def _init_markup(self,m=None):
+		return self.initSymbolFlat(.5, name = 'markup', indices = self.get('s',m=m))
+	def _init_tauS(self, m=None):
+		return self.initSymbolFlat(0, name = 'tauS', indices = [self.get('txE'), self.get('output',m=m)])
+	def _init_tauD(self, m=None):
+		return self.initSymbolFlat(0, name = 'tauD', indices = [self.get('txE'), self.get('input',m=m)])
+	def _init_outShare(self,m=None):
+		return self.initSymbolFlat(1, name = 'outShare', indices = [self.get('txE'), self.get('output',m=m)])
+	def _init_TotalTax(self,m=None):
+		return self.initSymbolFlat(0, name = 'TotalTax', indices = [self.get('txE'), self.get('s')])
+	def _init_tauLump(self, m=None):
+		return self.initSymbolFlat(0, name = 'tauLump', indices = [self.get('txE'), self.get('s')])
 
 	def initDurables(self):
 		robust.robust_merge_dbs(self.s.db,
