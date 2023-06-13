@@ -318,7 +318,7 @@ class Production_ExoMu(Production):
 class Inventory(GmsPythonSimple):
 	def __init__(self, f = None, name = None, db_IO = None, itory = None, s=None, glob=None, s_kwargs = None, g_kwargs = None):
 		""" Initialize from name, io data, and subset of inventory"""
-		super().__init__(name=f"{name}_itory", f=f, s=s, glob=glob, g_kwargs=g_kwargs, s_kwargs = pyDatabases.noneInit(s_kwargs, {}) | {'db': db_IO})
+		super().__init__(name=name, f=f, s=s, glob=glob, g_kwargs=g_kwargs, s_kwargs = pyDatabases.noneInit(s_kwargs, {}) | {'db': db_IO})
 		if f is None:
 			self.initItory(itory = itory)
 

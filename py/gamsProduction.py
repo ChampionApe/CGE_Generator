@@ -12,18 +12,36 @@ $BLOCK B_{name}
 $ENDBLOCK
 """
 
-
-# 2: Introduce price wedge with mark-up, unit-tax, and installation costs
+# 2.1: Introduce price wedge with mark-up, unit-tax, and installation costs
 def priceWedge(name,m):
 	return f"""
 $BLOCK B_{name}
-	E_pwInp_{name}[t,s,n]$(input_{m}[s,n] and txE[t])..			pD[t,s,n]		=E= p[t,n]+tauD[t,s,n];	
+	E_pwInp_{name}[t,s,n]$(input_{m}[s,n] and txE[t])..			pD[t,s,n]		=E= p[t,n]+tauD[t,s,n];
 	E_pwOut_{name}[t,s,n]$(output_{m}[s,n] and txE[t])..		p[t,n] 			=E= (1+markup[s])*(pS[t,s,n]+tauS[t,s,n]+(outShare[t,s,n]/qS[t,s,n])*(ic[t,s]+tauLump[t,s]));
 	E_outShare_{name}[t,s,n]$(output_{m}[s,n] and txE[t])..		outShare[t,s,n] =E= qS[t,s,n]*pS[t,s,n]/(sum(nn$(output_{m}[s,nn]), qS[t,s,nn]*pS[t,s,nn]));
-	E_TaxRev_{name}[t,s]$(s_{m}[s] and txE[t])..				TotalTax[t,s]	=E= tauLump[t,s]+sum(n$(input_{m}[s,n]), tauD[t,s,n] * qD[t,s,n])+sum(n$(output_{m}[s,n]), tauS[t,s,n]*qS[t,s,n]);
+	E_taxRev_{name}[t,s]$(s_{m}[s] and txE[t])..				TotalTax[t,s]	=E= tauLump[t,s]+sum(n$(input_{m}[s,n]), tauD[t,s,n] * qD[t,s,n])+sum(n$(output_{m}[s,n]), tauS[t,s,n]*qS[t,s,n]);
 $ENDBLOCK
 """
 
+# 2.2: Add taxes on emissions
+def priceWedgeEmissions(name,m):
+	return f"""
+$BLOCK B_{name}
+	E_pwInp_{name}[t,s,n]$(input_{m}[s,n] and txE[t])..			pD[t,s,n]		=E= p[t,n]+tauD[t,s,n];
+	E_pwOut_{name}[t,s,n]$(output_{m}[s,n] and txE[t])..		p[t,n] 			=E= (1+markup[s])*(pS[t,s,n]+tauS[t,s,n]+(outShare[t,s,n]/qS[t,s,n])*(ic[t,s]+tauLump[t,s]));
+	E_outShare_{name}[t,s,n]$(output_{m}[s,n] and txE[t])..		outShare[t,s,n] =E= qS[t,s,n]*pS[t,s,n]/(sum(nn$(output_{m}[s,nn]), qS[t,s,nn]*pS[t,s,nn]));
+	E_taxRev_{name}[t,s]$(s_{m}[s] and txE[t])..				TotalTax[t,s]	=E= tauLump[t,s]+sum(n$(input_{m}[s,n]), tauD[t,s,n] * qD[t,s,n])+sum(n$(output_{m}[s,n]), tauS[t,s,n]*qS[t,s,n]);
+	E_tauS_{name}[t,s,n]$(output_{m}[s,n] and txE[t])..			tauS[t,s,n]		=E= tauCO2[t,s,n] * qCO2[t,s,n]/qS[t,s,n]+tauNonEnv[t,s,n];
+$ENDBLOCK
+"""
+
+# Calibration 
+def taxCalibration(name, m):
+	return f"""
+$BLOCK B_{name}
+	E_taxCal_{name}[t,s,n]$(output_{m}[s,n] and txE[t])..	tauNonEnv[t,s,n]	=E= tauNonEnv0[t,s,n] * (1+taxRevPar[s]);
+$ENDBLOCK
+"""
 
 # 3: System of value shares
 def valueShares():

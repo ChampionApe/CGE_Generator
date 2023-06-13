@@ -23,6 +23,7 @@ $BLOCK B_{name}
 $ENDBLOCK
 """
 
+
 # 5: System of value shares
 def valueShares():
 	return f"""

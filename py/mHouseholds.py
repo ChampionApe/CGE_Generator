@@ -67,7 +67,7 @@ class staticConsumer(GmsPythonSimple):
 	def _init_crra(self, m = None):
 		return self.initSymbolFlat(2, name = 'crra', indices = self.get('output'))
 	def _init_frisch(self, m = None):
-		return self.initSymbolFlat(0.25, name = 'frisch', indices = self.get('labor'))
+		return self.initSymbolFlat(0, name = 'frisch', indices = self.get('labor'))
 	def _init_Lscale(self, m = None):
 		return self.initSymbolFlat(1, name = 'Lscale', indices = self.get('labor'))
 	def _init_tauLump(self, m=None):
@@ -250,7 +250,6 @@ class SimpleRamsey(GmsPythonSimple):
 		return [gmsPy.Group(f"G_{self.name}_exo_always", 
 			v =[('sigma', self.g('kninp')),
 				('eta', self.g('knout')),
-				# ('disc',self.g('s')),
 				('crra', self.g('output')),
 				('h_tvc', self.g('s')),
 				('mu', ('and', [self.g('map'), ('not', self.g('endo_mu'))])),
@@ -281,8 +280,6 @@ class SimpleRamsey(GmsPythonSimple):
 			v =[('mu', self.g('endo_mu')),
 				('Lscale', self.g('labor')),
 				('tauLump', ('and', [self.g('s'), self.g('t0')])),
-				# ('crra', self.g('output'))
-				# ('h_tvc', self.g('s'))
 				('disc', self.g('s'))
 				])
 			]

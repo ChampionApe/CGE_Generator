@@ -76,7 +76,7 @@ class balancedBudget(GmsPythonSimple):
 			return OrdSet([f"B_{name}" for name in self.m])-OrdSet([f"B_{self.name}_CSA"])
 		elif state == 'C_standAlone':
 			return OrdSet([f"B_{name}" for name in self.m])-OrdSet([f"B_{self.name}_bb"])
-		if state == 'C':
+		elif state == 'C':
 			return OrdSet([f"B_{name}" for name in self.m])
 
 	def g_endo(self, state):
