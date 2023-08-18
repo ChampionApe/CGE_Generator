@@ -55,9 +55,17 @@ def func_α(T̃, T, t0, OS, M, MLR):
 def func_M̃(T̃, T, t0, OS, M, MLR):
 	return (M.loc[t0+1:t0+T̃]-func_α(T̃, T, t0, OS, M, MLR) * OS).combine_first(func_M̃LR(MLR, t0, T̃,T))
 
-def eliminateOvershoot(MLR, t0, T, M, OS, maxIter = 25):
+def eliminateOvershoot(t0, T, M, OS, maxIter = 30):
 	""" Find path of overshoot"""
-	n = 0
+	if sum(M.loc[t0+1:t0+T]-M.loc[t0+T+1])<OS:
+		x = M.loc[t0+1:].rename('x').reset_index()
+		y = x.assign(T = x['t']-t0, xcumsum = x['x'].cumsum())
+		z = y['xcumsum'] - y['x'] * y['T'] - OS
+		Tnew = y['T'].iloc[z[z>0].index.min()]-1
+		print(f"""**** Warning: Elimination of overshoot not feasible with T = {T} years of linear reduction; increases to minimum feasible number {Tnew}""")
+		T = Tnew
+	MLR = M.loc[t0+T+1]
+	n = 0 
 	T̃ = T-n
 	M̃ = func_M̃(T̃, T, t0, OS, M, MLR)
 	while M̃.loc[t0+T̃]<MLR:
