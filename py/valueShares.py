@@ -1,89 +1,84 @@
-from gmsPython import gmsPy, GmsPythonSimple, stackIndices
-import pyDatabases, pandas as pd
-from pyDatabases import OrdSet, adjMultiIndex
-from pyDatabases.gpyDB_wheels import aggregateDB, adj
-import gamsProduction, gamsHouseholds
+from auxfuncs import *
+from pyDatabases.gpyDB import GpyDB, AggDB
+from gmsPython import gmsWrite, stackIndices, Group, Model
 
-class valueShares(GmsPythonSimple):
-	def __init__(self, tree, db_IO, s=None, s_kwargs = None, valueFromQP = True):
-		""" Initialize from nesting tree 'tree'. """
-		super().__init__(name=f"valueShare_{tree.name}", s=s, s_kwargs = pyDatabases.noneInit(s_kwargs, {}) | {'db': db_IO})
-		self.setsFromTree(tree)
-		self.initValues(tree, valueFromQP = valueFromQP)
-	def solve(self, state):
-		return f"""@SolveEmptyNLP({self.s['name']})"""
-	def args(self, state):
-		return {'valueShare_Blocks': gamsProduction.valueShares()}
-	def blocks(self, state):
-		return OrdSet(['B_ValueShares'])
-	def g_endo(self, state):
-		return OrdSet([f"G_{self.name}_endo"])
-	def g_exo(self, state):
-		return OrdSet([f"G_{self.name}_exo"])
-	def _groups(self,m=None):
-		return [gmsPy.Group(f"G_{self.name}_exo",
-				v = [('vS', self.g('output')), ('vD', self.g('input'))]
-				),
-				gmsPy.Group(f"G_{self.name}_endo",
-				v = [('mu', self.g('map')), ('vD', self.g('int'))])]
-	def setsFromTree(self,Tree):
-		types = [ti.io for ti in Tree.trees.values()]
+class nestedShares(Model):
+	def __init__(self, tree, name = 'valueshares', **kwargs):
+		super().__init__(name = name, alias = [('n','nn')], **kwargs)
+		self.tree = tree
+
+	def initData(self, db_IO, valueFromQP=True):
+		types = [ti.io for ti in self.tree.trees.values()]
 		if 'output' in types:
-			self.s.db['mapOut']     = stackIndices([ti.get('map') for ti in Tree.trees.values() if ti.io == 'output'])
-			self.s.db['knotOutTree']= stackIndices([ti.get('knot') for ti in Tree.trees.values() if ti.io == 'output'])
-			self.s.db['branchOut']  = stackIndices([ti.get('branch_o') for ti in Tree.trees.values() if ti.io == 'output'])
-			self.s.db['branchNOut'] = stackIndices([ti.get('branch_no') for ti in Tree.trees.values() if ti.io == 'output'])
+			self.db['mapOut']     = stackIndices([ti.get('map') for ti in self.tree.trees.values() if ti.io == 'output'])
+			self.db['knotOutTree']= stackIndices([ti.get('knot') for ti in self.tree.trees.values() if ti.io == 'output'])
+			self.db['branchOut']  = stackIndices([ti.get('branch_o') for ti in self.tree.trees.values() if ti.io == 'output'])
+			self.db['branchNOut'] = stackIndices([ti.get('branch_no') for ti in self.tree.trees.values() if ti.io == 'output'])
 		else:
-			self.s.db['mapOut']     = pd.MultiIndex.from_tuples([], names = ['s','n','nn'])
-			self.s.db['knotOutTree']= pd.MultiIndex.from_tuples([], names = ['s','n'])
-			self.s.db['branchOut']  = pd.MultiIndex.from_tuples([], names = ['s','n'])
-			self.s.db['branchNOut'] = pd.MultiIndex.from_tuples([], names = ['s','n'])
+			self.db['mapOut']     = pd.MultiIndex.from_tuples([], names = ['s','n','nn'])
+			self.db['knotOutTree']= pd.MultiIndex.from_tuples([], names = ['s','n'])
+			self.db['branchOut']  = pd.MultiIndex.from_tuples([], names = ['s','n'])
+			self.db['branchNOut'] = pd.MultiIndex.from_tuples([], names = ['s','n'])
 		if 'input' in types:
-			self.s.db['mapInp']     = stackIndices([ti.get('map') for ti in Tree.trees.values() if ti.io == 'input'])
-			self.s.db['knotOut']	= stackIndices([ti.get('knot_o') for ti in Tree.trees.values() if ti.io == 'input'])
-			self.s.db['knotNOut']	= stackIndices([ti.get('knot_no') for ti in Tree.trees.values() if ti.io == 'input'])
-			self.s.db['branch2Out'] = stackIndices([ti.get('branch2o') for ti in Tree.trees.values() if ti.io == 'input'])
-			self.s.db['branch2NOut']= stackIndices([ti.get('branch2no') for ti in Tree.trees.values() if ti.io == 'input'])
+			self.db['mapInp']     = stackIndices([ti.get('map') for ti in self.tree.trees.values() if ti.io == 'input'])
+			self.db['knotOut']	= stackIndices([ti.get('knot_o') for ti in self.tree.trees.values() if ti.io == 'input'])
+			self.db['knotNOut']	= stackIndices([ti.get('knot_no') for ti in self.tree.trees.values() if ti.io == 'input'])
+			self.db['branch2Out'] = stackIndices([ti.get('branch2o') for ti in self.tree.trees.values() if ti.io == 'input'])
+			self.db['branch2NOut']= stackIndices([ti.get('branch2no') for ti in self.tree.trees.values() if ti.io == 'input'])
 		else:
-			self.s.db['mapInp']      = pd.MultiIndex.from_tuples([], names = ['s','n','nn'])
-			self.s.db['knotOut']	 = pd.MultiIndex.from_tuples([], names = ['s','n'])
-			self.s.db['knotNOut']	 = pd.MultiIndex.from_tuples([], names = ['s','n'])
-			self.s.db['branch2Out']  = pd.MultiIndex.from_tuples([], names = ['s','n'])
-			self.s.db['branch2NOut'] = pd.MultiIndex.from_tuples([], names = ['s','n'])
-		[self.s.db.__setitem__(k, Tree.get(k)) for k in ('map','output','input','int')];
-		aggregateDB.readSets(self.s.db, types = ['variable','parameter','mapping'])
-		if Tree.namespace:
-			aggregateDB.updateSetValues(self.s.db,'n',Tree.namespace, remove_unused_levels = True)
+			self.db['mapInp']      = pd.MultiIndex.from_tuples([], names = ['s','n','nn'])
+			self.db['knotOut']	 = pd.MultiIndex.from_tuples([], names = ['s','n'])
+			self.db['knotNOut']	 = pd.MultiIndex.from_tuples([], names = ['s','n'])
+			self.db['branch2Out']  = pd.MultiIndex.from_tuples([], names = ['s','n'])
+			self.db['branch2NOut'] = pd.MultiIndex.from_tuples([], names = ['s','n'])
+		[self.db.__setitem__(k, self.tree.get(k)) for k in ('map','output','input','int')];
+		# Define initial values for variables/parameters:
+		tIndex = db_IO('vD').index.get_level_values(0).unique()
+		self.db['mu'] = adjMultiIndex.bc(pd.Series(1, index = tIndex), self.tree.get('map'))
+		vD = db_IO('qD').mul(db_IO('pD'), fill_value=1) if valueFromQP else db_IO('vD')
+		self.db['vD'] = vD.combine_first(adjMultiIndex.bc(pd.Series(1, index = tIndex), self.tree.get('int'))).dropna()
+		self.db['vS'] = (db_IO('vS') * (adj.rc_pd(self.db('vD'), self.db('input')).groupby(['t','s']).sum()/ db_IO('vS'))).dropna()
+		AggDB.readSets(self.db, types = ['var','par','map'], ignore_alias = True) # read set definitions from other symbols
+		if self.tree.namespace:
+			AggDB.updSetElements(self.db, 'n', self.tree.namespace, rul = True)
 
-	def initValues(self, Tree, valueFromQP = True):
-		tIndex = self.s.db.get('vD').index.levels[0]
-		self.s.db['mu'] = adjMultiIndex.bc(pd.Series(1, index = tIndex), Tree.get('map'))
-		self.s.db['vD'] = self.initvD(valueFromQP=valueFromQP).combine_first(adjMultiIndex.bc(pd.Series(1, index = tIndex), Tree.get('int')))
-		self.s.db['vS'] = self.initvS()
-	def initvD(self, valueFromQP=True):
-		return self.s.db.get('qD') * self.s.db.get('pD') if valueFromQP else self.s.db.get('vD')
-	def initvS(self):
-		""" Balance value of outputs to value of inputs"""
-		return self.get('vS') * (adj.rc_pd(self.get('vD'), self.get('input')).groupby(['t','s']).sum() / self.get('vS'))
+	def initGroups(self):
+		def g(x):
+			return self.db[x]
+		self.groups = {'endo': Group('endo', v = [('mu', g('map')),
+												  ('vD', g('int'))]),
+						'exo': Group('exo' , v = [('vD', g('input')),
+												  ('vS', g('output'))])}
+		[grp() for grp in self.groups.values()]; # initialize groups
 
+	def __call__(self, db, valueFromQP = True):
+		self.initData(db, valueFromQP = valueFromQP)
+		self.db.mergeInternal()
+		self.initGroups()
+		self.job = self.ws.add_job_from_string(self.compiler(self.text))
+		self.job.run(databases = self.db.database)
+		return GpyDB(self.job.out_db, ws = self.ws)
 
-class SimpleRamsey(valueShares):
-	def __init__(self, tree, db_IO, s=None, s_kwargs = None):
-		""" Initialize from nesting tree 'tree'. """
-		super().__init__(tree, db_IO, s = s, s_kwargs = s_kwargs, valueFromQP = False)
+	@property
+	def text(self):
+		return f"""
+{gmsWrite.StdArgs.root()}
+{gmsWrite.StdArgs.funcs()}
+{gmsWrite.FromDB.declare(self.db)}
+{gmsWrite.FromDB.load(self.db, gdx = self.db.name)}
 
-	def initValues(self, Tree, valueFromQP = False):
-		tIndex = self.s.db.get('vD').index.levels[0]
-		self.s.db['mu'] = adjMultiIndex.bc(pd.Series(1, index = tIndex), Tree.get('map'))
-		self.s.db['vD'] = self.initvD(valueFromQP=valueFromQP).combine_first(adjMultiIndex.bc(pd.Series(1, index = tIndex), Tree.get('int').union(Tree.get('output'))))
+$BLOCK B_ValueShares
+	E_Out_knot[t,s,n]$(knotOutTree[s,n])..								vD[t,s,n]	=E= sum(nn$(map[s,nn,n] and branchOut[s,nn]), vS[t,s,n])+sum(nn$(map[s,nn,n] and branchNOut[s,nn]), vD[t,s,n]);
+	E_Out_shares_o[t,s,n,nn]$(mapOut[s,n,nn] and branchOut[s,n])..		mu[t,s,n,nn]=E= vS[t,s,n]/vD[t,s,nn];
+	E_Out_shares_no[t,s,n,nn]$(mapOut[s,n,nn] and branchNOut[s,n])..	mu[t,s,n,nn]=E= vD[t,s,n]/vD[t,s,nn];
+	E_Inp_knot_o[t,s,n]$(knotOut[s,n])..								vS[t,s,n]	=E= sum(nn$(map[s,n,nn]), vD[t,s,nn]);
+	E_Inp_knot_no[t,s,n]$(knotNOut[s,n])..								vD[t,s,n]	=E= sum(nn$(map[s,n,nn]), vD[t,s,nn]);
+	E_Inp_shares2o[t,s,n,nn]$(mapInp[s,n,nn] and branch2Out[s,nn])..	mu[t,s,n,nn]=E= vD[t,s,nn]/vS[t,s,n];
+	E_Inp_shares2no[t,s,n,nn]$(mapInp[s,n,nn] and branch2NOut[s,nn])..	mu[t,s,n,nn]=E= vD[t,s,nn]/vD[t,s,n];
+$ENDBLOCK
 
-	def args(self, state):
-		return {'valueShare_Blocks': gamsHouseholds.valueShares()}
+{self.groups['exo'].fix(db = self.db)}
+{self.groups['endo'].unfix(db = self.db)}
 
-	def _groups(self, m=None):
-		return [gmsPy.Group(f"G_{self.name}_exo",
-				v = [('vD', self.g('input'))]
-				),
-				gmsPy.Group(f"G_{self.name}_endo",
-				v = [('mu', self.g('map')), ('vD', ('or', [self.g('int'), self.g('output')]))]
-				)]
+@SolveEmptyNLP(B_ValueShares);
+"""

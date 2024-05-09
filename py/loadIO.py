@@ -1,10 +1,12 @@
-import pyDatabases, os, pandas as pd, IOfunctions_withoutDurables
-from pyDatabases import GpyDB, OrdSet, gpyDB, adjMultiIndex, noneInit
-from pyDatabases.gpyDB_wheels import adj, read
-
+from auxfuncs import *
+from pyDatabases import pdSum
+from pyDatabases.gpyDB import DbFromExcel
 
 def repeatIndex(s, i1 = 'n', i2 = 's'):
-    return s.reset_index().assign(**{i2: s.index}).set_index([i2,i1]).iloc[:,0]
+    return stdSort(s.reset_index().assign(**{i2: lambda x: x[i1]}).set_index(s.index.names+[i2]).iloc[:,0])
+
+def concatVar(dbs, var, t = 't'):
+	return stdSort(pd.concat([db_i(var).rename(i) for i, db_i in dbs.items()], axis =1).fillna(0).rename_axis(columns = t).stack()).rename(var)
 
 ##################################################################
 ############# ------------	1. DURABLES ------------ #############
@@ -26,7 +28,7 @@ def dfIlocs(x, ilocs):
 def durablesReadData(file, sheet, ilocs = None):
 	if ilocs is None:
 		ilocs = [None, None, 1, None]
-	return dfIlocs(pd.DataFrame(read.simpleLoad(file)[sheet].values), ilocs)
+	return dfIlocs(pd.DataFrame(DbFromExcel.simpleLoad(file)[sheet].values), ilocs)
 
 def durablesAddIndices(df, namesToInv, namesInvVariables):
 	""" This takes the data from DST table and returns a dataframe with full indices.
@@ -77,11 +79,11 @@ def addEmissionsToDb(db, emissions, t):
 	""" Add data on emissions to main IO database """
 	db['qCO2'] = emissions['qCO2'].xs(str(t),level='t')
 	if str(t) in emissions['τ'].index.levels[1]:
-		gpyDB.add_or_merge_vals(db, addLevelToMultiIndex(emissions['τ'].xs(str(t),level='t'), 'taxTypes','Emissions').rename('vTax'))
+		db.aom(addLevelToMultiIndex(emissions['τ'].xs(str(t),level='t'), 'taxTypes','Emissions').rename('vTax'))
 
 def emissionsReadData(file,scaleTaxes = 1000):
 	""" Measure CO2 emissions in mio. tonnes, taxes in 1000 DKK"""
-	rawData = read.simpleLoad(file)
+	rawData = DbFromExcel.simpleLoad(file)
 	DRIVHUS = pd.DataFrame(rawData['DRIVHUS'].values)
 	MRS1 = pd.DataFrame(rawData['MRS1'].values)
 	MRO2 = pd.DataFrame(rawData['MRO2'].values)
@@ -91,24 +93,28 @@ def emissionsReadData(file,scaleTaxes = 1000):
 															index 	= pd.Index(MRS1.iloc[1:,1], name = 's').str.split(' ').str[0]).dropna().stack()*scaleTaxes,
 			'totalEmissions': pd.Series(MRO2.iloc[2,2:].values/1000, index = pd.Index(MRO2.iloc[0,2:], name = 't'))}
 
+
 ###########################################################################
 ############# ------------	3. Create model data ------------ #############
 ###########################################################################
 
 def model_vS(db):
-	vS = repeatIndex(adj.rc_pd(db.get('vD'), ('or', [db.get('n_p'), db.get('inv_p')])).groupby('n').sum())
-	vS.loc[('HH','L')] = db.get('vD').xs('L',level='n').sum() # value of labor supply from households
-	gpyDB.add_or_merge_vals(db, vS, name = 'vS') # add to database
+	vS = repeatIndex(pdSum(adj.rc_pd(db('vD'), ('or', [db('n_p'), db('inv_p')])), 's'))
+	laborSupply = stdSort(adjMultiIndex.bc(pdSum(adj.rc_pd(db('vD'), pd.Index(['L'], name = 'n')), 's'), db('s_HH')))
+	vS = laborSupply.combine_first(vS)
+	db.aom(vS, name = 'vS') # add to database
 
 def model_p(db):
-	pDefault = pd.Series(1, index = db.get('vS').index.levels[-1].union(db.get('n_F')))
-	gpyDB.add_or_merge_vals(db, pDefault, name = 'p')
+	domesticPrices = pd.Series(1, index = db('vS').index.droplevel('s').unique(), name = 'p')
+	foreignPrices  = pd.Series(1, index = adj.rc_pd(db('vD'), db('n_F')).index.droplevel('s').unique(), name = 'p')
+	db.aom(domesticPrices.combine_first(foreignPrices), name = 'p')
 
-def model_durables(db, glbl):
-	gpyDB.add_or_merge_vals(db, adj.rc_pd(db.get('vD'), db.get('dur_p')), name = 'qD')
-	staticUserCost = adjMultiIndex.applyMult(db.get('p').rename_axis(index = {'n':'nn'}), db.get('dur2inv')).dropna().droplevel('nn') * (glbl.db['R_LR'].vals/(1+glbl.db['infl_LR'].vals)+db.get('rDepr')-1)
-	gpyDB.add_or_merge_vals(db, staticUserCost, name = 'pD_dur')
+def model_durables(db, R, π):
+	staticUserCost = stdSort(adjMultiIndex.applyMult(db('p').rename_axis(index = {'n':'nn'}), db('dur2inv')).dropna().droplevel('nn') * (R/(1+π)+db('rDepr')-1))
+	db.aom(adj.rc_pd(db('vD'), db('dur_p')), name = 'qD')
+	# db.aom(adj.rc_pd(db('vD'), db('dur_p'))/staticUserCost, name = 'qD')
+	db.aom(staticUserCost, name = 'pD_dur')
 
 def model_quantNonDurables(db):
-	gpyDB.add_or_merge_vals(db, adj.rc_pd(db.get('vD'), ('not', db.get('dur_p')))/db.get('p'), name = 'qD')
-	gpyDB.add_or_merge_vals(db, db.get('vS') / db.get('p'), name = 'qS')
+	db.aom(stdSort(adj.rc_pd(db('vD'), ('not', db('dur_p')))/db('p')), name = 'qD')
+	db.aom(stdSort(db('vS') / db('p')), name = 'qS')
