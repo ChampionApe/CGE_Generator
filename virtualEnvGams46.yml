@@ -1,0 +1,16 @@
+name: GAMS46
+channels:
+  - defaults
+dependencies:
+  - python = 3.11.8
+  - pip
+  - nodejs
+  - openpyxl
+  - jupyterlab = 4
+  - pandas = 2
+  - scipy = 1.12.0
+  - pip:
+    - seaborn == 0.12.2
+    - gamsapi
+    - pyDatabases
+    - gmsPython

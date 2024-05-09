@@ -1,0 +1,212 @@
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:53 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   3   
+   4   
+   5   
+   6  ;
+   7  OPTION SYSOUT=OFF, SOLPRINT=OFF, LIMROW=0, LIMCOL=0, DECIMALS=6;
+   8   
+   9   
+  10  # User defined functions:
+  11   
+  12  # ----------------------------------------------------------------------------------------------------
+  13  #  Define function: SolveEmptyNLP
+  14  # ----------------------------------------------------------------------------------------------------
+  15   
+  16   
+  17  sets
+  18          alias_set
+  19          alias_map2
+  20          s
+  21          n
+  22          t
+  23  ;
+  24   
+  25  alias(n,nn);
+  26   
+  27  sets
+  28          alias_[alias_set,alias_map2]
+  29          mapOut[s,n,nn]
+  30          knotOutTree[s,n]
+  31          branchOut[s,n]
+  32          branchNOut[s,n]
+  33          mapInp[s,n,nn]
+  34          knotOut[s,n]
+  35          knotNOut[s,n]
+  36          branch2Out[s,n]
+  37          branch2NOut[s,n]
+  38          map[s,n,nn]
+  39          output[s,n]
+  40          input[s,n]
+  41          int[s,n]
+  42  ;
+  43   
+  44  variables
+  45          mu[t,s,n,nn]
+  46          vD[t,s,n]
+  47          vS[t,s,n]
+  48  ;
+GDXIN   C:\Users\sxj477\Documents\GitHub\CGE_Generator\py\db.gdx
+--- LOAD  alias_set = 2:alias_set
+--- LOAD  alias_map2 = 3:alias_map2
+--- LOAD  s = 20:s
+--- LOAD  n = 21:n
+--- LOAD  t = 22:t
+--- LOAD  alias_ = 1:alias_
+--- LOAD  mapOut = 4:mapOut
+--- LOAD  knotOutTree = 5:knotOutTree
+--- LOAD  branchOut = 6:branchOut
+--- LOAD  branchNOut = 7:branchNOut
+--- LOAD  mapInp = 8:mapInp
+--- LOAD  knotOut = 9:knotOut
+--- LOAD  knotNOut = 10:knotNOut
+--- LOAD  branch2Out = 11:branch2Out
+--- LOAD  branch2NOut = 12:branch2NOut
+--- LOAD  map = 13:map
+--- LOAD  output = 14:output
+--- LOAD  input = 15:input
+--- LOAD  int = 16:int
+GDXIN   C:\Users\sxj477\Documents\GitHub\CGE_Generator\py\db.gdx
+--- LOAD  mu = 17:mu
+--- LOAD  vD = 18:vD
+--- LOAD  vS = 19:vS
+  79   
+  80   
+  81   
+  82   
+  83  # --------------------------------------------B_ValueShares-------------------------------------------
+  84  #  Initialize B_ValueShares equation block
+  85  # ----------------------------------------------------------------------------------------------------
+  86  EQUATION E_Out_knot[t,s,n];
+  87  E_Out_knot[t,s,n]$(knotouttree[s,n])..                                                          vD[t,s,n]        =E=  sum(nn$(map[s,nn,n] and branchOut[s,nn]), vS[t,s,n])+sum(nn$(map[s,nn,n] and branchNOut[s,nn]), vD[t,s,n]);
+  88  EQUATION E_Out_shares_o[t,s,n,nn];
+  89  E_Out_shares_o[t,s,n,nn]$(mapout[s,n,nn] and branchout[s,n])..          mu[t,s,n,nn] =E=  vS[t,s,n]/vD[t,s,nn];
+  90  EQUATION E_Out_shares_no[t,s,n,nn];
+  91  E_Out_shares_no[t,s,n,nn]$(mapout[s,n,nn] and branchnout[s,n])..        mu[t,s,n,nn] =E=  vD[t,s,n]/vD[t,s,nn];
+  92  EQUATION E_Inp_knot_o[t,s,n];
+  93  E_Inp_knot_o[t,s,n]$(knotout[s,n])..                                                            vS[t,s,n]        =E=  sum(nn$(map[s,n,nn]), vD[t,s,nn]);
+  94  EQUATION E_Inp_knot_no[t,s,n];
+  95  E_Inp_knot_no[t,s,n]$(knotnout[s,n])..                                                          vD[t,s,n]        =E=  sum(nn$(map[s,n,nn]), vD[t,s,nn]);
+  96  EQUATION E_Inp_shares2o[t,s,n,nn];
+  97  E_Inp_shares2o[t,s,n,nn]$(mapinp[s,n,nn] and branch2out[s,nn])..        mu[t,s,n,nn] =E=  vD[t,s,nn]/vS[t,s,n];
+  98  EQUATION E_Inp_shares2no[t,s,n,nn];
+  99  E_Inp_shares2no[t,s,n,nn]$(mapinp[s,n,nn] and branch2nout[s,nn])..      mu[t,s,n,nn] =E=  vD[t,s,nn]/vD[t,s,n];
+ 100   
+ 101  # ----------------------------------------------------------------------------------------------------
+ 102  #  Define B_ValueShares model
+ 103  # ----------------------------------------------------------------------------------------------------
+ 104  Model B_ValueShares /
+ 105  E_Out_knot, E_Out_shares_o, E_Out_shares_no, E_Inp_knot_o, E_Inp_knot_no, E_Inp_shares2o, E_Inp_shares2no
+ 106  /;
+ 107   
+ 108   
+ 109  vD.fx[t,s,n]$(input[s,n]) = vD.l[t,s,n]$(input[s,n]);
+ 110  vS.fx[t,s,n]$(output[s,n]) = vS.l[t,s,n]$(output[s,n]);
+ 111  mu.lo[t,s,n,nn]$(map[s,n,nn]) = -inf;
+ 112  mu.up[t,s,n,nn]$(map[s,n,nn]) = inf;
+ 113  vD.lo[t,s,n]$(int[s,n]) = -inf;
+ 114  vD.up[t,s,n]$(int[s,n]) = inf;
+ 115   
+ 116  variable randomnameobj;
+ 117  randomnameobj.L = 0;
+ 118   
+ 119  EQUATION E_EmptyNLPObj;
+ 120  E_EmptyNLPObj..    randomnameobj  =E=  0;
+ 121   
+ 122  Model M_SolveEmptyNLP /
+ 123  E_EmptyNLPObj, B_ValueShares
+ 124  /;
+ 125  solve M_SolveEmptyNLP using NLP min randomnameobj;
+ 126  ;
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:53 Page 2
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Include File Summary
+
+
+   SEQ   GLOBAL TYPE      PARENT   LOCAL  FILENAME
+
+     1        1 INPUT          0       0  C:\Users\sxj477\Documents\GitHub\CGE_Generator\py\_gams_py_gjo0.gms
+     2       49 GDXIN          1      49  C:\Users\sxj477\Documents\GitHub\CGE_Generator\py\db.gdx
+     3       72 GDXIN          1      72  C:\Users\sxj477\Documents\GitHub\CGE_Generator\py\db.gdx
+
+
+COMPILATION TIME     =        0.016 SECONDS      3 MB  46.2.0 ac4adda6 WEX-WEI
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:53 Page 3
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE M_SolveEmptyNLP Using NLP From line 125
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           8     SINGLE EQUATIONS          105
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES          148
+NON ZERO ELEMENTS           318     NON LINEAR N-Z            142
+CODE LENGTH                 427     CONSTANT POOL              16
+
+
+GENERATION TIME      =        0.015 SECONDS      4 MB  46.2.0 ac4adda6 WEX-WEI
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:53 Page 4
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE M_SolveEmptyNLP Using NLP From line 125
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   M_SolveEmptyNLP     OBJECTIVE  randomnameobj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONOPT              FROM LINE  125
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      1 Optimal
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.141 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.33
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+    Will use up to 8 threads.
+ 
+ 
+    The user model has 105 constraints and 148 variables
+    with 318 Jacobian elements, 142 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 105 constraints and 148 variables.
+ 
+    Preprocessed model is empty.
+ 
+ ** Optimal solution. Reduced gradient less than tolerance.
+ 
+ 
+ CONOPT time Total                            0.002 seconds
+   of which: Function evaluations             0.000 =  0.0%
+             1st Derivative evaluations       0.000 =  0.0%
+ 
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+                             0     ERRORS
+
+
+EXECUTION TIME       =        0.343 SECONDS      4 MB  46.2.0 ac4adda6 WEX-WEI
+
+
+USER: Medium MUD - 10 User License                   G231024|0002AP-WIN
+      University of Copenhagen, Department of Economics           DC203
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      C:\Users\sxj477\Documents\GitHub\CGE_Generator\py\_gams_py_gjo0.gms
+Output     C:\Users\sxj477\Documents\GitHub\CGE_Generator\py\_gams_py_gjo0.lst

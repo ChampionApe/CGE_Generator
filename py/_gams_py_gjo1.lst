@@ -1,0 +1,1460 @@
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   3   
+   4   
+   5   
+   6  ;
+   7  OPTION SYSOUT=OFF, SOLPRINT=OFF, LIMROW=0, LIMCOL=0, DECIMALS=6;
+   8   
+   9   
+  10  # User defined functions:
+  11   
+  12  # ----------------------------------------------------------------------------------------------------
+  13  #  Define function: SolveEmptyNLP
+  14  # ----------------------------------------------------------------------------------------------------
+  15   
+  16   
+  17  sets
+  18          alias_set
+  19          alias_map2
+  20          n
+  21          s
+  22          t
+  23          taxTypes
+  24  ;
+  25   
+  26  alias(n,nn,nnn);
+  27  alias(s,ss);
+  28   
+  29  sets
+  30          alias_[alias_set,alias_map2]
+  31          P_map[s,n,nn]
+  32          P_map_spinp[s,n,nn]
+  33          P_map_spout[s,n,nn]
+  34          P_knout[s,n]
+  35          P_kninp[s,n]
+  36          P_spout[s,n]
+  37          P_spinp[s,n]
+  38          P_input[s,n]
+  39          P_output[s,n]
+  40          P_int[s,n]
+  41          W_map[s,n,nn]
+  42          W_knot[s,n]
+  43          W_branch[s,n]
+  44          W_knot_o[s,n]
+  45          W_knot_no[s,n]
+  46          W_branch2o[s,n]
+  47          W_branch2no[s,n]
+  48          O_map[s,n,nn]
+  49          O_knot[s,n]
+  50          O_branch[s,n]
+  51          O_knot_o[s,n]
+  52          O_knot_no[s,n]
+  53          O_branch2o[s,n]
+  54          O_branch2no[s,n]
+  55          P_sm[s]
+  56          P_output_n[n]
+  57          P_input_n[n]
+  58          P_endoMu[s,n,nn]
+  59          s_p[s]
+  60          n_p[n]
+  61          n_F[n]
+  62          s_HH[s]
+  63          s_G[s]
+  64          s_i[s]
+  65          s_f[s]
+  66          dur_p[n]
+  67          inv_p[n]
+  68          dur2inv[n,nn]
+  69          nEqui[n]
+  70          d_qS[s,n]
+  71          d_qD[s,n]
+  72          d_qSEqui[s,n]
+  73          d_pEqui[n]
+  74          dom2for[n,nn]
+  75          dExport[s,n]
+  76          dImport[s,n,nn]
+  77          dImport_dom[s,n]
+  78          dImport_for[s,n]
+  79          t0[t]
+  80          tx0[t]
+  81          tE[t]
+  82          t2E[t]
+  83          txE[t]
+  84          tx2E[t]
+  85          tx0E[t]
+  86          tx02E[t]
+  87          nestProduction[s,n,nn]
+  88          dtauCO2[t,s,n]
+  89          dqCO2[t,s,n]
+  90          nestInvestment[s,n,nn]
+  91          nestHH[s,n,nn]
+  92          L2C[s,n,nn]
+  93          nestG[s,n,nn]
+  94          d_TotalTax[t,s]
+  95          P_dur[s,n]
+  96          P_dur2inv[s,n,nn]
+  97          P_inv[s,n]
+  98  ;
+  99   
+ 100  parameters
+ 101          R_LR
+ 102          infl_LR
+ 103          g_LR
+ 104  ;
+ 105   
+ 106  variables
+ 107          vTax[t,s,taxTypes]
+ 108          TotalTax[t,s]
+ 109          vD[t,s,n]
+ 110          vD_dur[t,s,n]
+ 111          vD_depr[t,s,n]
+ 112          vD_inv[t,s,n]
+ 113          qCO2[t,s,n]
+ 114          rDepr[t,s,n]
+ 115          vS[t,s,n]
+ 116          p[t,n]
+ 117          qD[t,s,n]
+ 118          pD_dur[t,s,n]
+ 119          qS[t,s,n]
+ 120          sigma[s,n]
+ 121          tauCO2[t,s,n]
+ 122          tauS[t,s,n]
+ 123          tauD[t,s,n]
+ 124          tauLump[t,s]
+ 125          tauNonEnv[t,s,n]
+ 126          tauNonEnv0[t,s,n]
+ 127          pD[t,s,n]
+ 128          Rrate[t]
+ 129          mu[s,n,nn]
+ 130          pS[t,s,n]
+ 131          adjCostPar[s,n]
+ 132          K_tvc[s,n]
+ 133          adjCost[t,s]
+ 134          markup[s]
+ 135          taxRevPar[s]
+ 136  ;
+GDXIN   C:\Users\sxj477\Documents\GitHub\CGE_Generator\py\P.gdx
+--- LOAD  alias_set = 2:alias_set
+--- LOAD  alias_map2 = 3:alias_map2
+--- LOAD  n = 4:n
+--- LOAD  s = 5:s
+--- LOAD  t = 48:t
+--- LOAD  taxTypes = 49:taxTypes
+--- LOAD  alias_ = 1:alias_
+--- LOAD  P_map = 6:P_map
+--- LOAD  P_map_spinp = 7:P_map_spinp
+--- LOAD  P_map_spout = 8:P_map_spout
+--- LOAD  P_knout = 9:P_knout
+--- LOAD  P_kninp = 10:P_kninp
+--- LOAD  P_spout = 11:P_spout
+--- LOAD  P_spinp = 12:P_spinp
+--- LOAD  P_input = 13:P_input
+--- LOAD  P_output = 14:P_output
+--- LOAD  P_int = 15:P_int
+--- LOAD  W_map = 16:W_map
+--- LOAD  W_knot = 17:W_knot
+--- LOAD  W_branch = 18:W_branch
+--- LOAD  W_knot_o = 19:W_knot_o
+--- LOAD  W_knot_no = 20:W_knot_no
+--- LOAD  W_branch2o = 21:W_branch2o
+--- LOAD  W_branch2no = 22:W_branch2no
+--- LOAD  O_map = 23:O_map
+--- LOAD  O_knot = 24:O_knot
+--- LOAD  O_branch = 25:O_branch
+--- LOAD  O_knot_o = 26:O_knot_o
+--- LOAD  O_knot_no = 27:O_knot_no
+--- LOAD  O_branch2o = 28:O_branch2o
+--- LOAD  O_branch2no = 29:O_branch2no
+--- LOAD  P_sm = 30:P_sm
+--- LOAD  P_output_n = 31:P_output_n
+--- LOAD  P_input_n = 32:P_input_n
+--- LOAD  P_endoMu = 33:P_endoMu
+--- LOAD  s_p = 41:s_p
+--- LOAD  n_p = 42:n_p
+--- LOAD  n_F = 43:n_F
+--- LOAD  s_HH = 44:s_HH
+--- LOAD  s_G = 45:s_G
+--- LOAD  s_i = 46:s_i
+--- LOAD  s_f = 47:s_f
+--- LOAD  dur_p = 51:dur_p
+--- LOAD  inv_p = 52:inv_p
+--- LOAD  dur2inv = 53:dur2inv
+--- LOAD  nEqui = 62:nEqui
+--- LOAD  d_qS = 63:d_qS
+--- LOAD  d_qD = 64:d_qD
+--- LOAD  d_qSEqui = 65:d_qSEqui
+--- LOAD  d_pEqui = 66:d_pEqui
+--- LOAD  dom2for = 67:dom2for
+--- LOAD  dExport = 68:dExport
+--- LOAD  dImport = 69:dImport
+--- LOAD  dImport_dom = 70:dImport_dom
+--- LOAD  dImport_for = 71:dImport_for
+--- LOAD  t0 = 72:t0
+--- LOAD  tx0 = 73:tx0
+--- LOAD  tE = 74:tE
+--- LOAD  t2E = 75:t2E
+--- LOAD  txE = 76:txE
+--- LOAD  tx2E = 77:tx2E
+--- LOAD  tx0E = 78:tx0E
+--- LOAD  tx02E = 79:tx02E
+--- LOAD  nestProduction = 80:nestProduction
+--- LOAD  dtauCO2 = 83:dtauCO2
+--- LOAD  dqCO2 = 84:dqCO2
+--- LOAD  nestInvestment = 91:nestInvestment
+--- LOAD  nestHH = 92:nestHH
+--- LOAD  L2C = 93:L2C
+--- LOAD  nestG = 94:nestG
+--- LOAD  d_TotalTax = 95:d_TotalTax
+--- LOAD  P_dur = 98:P_dur
+--- LOAD  P_dur2inv = 99:P_dur2inv
+--- LOAD  P_inv = 100:P_inv
+GDXIN   C:\Users\sxj477\Documents\GitHub\CGE_Generator\py\P.gdx
+--- LOAD  R_LR = 54:R_LR
+--- LOAD  infl_LR = 55:infl_LR
+--- LOAD  g_LR = 56:g_LR
+GDXIN   C:\Users\sxj477\Documents\GitHub\CGE_Generator\py\P.gdx
+--- LOAD  vTax = 34:vTax
+--- LOAD  TotalTax = 35:TotalTax
+--- LOAD  vD = 36:vD
+--- LOAD  vD_dur = 37:vD_dur
+--- LOAD  vD_depr = 38:vD_depr
+--- LOAD  vD_inv = 39:vD_inv
+--- LOAD  qCO2 = 40:qCO2
+--- LOAD  rDepr = 50:rDepr
+--- LOAD  vS = 57:vS
+--- LOAD  p = 58:p
+--- LOAD  qD = 59:qD
+--- LOAD  pD_dur = 60:pD_dur
+--- LOAD  qS = 61:qS
+--- LOAD  sigma = 81:sigma
+--- LOAD  tauCO2 = 82:tauCO2
+--- LOAD  tauS = 85:tauS
+--- LOAD  tauD = 86:tauD
+--- LOAD  tauLump = 87:tauLump
+--- LOAD  tauNonEnv = 88:tauNonEnv
+--- LOAD  tauNonEnv0 = 89:tauNonEnv0
+--- LOAD  pD = 90:pD
+--- LOAD  Rrate = 96:Rrate
+--- LOAD  mu = 97:mu
+--- LOAD  pS = 101:pS
+--- LOAD  adjCostPar = 102:adjCostPar
+--- LOAD  K_tvc = 103:K_tvc
+--- LOAD  adjCost = 104:adjCost
+--- LOAD  markup = 105:markup
+--- LOAD  taxRevPar = 106:taxRevPar
+ 255   
+ 256   
+ 257   
+ 258   
+ 259   
+ 260  # -------------------------------------------------B_W------------------------------------------------
+ 261  #  Initialize B_W equation block
+ 262  # ----------------------------------------------------------------------------------------------------
+ 263  EQUATION E_W_zpOut[t,s,n];
+ 264  E_W_zpOut[t,s,n]$(w_knot_o[s,n] and txe[t])..   pS[t,s,n]*qS[t,s,n]  =E=  sum(nn$(W_map[s,n,nn]), qD[t,s,nn]*pD[t,s,nn]);
+ 265  EQUATION E_W_zpNOut[t,s,n];
+ 266  E_W_zpNOut[t,s,n]$(w_knot_no[s,n] and txe[t])..         pD[t,s,n]*qD[t,s,n]  =E=  sum(nn$(W_map[s,n,nn]), qD[t,s,nn]*pD[t,s,nn]);
+ 267  EQUATION E_W_qOut[t,s,n];
+ 268  E_W_qOut[t,s,n]$(w_branch2o[s,n] and txe[t])..  qD[t,s,n]  =E=  sum(nn$(W_map[s,nn,n]), mu[s,nn,n] * (pS[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qS[t,s,nn]);
+ 269  EQUATION E_W_qNOut[t,s,n];
+ 270  E_W_qNOut[t,s,n]$(w_branch2no[s,n] and txe[t])..        qD[t,s,n]  =E=  sum(nn$(W_map[s,nn,n]), mu[s,nn,n] * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn]);
+ 271   
+ 272  # ----------------------------------------------------------------------------------------------------
+ 273  #  Define B_W model
+ 274  # ----------------------------------------------------------------------------------------------------
+ 275  Model B_W /
+ 276  E_W_zpOut, E_W_zpNOut, E_W_qOut, E_W_qNOut
+ 277  /;
+ 278   
+ 279   
+ 280   
+ 281  # -------------------------------------------------B_O------------------------------------------------
+ 282  #  Initialize B_O equation block
+ 283  # ----------------------------------------------------------------------------------------------------
+ 284  EQUATION E_O_zpOut[t,s,n];
+ 285  E_O_zpOut[t,s,n]$(o_knot_o[s,n] and txe[t])..   pS[t,s,n]*qS[t,s,n]  =E=  sum(nn$(O_map[s,n,nn]), qD[t,s,nn]*pD[t,s,nn]);
+ 286  EQUATION E_O_zpNOut[t,s,n];
+ 287  E_O_zpNOut[t,s,n]$(o_knot_no[s,n] and txe[t])..         pD[t,s,n]*qD[t,s,n]  =E=  sum(nn$(O_map[s,n,nn]), qD[t,s,nn]*pD[t,s,nn]);
+ 288  EQUATION E_O_qOut[t,s,n];
+ 289  E_O_qOut[t,s,n]$(o_branch2o[s,n] and txe[t])..  qD[t,s,n]  =E=  sum(nn$(O_map[s,nn,n]), mu[s,nn,n] * (pS[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qS[t,s,nn]);
+ 290  EQUATION E_O_qNOut[t,s,n];
+ 291  E_O_qNOut[t,s,n]$(o_branch2no[s,n] and txe[t])..        qD[t,s,n]  =E=  sum(nn$(O_map[s,nn,n]), mu[s,nn,n] * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn]);
+ 292   
+ 293  # ----------------------------------------------------------------------------------------------------
+ 294  #  Define B_O model
+ 295  # ----------------------------------------------------------------------------------------------------
+ 296  Model B_O /
+ 297  E_O_zpOut, E_O_zpNOut, E_O_qOut, E_O_qNOut
+ 298  /;
+ 299   
+ 300   
+ 301   
+ 302  # ---------------------------------------------B_P_adjCost--------------------------------------------
+ 303  #  Initialize B_P_adjCost equation block
+ 304  # ----------------------------------------------------------------------------------------------------
+ 305  EQUATION E_P_adjCost_lom[t,s,n];
+ 306  E_P_adjCost_lom[t,s,n]$(p_dur[s,n] and txe[t])..                qD[t+1,s,n]      =E=  (qD[t,s,n]*(1-rDepr[t,s,n])+sum(nn$(P_dur2inv[s,n,nn]), qD[t,s,nn]))/(1+g_LR);
+ 307  EQUATION E_P_adjCost_pk[t,s,n];
+ 308  E_P_adjCost_pk[t,s,n]$(p_dur[s,n] and tx02e[t])..       pD[t,s,n]        =E=  sqrt(sqr(sum(nn$(P_dur2inv[s,n,nn]), Rrate[t]*pD[t-1,s,nn]*(1+adjCostPar[s,n]*(qD[t-1,s,nn]/qD[t-1,s,n]-(rDepr[t-1,s,n]+g_LR)))/(1+infl_LR)+pD[t,s,nn]*(adjCostPar[s,n]*0.5*(sqr(rDepr[t,s,n]+g_LR)-sqr(qD[t,s,nn]/qD[t,s,n]))-(1-rDepr[t,s,n])*(1+adjCostPar[s,n]*(qD[t,s,nn]/qD[t,s,n]-(rDepr[t,s,n]+g_LR)))))));
+ 309  EQUATION E_P_adjCost_pkT[t,s,n];
+ 310  E_P_adjCost_pkT[t,s,n]$(p_dur[s,n] and t2e[t])..                pD[t,s,n]        =E=  sum(nn$(P_dur2inv[s,n,nn]), Rrate[t]*pD[t-1,s,nn] * (1+adjCostPar[s,n]*(qD[t-1,s,nn]/qD[t-1,s,n]-(rDepr[t-1,s,n]+g_LR)))/(1+infl_LR) + (rDepr[t,s,n]-1)*pD[t,s,nn]);
+ 311  EQUATION E_P_adjCost_K_tvc[t,s,n];
+ 312  E_P_adjCost_K_tvc[t,s,n]$(p_dur[s,n] and te[t])..       qD[t,s,n]        =E=  (1+K_tvc[s,n])*qD[t-1,s,n];
+ 313  EQUATION E_P_adjCost_adjCost[t,s];
+ 314  E_P_adjCost_adjCost[t,s]$(p_sm[s] and txe[t])..                 adjCost[t,s]     =E=  sum([n,nn]$(P_dur2inv[s,n,nn]), pD[t,s,nn] * adjCostPar[s,n]*0.5*qD[t,s,n]*sqr(qD[t,s,nn]/qD[t,s,n]-(rDepr[t,s,n]+g_LR)));
+ 315   
+ 316  # ----------------------------------------------------------------------------------------------------
+ 317  #  Define B_P_adjCost model
+ 318  # ----------------------------------------------------------------------------------------------------
+ 319  Model B_P_adjCost /
+ 320  E_P_adjCost_lom, E_P_adjCost_pk, E_P_adjCost_pkT, E_P_adjCost_K_tvc, E_P_adjCost_adjCost
+ 321  /;
+ 322   
+ 323   
+ 324   
+ 325  # ---------------------------------------------B_P_pWedge---------------------------------------------
+ 326  #  Initialize B_P_pWedge equation block
+ 327  # ----------------------------------------------------------------------------------------------------
+ 328  EQUATION E_P_pWedge_pwInp[t,s,n];
+ 329  E_P_pWedge_pwInp[t,s,n]$(p_input[s,n] and txe[t])..                     pD[t,s,n]                =E=  p[t,n]+tauD[t,s,n];
+ 330  EQUATION E_P_pWedge_pwOut[t,s,n];
+ 331  E_P_pWedge_pwOut[t,s,n]$(p_output[s,n] and txe[t])..            p[t,n]                   =E=  (1+markup[s])*(pS[t,s,n]+tauS[t,s,n]+(adjCost[t,s]+tauLump[t,s])/qS[t,s,n]);
+ 332  EQUATION E_P_pWedge_taxRev[t,s];
+ 333  E_P_pWedge_taxRev[t,s]$(s_p[s] and txe[t])..                            TotalTax[t,s]    =E=  tauLump[t,s]+sum(n$(P_input[s,n]), tauD[t,s,n] * qD[t,s,n])+sum(n$(P_output[s,n]), tauS[t,s,n]*qS[t,s,n]);
+ 334  EQUATION E_P_pWedge_tauS[t,s,n];
+ 335  E_P_pWedge_tauS[t,s,n]$(p_output[s,n] and txe[t])..                     tauS[t,s,n]              =E=  tauCO2[t,s,n] * qCO2[t,s,n]/qS[t,s,n]+tauNonEnv[t,s,n];
+ 336   
+ 337  # ----------------------------------------------------------------------------------------------------
+ 338  #  Define B_P_pWedge model
+ 339  # ----------------------------------------------------------------------------------------------------
+ 340  Model B_P_pWedge /
+ 341  E_P_pWedge_pwInp, E_P_pWedge_pwOut, E_P_pWedge_taxRev, E_P_pWedge_tauS
+ 342  /;
+ 343   
+ 344   
+ 345   
+ 346  # --------------------------------------------B_P_taxCalib--------------------------------------------
+ 347  #  Initialize B_P_taxCalib equation block
+ 348  # ----------------------------------------------------------------------------------------------------
+ 349  EQUATION E_P_taxCalib_taxCal[t,s,n];
+ 350  E_P_taxCalib_taxCal[t,s,n]$(p_output[s,n] and txe[t])..         tauNonEnv[t,s,n]         =E=  tauNonEnv0[t,s,n] * (1+taxRevPar[s]);
+ 351   
+ 352  # ----------------------------------------------------------------------------------------------------
+ 353  #  Define B_P_taxCalib model
+ 354  # ----------------------------------------------------------------------------------------------------
+ 355  Model B_P_taxCalib /
+ 356  E_P_taxCalib_taxCal
+ 357  /;
+ 358   
+ 359   
+ 360   
+ 361  # ----------------------------------------------------------------------------------------------------
+ 362  #  Define P_B model
+ 363  # ----------------------------------------------------------------------------------------------------
+ 364  Model P_B /
+ 365  E_W_zpOut, E_W_zpNOut, E_W_qOut, E_W_qNOut, E_O_zpOut, E_O_zpNOut, E_O_qOut, E_O_qNOut, E_P_adjCost_lom, E_P_adjCost_pk, E_P_adjCost_pkT, E_P_adjCost_K_tvc, E_P_adjCost_adjCost, E_P_pWedge_pwInp, E_P_pWedge_pwOut, E_P_pWedge_taxRev, E_P_pWedge_tauS
+ 366  /;
+ 367   
+ 368   
+ 369  # ----------------------------------------------------------------------------------------------------
+ 370  #  Define P_C model
+ 371  # ----------------------------------------------------------------------------------------------------
+ 372  Model P_C /
+ 373  E_W_zpOut, E_W_zpNOut, E_W_qOut, E_W_qNOut, E_O_zpOut, E_O_zpNOut, E_O_qOut, E_O_qNOut, E_P_adjCost_lom, E_P_adjCost_pk, E_P_adjCost_pkT, E_P_adjCost_K_tvc, E_P_adjCost_adjCost, E_P_pWedge_pwInp, E_P_pWedge_pwOut, E_P_pWedge_taxRev, E_P_pWedge_tauS, E_P_taxCalib_taxCal
+ 374  /;
+ 375   
+ 376  variables
+ 377          j_W_zpOut[t,s,n]
+ 378          j_W_zpNOut[t,s,n]
+ 379          j_W_qOut[t,s,n]
+ 380          j_W_qNOut[t,s,n]
+ 381          j_O_zpOut[t,s,n]
+ 382          j_O_zpNOut[t,s,n]
+ 383          j_O_qOut[t,s,n]
+ 384          j_O_qNOut[t,s,n]
+ 385          j_P_adjCost_lom[t,s,n]
+ 386          j_P_adjCost_pk[t,s,n]
+ 387          j_P_adjCost_pkT[t,s,n]
+ 388          j_P_adjCost_K_tvc[t,s,n]
+ 389          j_P_adjCost_adjCost[t,s]
+ 390          j_P_pWedge_pwInp[t,s,n]
+ 391          j_P_pWedge_pwOut[t,s,n]
+ 392          j_P_pWedge_taxRev[t,s]
+ 393          j_P_pWedge_tauS[t,s,n]
+ 394          j_P_taxCalib_taxCal[t,s,n]
+ 395  ;
+ 396   
+ 397   
+ 398  # ------------------------------------------------j_P_C-----------------------------------------------
+ 399  #  Initialize j_P_C equation block
+ 400  # ----------------------------------------------------------------------------------------------------
+ 401  EQUATION j_E_W_zpOut[t,s,n];
+ 402  j_E_W_zpOut[t,s,n]$(w_knot_o[s,n] and txe[t])..         pS[t,s,n]*qS[t,s,n]  =E=  sum(nn$(W_map[s,n,nn]), qD[t,s,nn]*pD[t,s,nn])+j_W_zpOut[t,s,n];
+ 403  EQUATION j_E_W_zpNOut[t,s,n];
+ 404  j_E_W_zpNOut[t,s,n]$(w_knot_no[s,n] and txe[t])..       pD[t,s,n]*qD[t,s,n]  =E=  sum(nn$(W_map[s,n,nn]), qD[t,s,nn]*pD[t,s,nn])+j_W_zpNOut[t,s,n];
+ 405  EQUATION j_E_W_qOut[t,s,n];
+ 406  j_E_W_qOut[t,s,n]$(w_branch2o[s,n] and txe[t])..        qD[t,s,n]  =E=  sum(nn$(W_map[s,nn,n]), mu[s,nn,n] * (pS[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qS[t,s,nn])+j_W_qOut[t,s,n];
+ 407  EQUATION j_E_W_qNOut[t,s,n];
+ 408  j_E_W_qNOut[t,s,n]$(w_branch2no[s,n] and txe[t])..      qD[t,s,n]  =E=  sum(nn$(W_map[s,nn,n]), mu[s,nn,n] * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn])+j_W_qNOut[t,s,n];
+ 409  EQUATION j_E_O_zpOut[t,s,n];
+ 410  j_E_O_zpOut[t,s,n]$(o_knot_o[s,n] and txe[t])..         pS[t,s,n]*qS[t,s,n]  =E=  sum(nn$(O_map[s,n,nn]), qD[t,s,nn]*pD[t,s,nn])+j_O_zpOut[t,s,n];
+ 411  EQUATION j_E_O_zpNOut[t,s,n];
+ 412  j_E_O_zpNOut[t,s,n]$(o_knot_no[s,n] and txe[t])..       pD[t,s,n]*qD[t,s,n]  =E=  sum(nn$(O_map[s,n,nn]), qD[t,s,nn]*pD[t,s,nn])+j_O_zpNOut[t,s,n];
+ 413  EQUATION j_E_O_qOut[t,s,n];
+ 414  j_E_O_qOut[t,s,n]$(o_branch2o[s,n] and txe[t])..        qD[t,s,n]  =E=  sum(nn$(O_map[s,nn,n]), mu[s,nn,n] * (pS[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qS[t,s,nn])+j_O_qOut[t,s,n];
+ 415  EQUATION j_E_O_qNOut[t,s,n];
+ 416  j_E_O_qNOut[t,s,n]$(o_branch2no[s,n] and txe[t])..      qD[t,s,n]  =E=  sum(nn$(O_map[s,nn,n]), mu[s,nn,n] * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn])+j_O_qNOut[t,s,n];
+ 417  EQUATION j_E_P_adjCost_lom[t,s,n];
+ 418  j_E_P_adjCost_lom[t,s,n]$(p_dur[s,n] and txe[t])..              qD[t+1,s,n]      =E=  (qD[t,s,n]*(1-rDepr[t,s,n])+sum(nn$(P_dur2inv[s,n,nn]), qD[t,s,nn]))/(1+g_LR)+j_P_adjCost_lom[t,s,n];
+ 419  EQUATION j_E_P_adjCost_pk[t,s,n];
+ 420  j_E_P_adjCost_pk[t,s,n]$(p_dur[s,n] and tx02e[t])..     pD[t,s,n]        =E=  sqrt(sqr(sum(nn$(P_dur2inv[s,n,nn]), Rrate[t]*pD[t-1,s,nn]*(1+adjCostPar[s,n]*(qD[t-1,s,nn]/qD[t-1,s,n]-(rDepr[t-1,s,n]+g_LR)))/(1+infl_LR)+pD[t,s,nn]*(adjCostPar[s,n]*0.5*(sqr(rDepr[t,s,n]+g_LR)-sqr(qD[t,s,nn]/qD[t,s,n]))-(1-rDepr[t,s,n])*(1+adjCostPar[s,n]*(qD[t,s,nn]/qD[t,s,n]-(rDepr[t,s,n]+g_LR)))))))+j_P_adjCost_pk[t,s,n];
+ 421  EQUATION j_E_P_adjCost_pkT[t,s,n];
+ 422  j_E_P_adjCost_pkT[t,s,n]$(p_dur[s,n] and t2e[t])..              pD[t,s,n]        =E=  sum(nn$(P_dur2inv[s,n,nn]), Rrate[t]*pD[t-1,s,nn] * (1+adjCostPar[s,n]*(qD[t-1,s,nn]/qD[t-1,s,n]-(rDepr[t-1,s,n]+g_LR)))/(1+infl_LR) + (rDepr[t,s,n]-1)*pD[t,s,nn])+j_P_adjCost_pkT[t,s,n];
+ 423  EQUATION j_E_P_adjCost_K_tvc[t,s,n];
+ 424  j_E_P_adjCost_K_tvc[t,s,n]$(p_dur[s,n] and te[t])..     qD[t,s,n]        =E=  (1+K_tvc[s,n])*qD[t-1,s,n]+j_P_adjCost_K_tvc[t,s,n];
+ 425  EQUATION j_E_P_adjCost_adjCost[t,s];
+ 426  j_E_P_adjCost_adjCost[t,s]$(p_sm[s] and txe[t])..               adjCost[t,s]     =E=  sum([n,nn]$(P_dur2inv[s,n,nn]), pD[t,s,nn] * adjCostPar[s,n]*0.5*qD[t,s,n]*sqr(qD[t,s,nn]/qD[t,s,n]-(rDepr[t,s,n]+g_LR)))+j_P_adjCost_adjCost[t,s];
+ 427  EQUATION j_E_P_pWedge_pwInp[t,s,n];
+ 428  j_E_P_pWedge_pwInp[t,s,n]$(p_input[s,n] and txe[t])..                   pD[t,s,n]                =E=  p[t,n]+tauD[t,s,n]+j_P_pWedge_pwInp[t,s,n];
+ 429  EQUATION j_E_P_pWedge_pwOut[t,s,n];
+ 430  j_E_P_pWedge_pwOut[t,s,n]$(p_output[s,n] and txe[t])..          p[t,n]                   =E=  (1+markup[s])*(pS[t,s,n]+tauS[t,s,n]+(adjCost[t,s]+tauLump[t,s])/qS[t,s,n])+j_P_pWedge_pwOut[t,s,n];
+ 431  EQUATION j_E_P_pWedge_taxRev[t,s];
+ 432  j_E_P_pWedge_taxRev[t,s]$(s_p[s] and txe[t])..                          TotalTax[t,s]    =E=  tauLump[t,s]+sum(n$(P_input[s,n]), tauD[t,s,n] * qD[t,s,n])+sum(n$(P_output[s,n]), tauS[t,s,n]*qS[t,s,n])+j_P_pWedge_taxRev[t,s];
+ 433  EQUATION j_E_P_pWedge_tauS[t,s,n];
+ 434  j_E_P_pWedge_tauS[t,s,n]$(p_output[s,n] and txe[t])..                   tauS[t,s,n]              =E=  tauCO2[t,s,n] * qCO2[t,s,n]/qS[t,s,n]+tauNonEnv[t,s,n]+j_P_pWedge_tauS[t,s,n];
+ 435  EQUATION j_E_P_taxCalib_taxCal[t,s,n];
+ 436  j_E_P_taxCalib_taxCal[t,s,n]$(p_output[s,n] and txe[t])..       tauNonEnv[t,s,n]         =E=  tauNonEnv0[t,s,n] * (1+taxRevPar[s])+j_P_taxCalib_taxCal[t,s,n];
+ 437   
+ 438  # ----------------------------------------------------------------------------------------------------
+ 439  #  Define j_P_C model
+ 440  # ----------------------------------------------------------------------------------------------------
+ 441  Model j_P_C /
+ 442  j_E_W_zpOut, j_E_W_zpNOut, j_E_W_qOut, j_E_W_qNOut, j_E_O_zpOut, j_E_O_zpNOut, j_E_O_qOut, j_E_O_qNOut, j_E_P_adjCost_lom, j_E_P_adjCost_pk, j_E_P_adjCost_pkT, j_E_P_adjCost_K_tvc, j_E_P_adjCost_adjCost, j_E_P_pWedge_pwInp, j_E_P_pWedge_pwOut, j_E_P_pWedge_taxRev, j_E_P_pWedge_tauS, j_E_P_taxCalib_taxCal
+ 443  /;
+ 444   
+ 445   
+ 446  qS.fx[t,s,n]$(P_output[s,n]) = qS.l[t,s,n]$(P_output[s,n]);
+ 447  sigma.fx[s,n]$(P_kninp[s,n]) = sigma.l[s,n]$(P_kninp[s,n]);
+ 448  mu.fx[s,n,nn]$((P_map[s,n,nn] and ( not (P_endoMu[s,n,nn])))) = mu.l[s,n,nn]$((P_map[s,n,nn] and ( not (P_endoMu[s,n,nn]))));
+ 449  tauNonEnv0.fx[t,s,n]$(P_output[s,n]) = tauNonEnv0.l[t,s,n]$(P_output[s,n]);
+ 450  tauD.fx[t,s,n]$(P_input[s,n]) = tauD.l[t,s,n]$(P_input[s,n]);
+ 451  tauLump.fx[t,s]$(P_sm[s]) = tauLump.l[t,s]$(P_sm[s]);
+ 452  p.fx[t,n]$((P_input_n[n] and ( not (P_output_n[n])))) = p.l[t,n]$((P_input_n[n] and ( not (P_output_n[n]))));
+ 453  qCO2.fx[t,s,n]$(P_output[s,n]) = qCO2.l[t,s,n]$(P_output[s,n]);
+ 454  tauCO2.fx[t,s,n]$(P_output[s,n]) = tauCO2.l[t,s,n]$(P_output[s,n]);
+ 455  Rrate.fx[t] = Rrate.l[t];
+ 456  rDepr.fx[t,s,n]$(P_dur[s,n]) = rDepr.l[t,s,n]$(P_dur[s,n]);
+ 457  adjCostPar.fx[s,n]$(P_dur[s,n]) = adjCostPar.l[s,n]$(P_dur[s,n]);
+ 458  K_tvc.fx[s,n]$(P_dur[s,n]) = K_tvc.l[s,n]$(P_dur[s,n]);
+ 459  qD.fx[t,s,n]$((P_dur[s,n] and t0[t])) = qD.l[t,s,n]$((P_dur[s,n] and t0[t]));pD.fx[t,s,n]$((P_int[s,n] or P_input[s,n] or (P_dur[s,n] and txE[t]))) = pD.l[t,s,n]$((P_int[s,n] or P_input[s,n] or (P_dur[s,n] and txE[t])));
+ 460  pS.fx[t,s,n]$(P_output[s,n]) = pS.l[t,s,n]$(P_output[s,n]);
+ 461  p.fx[t,n]$((P_output_n[n] and tx0[t])) = p.l[t,n]$((P_output_n[n] and tx0[t]));
+ 462  qD.fx[t,s,n]$((P_int[s,n] or (P_input[s,n] and tx0[t]) or (P_dur[s,n] and tx0[t]))) = qD.l[t,s,n]$((P_int[s,n] or (P_input[s,n] and tx0[t]) or (P_dur[s,n] and tx0[t])));
+ 463  adjCost.fx[t,s]$((P_sm[s] and txE[t])) = adjCost.l[t,s]$((P_sm[s] and txE[t]));
+ 464  tauS.fx[t,s,n]$(P_output[s,n]) = tauS.l[t,s,n]$(P_output[s,n]);
+ 465  TotalTax.fx[t,s]$((P_sm[s] and tx0E[t])) = TotalTax.l[t,s]$((P_sm[s] and tx0E[t]));qD.fx[t,s,n]$((P_input[s,n] and t0[t])) = qD.l[t,s,n]$((P_input[s,n] and t0[t]));
+ 466  p.fx[t,n]$((P_output_n[n] and t0[t])) = p.l[t,n]$((P_output_n[n] and t0[t]));
+ 467  TotalTax.fx[t,s]$((P_sm[s] and t0[t])) = TotalTax.l[t,s]$((P_sm[s] and t0[t]));mu.fx[s,n,nn]$(P_endoMu[s,n,nn]) = mu.l[s,n,nn]$(P_endoMu[s,n,nn]);
+ 468  tauNonEnv.fx[t,s,n]$(P_output[s,n]) = tauNonEnv.l[t,s,n]$(P_output[s,n]);
+ 469  taxRevPar.fx[s]$(P_sm[s]) = taxRevPar.l[s]$(P_sm[s]);
+ 470  markup.fx[s]$(P_sm[s]) = markup.l[s]$(P_sm[s]);pD.fx[t,s,n]$((P_int[s,n] or P_input[s,n] or (P_dur[s,n] and txE[t]))) = pD.l[t,s,n]$((P_int[s,n] or P_input[s,n] or (P_dur[s,n] and txE[t])));
+ 471  pS.fx[t,s,n]$(P_output[s,n]) = pS.l[t,s,n]$(P_output[s,n]);
+ 472  p.fx[t,n]$(((P_output_n[n] and tx0[t]) or (P_output_n[n] and t0[t]))) = p.l[t,n]$(((P_output_n[n] and tx0[t]) or (P_output_n[n] and t0[t])));
+ 473  qD.fx[t,s,n]$(((P_int[s,n] or (P_input[s,n] and tx0[t]) or (P_dur[s,n] and tx0[t])) or (P_input[s,n] and t0[t]))) = qD.l[t,s,n]$(((P_int[s,n] or (P_input[s,n] and tx0[t]) or (P_dur[s,n] and tx0[t])) or (P_input[s,n] and t0[t])));
+ 474  adjCost.fx[t,s]$((P_sm[s] and txE[t])) = adjCost.l[t,s]$((P_sm[s] and txE[t]));
+ 475  tauS.fx[t,s,n]$(P_output[s,n]) = tauS.l[t,s,n]$(P_output[s,n]);
+ 476  TotalTax.fx[t,s]$(((P_sm[s] and tx0E[t]) or (P_sm[s] and t0[t]))) = TotalTax.l[t,s]$(((P_sm[s] and tx0E[t]) or (P_sm[s] and t0[t])));pD.fx[t,s,n]$((P_int[s,n] or P_input[s,n] or (P_dur[s,n] and txE[t]))) = pD.l[t,s,n]$((P_int[s,n] or P_input[s,n] or (P_dur[s,n] and txE[t])));
+ 477  pS.fx[t,s,n]$(P_output[s,n]) = pS.l[t,s,n]$(P_output[s,n]);
+ 478  p.fx[t,n]$((P_output_n[n] and tx0[t])) = p.l[t,n]$((P_output_n[n] and tx0[t]));
+ 479  qD.fx[t,s,n]$((P_int[s,n] or (P_input[s,n] and tx0[t]) or (P_dur[s,n] and tx0[t]))) = qD.l[t,s,n]$((P_int[s,n] or (P_input[s,n] and tx0[t]) or (P_dur[s,n] and tx0[t])));
+ 480  adjCost.fx[t,s]$((P_sm[s] and txE[t])) = adjCost.l[t,s]$((P_sm[s] and txE[t]));
+ 481  tauS.fx[t,s,n]$(P_output[s,n]) = tauS.l[t,s,n]$(P_output[s,n]);
+ 482  TotalTax.fx[t,s]$((P_sm[s] and tx0E[t])) = TotalTax.l[t,s]$((P_sm[s] and tx0E[t]));
+ 483  mu.fx[s,n,nn]$(P_endoMu[s,n,nn]) = mu.l[s,n,nn]$(P_endoMu[s,n,nn]);
+ 484  tauNonEnv.fx[t,s,n]$(P_output[s,n]) = tauNonEnv.l[t,s,n]$(P_output[s,n]);
+ 485  taxRevPar.fx[s]$(P_sm[s]) = taxRevPar.l[s]$(P_sm[s]);
+ 486  markup.fx[s]$(P_sm[s]) = markup.l[s]$(P_sm[s]);qS.fx[t,s,n]$(P_output[s,n]) = qS.l[t,s,n]$(P_output[s,n]);
+ 487  sigma.fx[s,n]$(P_kninp[s,n]) = sigma.l[s,n]$(P_kninp[s,n]);
+ 488  mu.fx[s,n,nn]$(((P_map[s,n,nn] and ( not (P_endoMu[s,n,nn]))) or P_endoMu[s,n,nn])) = mu.l[s,n,nn]$(((P_map[s,n,nn] and ( not (P_endoMu[s,n,nn]))) or P_endoMu[s,n,nn]));
+ 489  tauNonEnv0.fx[t,s,n]$(P_output[s,n]) = tauNonEnv0.l[t,s,n]$(P_output[s,n]);
+ 490  tauD.fx[t,s,n]$(P_input[s,n]) = tauD.l[t,s,n]$(P_input[s,n]);
+ 491  tauLump.fx[t,s]$(P_sm[s]) = tauLump.l[t,s]$(P_sm[s]);
+ 492  p.fx[t,n]$((P_input_n[n] and ( not (P_output_n[n])))) = p.l[t,n]$((P_input_n[n] and ( not (P_output_n[n]))));
+ 493  qCO2.fx[t,s,n]$(P_output[s,n]) = qCO2.l[t,s,n]$(P_output[s,n]);
+ 494  tauCO2.fx[t,s,n]$(P_output[s,n]) = tauCO2.l[t,s,n]$(P_output[s,n]);
+ 495  Rrate.fx[t] = Rrate.l[t];
+ 496  rDepr.fx[t,s,n]$(P_dur[s,n]) = rDepr.l[t,s,n]$(P_dur[s,n]);
+ 497  adjCostPar.fx[s,n]$(P_dur[s,n]) = adjCostPar.l[s,n]$(P_dur[s,n]);
+ 498  K_tvc.fx[s,n]$(P_dur[s,n]) = K_tvc.l[s,n]$(P_dur[s,n]);
+ 499  qD.fx[t,s,n]$((P_dur[s,n] and t0[t])) = qD.l[t,s,n]$((P_dur[s,n] and t0[t]));
+ 500  tauNonEnv.fx[t,s,n]$(P_output[s,n]) = tauNonEnv.l[t,s,n]$(P_output[s,n]);
+ 501  taxRevPar.fx[s]$(P_sm[s]) = taxRevPar.l[s]$(P_sm[s]);
+ 502  markup.fx[s]$(P_sm[s]) = markup.l[s]$(P_sm[s]);qS.fx[t,s,n]$(P_output[s,n]) = qS.l[t,s,n]$(P_output[s,n]);
+ 503  sigma.fx[s,n]$(P_kninp[s,n]) = sigma.l[s,n]$(P_kninp[s,n]);
+ 504  mu.fx[s,n,nn]$((P_map[s,n,nn] and ( not (P_endoMu[s,n,nn])))) = mu.l[s,n,nn]$((P_map[s,n,nn] and ( not (P_endoMu[s,n,nn]))));
+ 505  tauNonEnv0.fx[t,s,n]$(P_output[s,n]) = tauNonEnv0.l[t,s,n]$(P_output[s,n]);
+ 506  tauD.fx[t,s,n]$(P_input[s,n]) = tauD.l[t,s,n]$(P_input[s,n]);
+ 507  tauLump.fx[t,s]$(P_sm[s]) = tauLump.l[t,s]$(P_sm[s]);
+ 508  p.fx[t,n]$(((P_input_n[n] and ( not (P_output_n[n]))) or (P_output_n[n] and t0[t]))) = p.l[t,n]$(((P_input_n[n] and ( not (P_output_n[n]))) or (P_output_n[n] and t0[t])));
+ 509  qCO2.fx[t,s,n]$(P_output[s,n]) = qCO2.l[t,s,n]$(P_output[s,n]);
+ 510  tauCO2.fx[t,s,n]$(P_output[s,n]) = tauCO2.l[t,s,n]$(P_output[s,n]);
+ 511  Rrate.fx[t] = Rrate.l[t];
+ 512  rDepr.fx[t,s,n]$(P_dur[s,n]) = rDepr.l[t,s,n]$(P_dur[s,n]);
+ 513  adjCostPar.fx[s,n]$(P_dur[s,n]) = adjCostPar.l[s,n]$(P_dur[s,n]);
+ 514  K_tvc.fx[s,n]$(P_dur[s,n]) = K_tvc.l[s,n]$(P_dur[s,n]);
+ 515  qD.fx[t,s,n]$(((P_dur[s,n] and t0[t]) or (P_input[s,n] and t0[t]))) = qD.l[t,s,n]$(((P_dur[s,n] and t0[t]) or (P_input[s,n] and t0[t])));
+ 516  TotalTax.fx[t,s]$((P_sm[s] and t0[t])) = TotalTax.l[t,s]$((P_sm[s] and t0[t]));
+ 517  solve j_P_C using CNS;j_W_zpOut.fx[t,s,n]$(w_knot_o[s,n] and txe[t]) = j_W_zpOut.l[t,s,n]$(w_knot_o[s,n] and txe[t]);
+ 518  j_W_zpNOut.fx[t,s,n]$(w_knot_no[s,n] and txe[t]) = j_W_zpNOut.l[t,s,n]$(w_knot_no[s,n] and txe[t]);
+ 519  j_W_qOut.fx[t,s,n]$(w_branch2o[s,n] and txe[t]) = j_W_qOut.l[t,s,n]$(w_branch2o[s,n] and txe[t]);
+ 520  j_W_qNOut.fx[t,s,n]$(w_branch2no[s,n] and txe[t]) = j_W_qNOut.l[t,s,n]$(w_branch2no[s,n] and txe[t]);
+ 521  j_O_zpOut.fx[t,s,n]$(o_knot_o[s,n] and txe[t]) = j_O_zpOut.l[t,s,n]$(o_knot_o[s,n] and txe[t]);
+ 522  j_O_zpNOut.fx[t,s,n]$(o_knot_no[s,n] and txe[t]) = j_O_zpNOut.l[t,s,n]$(o_knot_no[s,n] and txe[t]);
+ 523  j_O_qOut.fx[t,s,n]$(o_branch2o[s,n] and txe[t]) = j_O_qOut.l[t,s,n]$(o_branch2o[s,n] and txe[t]);
+ 524  j_O_qNOut.fx[t,s,n]$(o_branch2no[s,n] and txe[t]) = j_O_qNOut.l[t,s,n]$(o_branch2no[s,n] and txe[t]);
+ 525  j_P_adjCost_lom.fx[t,s,n]$(p_dur[s,n] and txe[t]) = j_P_adjCost_lom.l[t,s,n]$(p_dur[s,n] and txe[t]);
+ 526  j_P_adjCost_pk.fx[t,s,n]$(p_dur[s,n] and tx02e[t]) = j_P_adjCost_pk.l[t,s,n]$(p_dur[s,n] and tx02e[t]);
+ 527  j_P_adjCost_pkT.fx[t,s,n]$(p_dur[s,n] and t2e[t]) = j_P_adjCost_pkT.l[t,s,n]$(p_dur[s,n] and t2e[t]);
+ 528  j_P_adjCost_K_tvc.fx[t,s,n]$(p_dur[s,n] and te[t]) = j_P_adjCost_K_tvc.l[t,s,n]$(p_dur[s,n] and te[t]);
+ 529  j_P_adjCost_adjCost.fx[t,s]$(p_sm[s] and txe[t]) = j_P_adjCost_adjCost.l[t,s]$(p_sm[s] and txe[t]);
+ 530  j_P_pWedge_pwInp.fx[t,s,n]$(p_input[s,n] and txe[t]) = j_P_pWedge_pwInp.l[t,s,n]$(p_input[s,n] and txe[t]);
+ 531  j_P_pWedge_pwOut.fx[t,s,n]$(p_output[s,n] and txe[t]) = j_P_pWedge_pwOut.l[t,s,n]$(p_output[s,n] and txe[t]);
+ 532  j_P_pWedge_taxRev.fx[t,s]$(s_p[s] and txe[t]) = j_P_pWedge_taxRev.l[t,s]$(s_p[s] and txe[t]);
+ 533  j_P_pWedge_tauS.fx[t,s,n]$(p_output[s,n] and txe[t]) = j_P_pWedge_tauS.l[t,s,n]$(p_output[s,n] and txe[t]);
+ 534  j_P_taxCalib_taxCal.fx[t,s,n]$(p_output[s,n] and txe[t]) = j_P_taxCalib_taxCal.l[t,s,n]$(p_output[s,n] and txe[t]);pD.lo[t,s,n]$((P_int[s,n] or P_input[s,n] or (P_dur[s,n] and txE[t]))) = -inf;
+ 535  pD.up[t,s,n]$((P_int[s,n] or P_input[s,n] or (P_dur[s,n] and txE[t]))) = inf;
+ 536  pS.lo[t,s,n]$(P_output[s,n]) = -inf;
+ 537  pS.up[t,s,n]$(P_output[s,n]) = inf;
+ 538  p.lo[t,n]$((P_output_n[n] and tx0[t])) = -inf;
+ 539  p.up[t,n]$((P_output_n[n] and tx0[t])) = inf;
+ 540  qD.lo[t,s,n]$((P_int[s,n] or (P_input[s,n] and tx0[t]) or (P_dur[s,n] and tx0[t]))) = -inf;
+ 541  qD.up[t,s,n]$((P_int[s,n] or (P_input[s,n] and tx0[t]) or (P_dur[s,n] and tx0[t]))) = inf;
+ 542  adjCost.lo[t,s]$((P_sm[s] and txE[t])) = -inf;
+ 543  adjCost.up[t,s]$((P_sm[s] and txE[t])) = inf;
+ 544  tauS.lo[t,s,n]$(P_output[s,n]) = -inf;
+ 545  tauS.up[t,s,n]$(P_output[s,n]) = inf;
+ 546  TotalTax.lo[t,s]$((P_sm[s] and tx0E[t])) = -inf;
+ 547  TotalTax.up[t,s]$((P_sm[s] and tx0E[t])) = inf;
+ 548  mu.lo[s,n,nn]$(P_endoMu[s,n,nn]) = -inf;
+ 549  mu.up[s,n,nn]$(P_endoMu[s,n,nn]) = inf;
+ 550  tauNonEnv.lo[t,s,n]$(P_output[s,n]) = -inf;
+ 551  tauNonEnv.up[t,s,n]$(P_output[s,n]) = inf;
+ 552  taxRevPar.lo[s]$(P_sm[s]) = -inf;
+ 553  taxRevPar.up[s]$(P_sm[s]) = inf;
+ 554  markup.lo[s]$(P_sm[s]) = -inf;
+ 555  markup.up[s]$(P_sm[s]) = inf;solve j_P_C using CNS;parameters
+ 556          par_j_W_zpOut[t,s,n]
+ 557          par_j_W_zpNOut[t,s,n]
+ 558          par_j_W_qOut[t,s,n]
+ 559          par_j_W_qNOut[t,s,n]
+ 560          par_j_O_zpOut[t,s,n]
+ 561          par_j_O_zpNOut[t,s,n]
+ 562          par_j_O_qOut[t,s,n]
+ 563          par_j_O_qNOut[t,s,n]
+ 564          par_j_P_adjCost_lom[t,s,n]
+ 565          par_j_P_adjCost_pk[t,s,n]
+ 566          par_j_P_adjCost_pkT[t,s,n]
+ 567          par_j_P_adjCost_K_tvc[t,s,n]
+ 568          par_j_P_adjCost_adjCost[t,s]
+ 569          par_j_P_pWedge_pwInp[t,s,n]
+ 570          par_j_P_pWedge_pwOut[t,s,n]
+ 571          par_j_P_pWedge_taxRev[t,s]
+ 572          par_j_P_pWedge_tauS[t,s,n]
+ 573          par_j_P_taxCalib_taxCal[t,s,n]
+ 574  ;
+ 575   
+ 576  # Initialize parameter group:
+ 577          par_j_W_zpOut[t,s,n]$(w_knot_o[s,n] and txe[t])=j_W_zpOut.l[t,s,n];
+ 578          par_j_W_zpNOut[t,s,n]$(w_knot_no[s,n] and txe[t])=j_W_zpNOut.l[t,s,n];
+ 579          par_j_W_qOut[t,s,n]$(w_branch2o[s,n] and txe[t])=j_W_qOut.l[t,s,n];
+ 580          par_j_W_qNOut[t,s,n]$(w_branch2no[s,n] and txe[t])=j_W_qNOut.l[t,s,n];
+ 581          par_j_O_zpOut[t,s,n]$(o_knot_o[s,n] and txe[t])=j_O_zpOut.l[t,s,n];
+ 582          par_j_O_zpNOut[t,s,n]$(o_knot_no[s,n] and txe[t])=j_O_zpNOut.l[t,s,n];
+ 583          par_j_O_qOut[t,s,n]$(o_branch2o[s,n] and txe[t])=j_O_qOut.l[t,s,n];
+ 584          par_j_O_qNOut[t,s,n]$(o_branch2no[s,n] and txe[t])=j_O_qNOut.l[t,s,n];
+ 585          par_j_P_adjCost_lom[t,s,n]$(p_dur[s,n] and txe[t])=j_P_adjCost_lom.l[t,s,n];
+ 586          par_j_P_adjCost_pk[t,s,n]$(p_dur[s,n] and tx02e[t])=j_P_adjCost_pk.l[t,s,n];
+ 587          par_j_P_adjCost_pkT[t,s,n]$(p_dur[s,n] and t2e[t])=j_P_adjCost_pkT.l[t,s,n];
+ 588          par_j_P_adjCost_K_tvc[t,s,n]$(p_dur[s,n] and te[t])=j_P_adjCost_K_tvc.l[t,s,n];
+ 589          par_j_P_adjCost_adjCost[t,s]$(p_sm[s] and txe[t])=j_P_adjCost_adjCost.l[t,s];
+ 590          par_j_P_pWedge_pwInp[t,s,n]$(p_input[s,n] and txe[t])=j_P_pWedge_pwInp.l[t,s,n];
+ 591          par_j_P_pWedge_pwOut[t,s,n]$(p_output[s,n] and txe[t])=j_P_pWedge_pwOut.l[t,s,n];
+ 592          par_j_P_pWedge_taxRev[t,s]$(s_p[s] and txe[t])=j_P_pWedge_taxRev.l[t,s];
+ 593          par_j_P_pWedge_tauS[t,s,n]$(p_output[s,n] and txe[t])=j_P_pWedge_tauS.l[t,s,n];
+ 594          par_j_P_taxCalib_taxCal[t,s,n]$(p_output[s,n] and txe[t])=j_P_taxCalib_taxCal.l[t,s,n];
+ 595   
+ 596   
+ 597  Scalar i;
+ 598  for (i = 1 to 10,
+ 599          j_W_zpOut.fx[t,s,n]$(w_knot_o[s,n] and txe[t]) = (1-(i/10)**(0.1))*par_j_W_zpOut[t,s,n];
+ 600          j_W_zpNOut.fx[t,s,n]$(w_knot_no[s,n] and txe[t]) = (1-(i/10)**(0.1))*par_j_W_zpNOut[t,s,n];
+ 601          j_W_qOut.fx[t,s,n]$(w_branch2o[s,n] and txe[t]) = (1-(i/10)**(0.1))*par_j_W_qOut[t,s,n];
+ 602          j_W_qNOut.fx[t,s,n]$(w_branch2no[s,n] and txe[t]) = (1-(i/10)**(0.1))*par_j_W_qNOut[t,s,n];
+ 603          j_O_zpOut.fx[t,s,n]$(o_knot_o[s,n] and txe[t]) = (1-(i/10)**(0.1))*par_j_O_zpOut[t,s,n];
+ 604          j_O_zpNOut.fx[t,s,n]$(o_knot_no[s,n] and txe[t]) = (1-(i/10)**(0.1))*par_j_O_zpNOut[t,s,n];
+ 605          j_O_qOut.fx[t,s,n]$(o_branch2o[s,n] and txe[t]) = (1-(i/10)**(0.1))*par_j_O_qOut[t,s,n];
+ 606          j_O_qNOut.fx[t,s,n]$(o_branch2no[s,n] and txe[t]) = (1-(i/10)**(0.1))*par_j_O_qNOut[t,s,n];
+ 607          j_P_adjCost_lom.fx[t,s,n]$(p_dur[s,n] and txe[t]) = (1-(i/10)**(0.1))*par_j_P_adjCost_lom[t,s,n];
+ 608          j_P_adjCost_pk.fx[t,s,n]$(p_dur[s,n] and tx02e[t]) = (1-(i/10)**(0.1))*par_j_P_adjCost_pk[t,s,n];
+ 609          j_P_adjCost_pkT.fx[t,s,n]$(p_dur[s,n] and t2e[t]) = (1-(i/10)**(0.1))*par_j_P_adjCost_pkT[t,s,n];
+ 610          j_P_adjCost_K_tvc.fx[t,s,n]$(p_dur[s,n] and te[t]) = (1-(i/10)**(0.1))*par_j_P_adjCost_K_tvc[t,s,n];
+ 611          j_P_adjCost_adjCost.fx[t,s]$(p_sm[s] and txe[t]) = (1-(i/10)**(0.1))*par_j_P_adjCost_adjCost[t,s];
+ 612          j_P_pWedge_pwInp.fx[t,s,n]$(p_input[s,n] and txe[t]) = (1-(i/10)**(0.1))*par_j_P_pWedge_pwInp[t,s,n];
+ 613          j_P_pWedge_pwOut.fx[t,s,n]$(p_output[s,n] and txe[t]) = (1-(i/10)**(0.1))*par_j_P_pWedge_pwOut[t,s,n];
+ 614          j_P_pWedge_taxRev.fx[t,s]$(s_p[s] and txe[t]) = (1-(i/10)**(0.1))*par_j_P_pWedge_taxRev[t,s];
+ 615          j_P_pWedge_tauS.fx[t,s,n]$(p_output[s,n] and txe[t]) = (1-(i/10)**(0.1))*par_j_P_pWedge_tauS[t,s,n];
+ 616          j_P_taxCalib_taxCal.fx[t,s,n]$(p_output[s,n] and txe[t]) = (1-(i/10)**(0.1))*par_j_P_taxCalib_taxCal[t,s,n];
+ 617  solve j_P_C using CNS;);
+ 618   
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 2
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Include File Summary
+
+
+   SEQ   GLOBAL TYPE      PARENT   LOCAL  FILENAME
+
+     1        1 INPUT          0       0  C:\Users\sxj477\Documents\GitHub\CGE_Generator\py\_gams_py_gjo1.gms
+     2      137 GDXIN          1     137  C:\Users\sxj477\Documents\GitHub\CGE_Generator\py\P.gdx
+     3      215 GDXIN          1     215  C:\Users\sxj477\Documents\GitHub\CGE_Generator\py\P.gdx
+     4      222 GDXIN          1     222  C:\Users\sxj477\Documents\GitHub\CGE_Generator\py\P.gdx
+
+
+COMPILATION TIME     =        0.031 SECONDS      6 MB  46.2.0 ac4adda6 WEX-WEI
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 3
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE j_P_C Using CNS From line 517
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          18     SINGLE EQUATIONS       18,200
+BLOCKS OF VARIABLES          40     SINGLE VARIABLES       44,528
+NON ZERO ELEMENTS       123,050     NON LINEAR N-Z         79,850
+CODE LENGTH             164,621     CONSTANT POOL              20
+SINGLE =E|X= EQUS        18,200     SINGLE UNFIXED VARS    18,200
+
+
+GENERATION TIME      =        0.125 SECONDS     18 MB  46.2.0 ac4adda6 WEX-WEI
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 4
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE j_P_C Using CNS From line 517
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   j_P_C               
+     TYPE    CNS                 
+     SOLVER  CONOPT              FROM LINE  517
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      15 Solved Unique
+
+ RESOURCE USAGE, LIMIT          0.078 10000000000.000
+ ITERATION COUNT, LIMIT         0    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.33
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+    Will use up to 8 threads.
+ 
+ 
+    The user model has 18200 constraints and 44528 variables
+    with 123050 Jacobian elements, 79850 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 18200 constraints and 44528 variables.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.065 seconds
+   of which: Function evaluations             0.034 = 52.3%
+             1st Derivative evaluations       0.002 =  3.1%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 5
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE j_P_C Using CNS From line 555
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          18     SINGLE EQUATIONS       18,200
+BLOCKS OF VARIABLES          40     SINGLE VARIABLES       44,528
+NON ZERO ELEMENTS       123,050     NON LINEAR N-Z         79,850
+CODE LENGTH             164,621     CONSTANT POOL              20
+SINGLE =E|X= EQUS        18,200     SINGLE UNFIXED VARS    18,200
+
+
+GENERATION TIME      =        0.188 SECONDS     21 MB  46.2.0 ac4adda6 WEX-WEI
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 6
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE j_P_C Using CNS From line 555
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   j_P_C               
+     TYPE    CNS                 
+     SOLVER  CONOPT              FROM LINE  555
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.125 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.33
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+    Will use up to 8 threads.
+ 
+ 
+    The user model has 18200 constraints and 44528 variables
+    with 123050 Jacobian elements, 79850 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 3335 constraints and 29663 variables.
+    The post-triangular part of the model has 495 constraints and variables.
+ 
+    Preprocessed model has 14370 constraints and 14370 variables
+    with 59629 Jacobian elements, 46137 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.127 seconds
+   of which: Function evaluations             0.004 =  3.1%
+             1st Derivative evaluations       0.011 =  8.7%
+             Interval derivative evals        0.005 =  3.9%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 7
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE j_P_C Using CNS From line 617
+
+
+LOOPS                            FOR/WHILE   1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          18     SINGLE EQUATIONS       18,200
+BLOCKS OF VARIABLES          40     SINGLE VARIABLES       44,528
+NON ZERO ELEMENTS       123,050     NON LINEAR N-Z         79,850
+CODE LENGTH             164,621     CONSTANT POOL              20
+SINGLE =E|X= EQUS        18,200     SINGLE UNFIXED VARS    18,200
+
+
+GENERATION TIME      =        0.172 SECONDS     21 MB  46.2.0 ac4adda6 WEX-WEI
+               L O O P S          FOR/WHILE 1
+
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 8
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE j_P_C Using CNS From line 617
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   j_P_C               
+     TYPE    CNS                 
+     SOLVER  CONOPT              FROM LINE  617
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.516 10000000000.000
+ ITERATION COUNT, LIMIT         9    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.33
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+    Will use up to 8 threads.
+ 
+ 
+    The user model has 18200 constraints and 44528 variables
+    with 123050 Jacobian elements, 79850 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 3335 constraints and 29663 variables.
+    The post-triangular part of the model has 495 constraints and variables.
+ 
+    Preprocessed model has 14370 constraints and 14370 variables
+    with 59629 Jacobian elements, 46137 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.520 seconds
+   of which: Function evaluations             0.019 =  3.7%
+             1st Derivative evaluations       0.017 =  3.3%
+             Interval derivative evals        0.000 =  0.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 9
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE j_P_C Using CNS From line 617
+
+
+LOOPS                            FOR/WHILE   2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          18     SINGLE EQUATIONS       18,200
+BLOCKS OF VARIABLES          40     SINGLE VARIABLES       44,528
+NON ZERO ELEMENTS       123,050     NON LINEAR N-Z         79,850
+CODE LENGTH             164,621     CONSTANT POOL              20
+SINGLE =E|X= EQUS        18,200     SINGLE UNFIXED VARS    18,200
+
+
+GENERATION TIME      =        0.219 SECONDS     21 MB  46.2.0 ac4adda6 WEX-WEI
+               L O O P S          FOR/WHILE 2
+
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 10
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE j_P_C Using CNS From line 617
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   j_P_C               
+     TYPE    CNS                 
+     SOLVER  CONOPT              FROM LINE  617
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.297 10000000000.000
+ ITERATION COUNT, LIMIT         3    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.33
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+    Will use up to 8 threads.
+ 
+ 
+    The user model has 18200 constraints and 44528 variables
+    with 123050 Jacobian elements, 79850 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 3335 constraints and 29663 variables.
+    The post-triangular part of the model has 495 constraints and variables.
+ 
+    Preprocessed model has 14370 constraints and 14370 variables
+    with 59629 Jacobian elements, 46137 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.297 seconds
+   of which: Function evaluations             0.018 =  6.1%
+             1st Derivative evaluations       0.016 =  5.4%
+             Interval derivative evals        0.000 =  0.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 11
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE j_P_C Using CNS From line 617
+
+
+LOOPS                            FOR/WHILE   3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          18     SINGLE EQUATIONS       18,200
+BLOCKS OF VARIABLES          40     SINGLE VARIABLES       44,528
+NON ZERO ELEMENTS       123,050     NON LINEAR N-Z         79,850
+CODE LENGTH             164,621     CONSTANT POOL              20
+SINGLE =E|X= EQUS        18,200     SINGLE UNFIXED VARS    18,200
+
+
+GENERATION TIME      =        0.219 SECONDS     21 MB  46.2.0 ac4adda6 WEX-WEI
+               L O O P S          FOR/WHILE 3
+
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 12
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE j_P_C Using CNS From line 617
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   j_P_C               
+     TYPE    CNS                 
+     SOLVER  CONOPT              FROM LINE  617
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.250 10000000000.000
+ ITERATION COUNT, LIMIT         2    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.33
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+    Will use up to 8 threads.
+ 
+ 
+    The user model has 18200 constraints and 44528 variables
+    with 123050 Jacobian elements, 79850 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 3335 constraints and 29663 variables.
+    The post-triangular part of the model has 495 constraints and variables.
+ 
+    Preprocessed model has 14370 constraints and 14370 variables
+    with 59629 Jacobian elements, 46137 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.255 seconds
+   of which: Function evaluations             0.024 =  9.4%
+             1st Derivative evaluations       0.018 =  7.1%
+             Interval derivative evals        0.000 =  0.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 13
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE j_P_C Using CNS From line 617
+
+
+LOOPS                            FOR/WHILE   4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          18     SINGLE EQUATIONS       18,200
+BLOCKS OF VARIABLES          40     SINGLE VARIABLES       44,528
+NON ZERO ELEMENTS       123,050     NON LINEAR N-Z         79,850
+CODE LENGTH             164,621     CONSTANT POOL              20
+SINGLE =E|X= EQUS        18,200     SINGLE UNFIXED VARS    18,200
+
+
+GENERATION TIME      =        0.250 SECONDS     21 MB  46.2.0 ac4adda6 WEX-WEI
+               L O O P S          FOR/WHILE 4
+
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 14
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE j_P_C Using CNS From line 617
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   j_P_C               
+     TYPE    CNS                 
+     SOLVER  CONOPT              FROM LINE  617
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.234 10000000000.000
+ ITERATION COUNT, LIMIT         2    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.33
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+    Will use up to 8 threads.
+ 
+ 
+    The user model has 18200 constraints and 44528 variables
+    with 123050 Jacobian elements, 79850 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 3335 constraints and 29663 variables.
+    The post-triangular part of the model has 495 constraints and variables.
+ 
+    Preprocessed model has 14370 constraints and 14370 variables
+    with 59629 Jacobian elements, 46137 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.223 seconds
+   of which: Function evaluations             0.071 = 31.8%
+             1st Derivative evaluations       0.004 =  1.8%
+             Interval derivative evals        0.000 =  0.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 15
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE j_P_C Using CNS From line 617
+
+
+LOOPS                            FOR/WHILE   5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          18     SINGLE EQUATIONS       18,200
+BLOCKS OF VARIABLES          40     SINGLE VARIABLES       44,528
+NON ZERO ELEMENTS       123,050     NON LINEAR N-Z         79,850
+CODE LENGTH             164,621     CONSTANT POOL              20
+SINGLE =E|X= EQUS        18,200     SINGLE UNFIXED VARS    18,200
+
+
+GENERATION TIME      =        0.203 SECONDS     21 MB  46.2.0 ac4adda6 WEX-WEI
+               L O O P S          FOR/WHILE 5
+
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 16
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE j_P_C Using CNS From line 617
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   j_P_C               
+     TYPE    CNS                 
+     SOLVER  CONOPT              FROM LINE  617
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.266 10000000000.000
+ ITERATION COUNT, LIMIT         2    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.33
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+    Will use up to 8 threads.
+ 
+ 
+    The user model has 18200 constraints and 44528 variables
+    with 123050 Jacobian elements, 79850 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 3335 constraints and 29663 variables.
+    The post-triangular part of the model has 495 constraints and variables.
+ 
+    Preprocessed model has 14370 constraints and 14370 variables
+    with 59629 Jacobian elements, 46137 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.272 seconds
+   of which: Function evaluations             0.036 = 13.2%
+             1st Derivative evaluations       0.003 =  1.1%
+             Interval derivative evals        0.000 =  0.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 17
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE j_P_C Using CNS From line 617
+
+
+LOOPS                            FOR/WHILE   6
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          18     SINGLE EQUATIONS       18,200
+BLOCKS OF VARIABLES          40     SINGLE VARIABLES       44,528
+NON ZERO ELEMENTS       123,050     NON LINEAR N-Z         79,850
+CODE LENGTH             164,621     CONSTANT POOL              20
+SINGLE =E|X= EQUS        18,200     SINGLE UNFIXED VARS    18,200
+
+
+GENERATION TIME      =        0.203 SECONDS     21 MB  46.2.0 ac4adda6 WEX-WEI
+               L O O P S          FOR/WHILE 6
+
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 18
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE j_P_C Using CNS From line 617
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   j_P_C               
+     TYPE    CNS                 
+     SOLVER  CONOPT              FROM LINE  617
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.297 10000000000.000
+ ITERATION COUNT, LIMIT         2    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.33
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+    Will use up to 8 threads.
+ 
+ 
+    The user model has 18200 constraints and 44528 variables
+    with 123050 Jacobian elements, 79850 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 3335 constraints and 29663 variables.
+    The post-triangular part of the model has 495 constraints and variables.
+ 
+    Preprocessed model has 14370 constraints and 14370 variables
+    with 59629 Jacobian elements, 46137 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.309 seconds
+   of which: Function evaluations             0.053 = 17.2%
+             1st Derivative evaluations       0.001 =  0.3%
+             Interval derivative evals        0.000 =  0.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 19
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE j_P_C Using CNS From line 617
+
+
+LOOPS                            FOR/WHILE   7
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          18     SINGLE EQUATIONS       18,200
+BLOCKS OF VARIABLES          40     SINGLE VARIABLES       44,528
+NON ZERO ELEMENTS       123,050     NON LINEAR N-Z         79,850
+CODE LENGTH             164,621     CONSTANT POOL              20
+SINGLE =E|X= EQUS        18,200     SINGLE UNFIXED VARS    18,200
+
+
+GENERATION TIME      =        0.219 SECONDS     21 MB  46.2.0 ac4adda6 WEX-WEI
+               L O O P S          FOR/WHILE 7
+
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 20
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE j_P_C Using CNS From line 617
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   j_P_C               
+     TYPE    CNS                 
+     SOLVER  CONOPT              FROM LINE  617
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.219 10000000000.000
+ ITERATION COUNT, LIMIT         3    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.33
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+    Will use up to 8 threads.
+ 
+ 
+    The user model has 18200 constraints and 44528 variables
+    with 123050 Jacobian elements, 79850 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 3335 constraints and 29663 variables.
+    The post-triangular part of the model has 495 constraints and variables.
+ 
+    Preprocessed model has 14370 constraints and 14370 variables
+    with 59629 Jacobian elements, 46137 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.215 seconds
+   of which: Function evaluations             0.013 =  6.0%
+             1st Derivative evaluations       0.017 =  7.9%
+             Interval derivative evals        0.000 =  0.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 21
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE j_P_C Using CNS From line 617
+
+
+LOOPS                            FOR/WHILE   8
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          18     SINGLE EQUATIONS       18,200
+BLOCKS OF VARIABLES          40     SINGLE VARIABLES       44,528
+NON ZERO ELEMENTS       123,050     NON LINEAR N-Z         79,850
+CODE LENGTH             164,621     CONSTANT POOL              20
+SINGLE =E|X= EQUS        18,200     SINGLE UNFIXED VARS    18,200
+
+
+GENERATION TIME      =        0.203 SECONDS     21 MB  46.2.0 ac4adda6 WEX-WEI
+               L O O P S          FOR/WHILE 8
+
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 22
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE j_P_C Using CNS From line 617
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   j_P_C               
+     TYPE    CNS                 
+     SOLVER  CONOPT              FROM LINE  617
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.266 10000000000.000
+ ITERATION COUNT, LIMIT         4    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.33
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+    Will use up to 8 threads.
+ 
+ 
+    The user model has 18200 constraints and 44528 variables
+    with 123050 Jacobian elements, 79850 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 3335 constraints and 29663 variables.
+    The post-triangular part of the model has 495 constraints and variables.
+ 
+    Preprocessed model has 14370 constraints and 14370 variables
+    with 59629 Jacobian elements, 46137 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.275 seconds
+   of which: Function evaluations             0.022 =  8.0%
+             1st Derivative evaluations       0.001 =  0.4%
+             Interval derivative evals        0.000 =  0.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 23
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE j_P_C Using CNS From line 617
+
+
+LOOPS                            FOR/WHILE   9
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          18     SINGLE EQUATIONS       18,200
+BLOCKS OF VARIABLES          40     SINGLE VARIABLES       44,528
+NON ZERO ELEMENTS       123,050     NON LINEAR N-Z         79,850
+CODE LENGTH             164,621     CONSTANT POOL              20
+SINGLE =E|X= EQUS        18,200     SINGLE UNFIXED VARS    18,200
+
+
+GENERATION TIME      =        0.187 SECONDS     21 MB  46.2.0 ac4adda6 WEX-WEI
+               L O O P S          FOR/WHILE 9
+
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 24
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE j_P_C Using CNS From line 617
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   j_P_C               
+     TYPE    CNS                 
+     SOLVER  CONOPT              FROM LINE  617
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.312 10000000000.000
+ ITERATION COUNT, LIMIT         5    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.33
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+    Will use up to 8 threads.
+ 
+ 
+    The user model has 18200 constraints and 44528 variables
+    with 123050 Jacobian elements, 79850 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 3335 constraints and 29663 variables.
+    The post-triangular part of the model has 495 constraints and variables.
+ 
+    Preprocessed model has 14370 constraints and 14370 variables
+    with 59629 Jacobian elements, 46137 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.318 seconds
+   of which: Function evaluations             0.019 =  6.0%
+             1st Derivative evaluations       0.026 =  8.2%
+             Interval derivative evals        0.000 =  0.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 25
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE j_P_C Using CNS From line 617
+
+
+LOOPS                            FOR/WHILE   10
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          18     SINGLE EQUATIONS       18,200
+BLOCKS OF VARIABLES          40     SINGLE VARIABLES       44,528
+NON ZERO ELEMENTS       123,050     NON LINEAR N-Z         79,850
+CODE LENGTH             164,621     CONSTANT POOL              20
+SINGLE =E|X= EQUS        18,200     SINGLE UNFIXED VARS    18,200
+
+
+GENERATION TIME      =        0.218 SECONDS     21 MB  46.2.0 ac4adda6 WEX-WEI
+               L O O P S          FOR/WHILE 10
+
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 26
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE j_P_C Using CNS From line 617
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   j_P_C               
+     TYPE    CNS                 
+     SOLVER  CONOPT              FROM LINE  617
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      16 Solved
+
+ RESOURCE USAGE, LIMIT          0.375 10000000000.000
+ ITERATION COUNT, LIMIT         6    2147483647
+ EVALUATION ERRORS              0             0
+ 
+ 
+    C O N O P T   version 4.33
+    Copyright (C) ARKI Consulting and Development A/S
+                  Bagsvaerdvej 246 A
+                  DK-2880 Bagsvaerd, Denmark
+ 
+    Will use up to 8 threads.
+ 
+ 
+    The user model has 18200 constraints and 44528 variables
+    with 123050 Jacobian elements, 79850 of which are nonlinear.
+ 
+    The pre-triangular part of the model has 3335 constraints and 29663 variables.
+    The post-triangular part of the model has 495 constraints and variables.
+ 
+    Preprocessed model has 14370 constraints and 14370 variables
+    with 59629 Jacobian elements, 46137 of which are nonlinear.
+ 
+ ** Feasible solution to a square system.
+ 
+ ** Scaled model is feasible, but some unscaled residuals are large due
+    to large scale factors.
+    Largest unscaled residual is 5.05E-06 based on scale factor 6.55E+04
+ 
+ 
+ CONOPT time Total                            0.377 seconds
+   of which: Function evaluations             0.014 =  3.7%
+             1st Derivative evaluations       0.008 =  2.1%
+             Interval derivative evals        0.000 =  0.0%
+ 
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 46.2.0  ac4adda6 Mar 5, 2024           WEX-WEI x86 64bit/MS Windows - 05/09/24 15:16:54 Page 27
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+E x e c u t i o n
+
+
+EXECUTION TIME       =        7.938 SECONDS     21 MB  46.2.0 ac4adda6 WEX-WEI
+
+
+USER: Medium MUD - 10 User License                   G231024|0002AP-WIN
+      University of Copenhagen, Department of Economics           DC203
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      C:\Users\sxj477\Documents\GitHub\CGE_Generator\py\_gams_py_gjo1.gms
+Output     C:\Users\sxj477\Documents\GitHub\CGE_Generator\py\_gams_py_gjo1.lst
