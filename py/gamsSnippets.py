@@ -1,5 +1,3 @@
-# Nested production functions
-
 # 0.1: Auxiliary functions used for scale-preserving nests:
 def _CES(px,py,mu,sigma,norm=None):
 	return f"{mu} * ({py}/{px})**({sigma})" if norm is None else f"{mu} * ({py}/({px}*(1+{norm})))**({sigma})"

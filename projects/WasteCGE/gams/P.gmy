@@ -25,6 +25,7 @@ sets
 	s
 	t
 	taxTypes
+	tech
 ;
 
 alias(n,nn,nnn);
@@ -89,13 +90,13 @@ sets
 	tx0E[t]
 	tx02E[t]
 	nestProduction[s,n,nn]
-	dtauCO2[t,s,n]
-	dqCO2[t,s,n]
+	dtauCO2[s,n]
+	dqCO2[s,n]
 	nestInvestment[s,n,nn]
 	nestHH[s,n,nn]
 	L2C[s,n,nn]
 	nestG[s,n,nn]
-	d_TotalTax[t,s]
+	d_TotalTax[s]
 	P_dur[s,n]
 	P_dur2inv[s,n,nn]
 	P_inv[s,n]
@@ -108,18 +109,12 @@ parameters
 ;
 
 variables
-	vTax[t,s,taxTypes]
 	TotalTax[t,s]
-	vD[t,s,n]
-	vD_dur[t,s,n]
-	vD_depr[t,s,n]
-	vD_inv[t,s,n]
 	qCO2[t,s,n]
+	M1990
 	rDepr[t,s,n]
-	vS[t,s,n]
 	p[t,n]
 	qD[t,s,n]
-	pD_dur[t,s,n]
 	qS[t,s,n]
 	sigma[s,n]
 	tauCO2[t,s,n]
@@ -129,6 +124,14 @@ variables
 	tauNonEnv[t,s,n]
 	tauNonEnv0[t,s,n]
 	pD[t,s,n]
+	frisch[s,n]
+	techCost[tech,t]
+	DACCost[t]
+	techPot[tech,t]
+	uCO2[t,s,n]
+	tauCO2agg[t]
+	tauDist[t,s,n]
+	qCO2agg[t]
 	Rrate[t]
 	mu[s,n,nn]
 	pS[t,s,n]
@@ -148,6 +151,7 @@ $load n
 $load s
 $load t
 $load taxTypes
+$load tech
 $load alias_
 $load P_map
 $load P_map_spinp
@@ -229,18 +233,12 @@ $offMulti;
 
 $GDXIN P
 $onMulti
-$load vTax
 $load TotalTax
-$load vD
-$load vD_dur
-$load vD_depr
-$load vD_inv
 $load qCO2
+$load M1990
 $load rDepr
-$load vS
 $load p
 $load qD
-$load pD_dur
 $load qS
 $load sigma
 $load tauCO2
@@ -250,6 +248,14 @@ $load tauLump
 $load tauNonEnv
 $load tauNonEnv0
 $load pD
+$load frisch
+$load techCost
+$load DACCost
+$load techPot
+$load uCO2
+$load tauCO2agg
+$load tauDist
+$load qCO2agg
 $load Rrate
 $load mu
 $load pS
@@ -301,27 +307,27 @@ $Model P_B B_W,B_O,B_P_adjCost,B_P_pWedge;
 $Model P_C B_W,B_O,B_P_adjCost,B_P_pWedge,B_P_taxCalib;
 
 # Fix exogenous variables in state B:
-qS.fx[t,s,n]$(P_output[s,n]) = qS.l[t,s,n]$(P_output[s,n]);
 sigma.fx[s,n]$(P_kninp[s,n]) = sigma.l[s,n]$(P_kninp[s,n]);
 mu.fx[s,n,nn]$(((P_map[s,n,nn] and ( not (P_endoMu[s,n,nn]))) or P_endoMu[s,n,nn])) = mu.l[s,n,nn]$(((P_map[s,n,nn] and ( not (P_endoMu[s,n,nn]))) or P_endoMu[s,n,nn]));
 tauNonEnv0.fx[t,s,n]$(P_output[s,n]) = tauNonEnv0.l[t,s,n]$(P_output[s,n]);
 tauD.fx[t,s,n]$(P_input[s,n]) = tauD.l[t,s,n]$(P_input[s,n]);
 tauLump.fx[t,s]$(P_sm[s]) = tauLump.l[t,s]$(P_sm[s]);
-p.fx[t,n]$((P_input_n[n] and ( not (P_output_n[n])))) = p.l[t,n]$((P_input_n[n] and ( not (P_output_n[n]))));
-qCO2.fx[t,s,n]$(P_output[s,n]) = qCO2.l[t,s,n]$(P_output[s,n]);
 tauCO2.fx[t,s,n]$(P_output[s,n]) = tauCO2.l[t,s,n]$(P_output[s,n]);
-Rrate.fx[t] = Rrate.l[t];
 rDepr.fx[t,s,n]$(P_dur[s,n]) = rDepr.l[t,s,n]$(P_dur[s,n]);
 adjCostPar.fx[s,n]$(P_dur[s,n]) = adjCostPar.l[s,n]$(P_dur[s,n]);
 K_tvc.fx[s,n]$(P_dur[s,n]) = K_tvc.l[s,n]$(P_dur[s,n]);
 qD.fx[t,s,n]$((P_dur[s,n] and t0[t])) = qD.l[t,s,n]$((P_dur[s,n] and t0[t]));
+qS.fx[t,s,n]$(P_output[s,n]) = qS.l[t,s,n]$(P_output[s,n]);
+p.fx[t,n]$((P_input_n[n] and ( not (P_output_n[n])))) = p.l[t,n]$((P_input_n[n] and ( not (P_output_n[n]))));
+qCO2.fx[t,s,n]$(P_output[s,n]) = qCO2.l[t,s,n]$(P_output[s,n]);
+Rrate.fx[t] = Rrate.l[t];
 tauNonEnv.fx[t,s,n]$(P_output[s,n]) = tauNonEnv.l[t,s,n]$(P_output[s,n]);
 taxRevPar.fx[s]$(P_sm[s]) = taxRevPar.l[s]$(P_sm[s]);
 markup.fx[s]$(P_sm[s]) = markup.l[s]$(P_sm[s]);
 
 # Unfix endogenous variables in state B:
-pD.lo[t,s,n]$((P_int[s,n] or P_input[s,n] or (P_dur[s,n] and txE[t]))) = -inf;
-pD.up[t,s,n]$((P_int[s,n] or P_input[s,n] or (P_dur[s,n] and txE[t]))) = inf;
+pD.lo[t,s,n]$(((P_int[s,n] or P_input[s,n]) or (P_dur[s,n] and txE[t]))) = -inf;
+pD.up[t,s,n]$(((P_int[s,n] or P_input[s,n]) or (P_dur[s,n] and txE[t]))) = inf;
 pS.lo[t,s,n]$(P_output[s,n]) = -inf;
 pS.up[t,s,n]$(P_output[s,n]) = inf;
 p.lo[t,n]$(((P_output_n[n] and tx0[t]) or (P_output_n[n] and t0[t]))) = -inf;

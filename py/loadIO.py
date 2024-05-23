@@ -106,7 +106,7 @@ def model_vS(db):
 
 def model_p(db):
 	domesticPrices = pd.Series(1, index = db('vS').index.droplevel('s').unique(), name = 'p')
-	foreignPrices  = pd.Series(1, index = adj.rc_pd(db('vD'), db('n_F')).index.droplevel('s').unique(), name = 'p')
+	foreignPrices  = pd.Series(1, index = db('n_F'), name = 'p')
 	db.aom(domesticPrices.combine_first(foreignPrices), name = 'p')
 
 def model_durables(db, R, π):
@@ -117,4 +117,4 @@ def model_durables(db, R, π):
 
 def model_quantNonDurables(db):
 	db.aom(stdSort(adj.rc_pd(db('vD'), ('not', db('dur_p')))/db('p')), name = 'qD')
-	db.aom(stdSort(db('vS') / db('p')), name = 'qS')
+	db.aom(stdSort(db('vS') / db('p')).dropna(), name = 'qS')

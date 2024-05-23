@@ -4,10 +4,11 @@ from pyDatabases import cartesianProductIndex as cpi
 from gmsPython import gmsWrite, Group, Model
 import gamsProduction
 
-class nestedCES(Model):
-	def __init__(self, tree, **kwargs):
+class NestedCES(Model):
+	def __init__(self, tree, partial = False, **kwargs):
 		super().__init__(name = tree.name, database = tree.db, **kwargs)
 		self.readTree(tree)
+		self.partial = partial # use module in partial or general equilibrium; this affects compilation of groups 
 
 	#### 1. INITIALIZE METHODS 
 	def readTree(self,tree):
@@ -38,19 +39,20 @@ class nestedCES(Model):
 		""" MultiIndex-like groupby statement with function 'first' """
 		return pd.MultiIndex.from_frame(map_.to_frame(index=False).groupby([s for s in gb]).first().reset_index()).reorder_levels(map_.names)
 
-	def initStuff(self, db = None):
+	def initStuff(self, db = None, gdx = True):
 		if db is not None:
 			MergeDbs.merge(self.db, db)
 		self.addDurables()
 		self.initData()
 		self.initGroups()
-		self.db.mergeInternal()
+		if gdx:
+			self.db.mergeInternal()
 
 	def initData(self):
 		""" Add initial values to database (only the ones data we do not have from an IO database though)"""
 		self.db.aom(pd.Series(1,  index = cpi([self.db('txE'), self.get('output')])), name = 'pS', priority = 'first') # get initial value for pS
 		self.db.aom(pd.Series(1,  index = cpi([self.db('txE'), self.get('int')])), name = 'pD', priority = 'first') # prices on intermediate goods
-		self.db.aom(pd.Series(.5, index = cpi([self.db('txE'), self.get('int')])), name = 'qD', priority = 'first') # quantities of intermediate goods
+		# self.db.aom(pd.Series(.5, index = cpi([self.db('txE'), self.get('int')])), name = 'qD', priority = 'first') # quantities of intermediate goods
 		self.db.aom(pd.Series(1,  index = self.get('dur')), name = 'adjCostPar', priority = 'first') # parameter in investment cost function
 		self.db.aom(pd.Series(0,  index = self.get('dur')), name = 'K_tvc', priority='first') # tvc condition for durables
 		self.db.aom(pd.Series(0,  index = cpi([self.db('txE'), self.get('sm')]), name = 'adjCost'), priority='first') # adjustment costs
@@ -58,7 +60,7 @@ class nestedCES(Model):
 		self.db.aom(pd.Series(0,  index = self.get('sm')), name = 'taxRevPar')
 
 	#### 2. GROUPINGS AND MODEL SPECIFICATIONS: 
-	def models(self, state = 'B'):
+	def models(self, state = 'B', **kwargs):
 		if state == 'B':
 			return OrdSet([f"B_{name}" for name in self.m])+OrdSet([f"B_{self.name}_{k}" for k in ('adjCost','pWedge')])
 		elif state == 'C':
@@ -67,7 +69,7 @@ class nestedCES(Model):
 	def initGroups(self):
 		self.groups = {g.name: g for g in (getattr(self, f'group_{k}') for k in ('alwaysExo','alwaysEndo','exoInCalib','endoInCalib'))}
 		[grp() for grp in self.groups.values()]; # initialize groups
-		metaGroups = ({g.name: g for g in (getattr(self, f'group_{k}') for k in ('endo_B','endo_C','exo_B','exo_C'))})
+		metaGroups = {g.name: g for g in (getattr(self, f'group_{k}') for k in ('endo_B','endo_C','exo_B','exo_C'))}
 		[grp() for grp in metaGroups.values()]; # initialize metagroups
 		self.groups.update(metaGroups)
 
@@ -75,7 +77,7 @@ class nestedCES(Model):
 	def jSolve(self, n, state = 'B', loopName = 'i', ϕ = 1):
 		""" Solve model from scratch using the jTerms approach."""
 		mainText = self.compiler(self.text, has_read_file = False)
-		jModelStr = self.j.jModel(self.name+'_'+state, self.groups.values(), db = self.db) # create string that declares adjusted $j$-terms
+		jModelStr = self.j.jModel(f'M_{self.name}_{state}', self.groups.values(), db = self.db) # create string that declares adjusted $j$-terms
 		fixUnfix  = self.j.jFixUnfix([self.groups[f'{self.name}_endo_{state}']], db = self.db) + self.j.solve
 		loopSolve = self.j.jLoop(n, loopName = loopName, ϕ = ϕ)
 		self.job = self.ws.add_job_from_string(mainText+jModelStr+fixUnfix+loopSolve)
@@ -112,15 +114,20 @@ class nestedCES(Model):
 	def taxCalibBlocks(self):
 		return gamsProduction.taxCalibration(f'{self.name}_taxCalib', self.name)
 
+	def fixText(self, state ='B'):
+		return self.groups[f'{self.name}_exo_{state}'].fix(db = self.db)
+	def unfixText(self, state = 'B'):
+		return self.groups[f'{self.name}_endo_{state}'].unfix(db = self.db)
+
 	def solveText(self, state = 'B'):
 		return f"""
 # Fix exogenous variables in state {state}:
-{self.groups[f'{self.name}_exo_{state}'].fix(db = self.db)}
+{self.fixText(state=state)}
 
 # Unfix endogenous variables in state {state}:
-{self.groups[f'{self.name}_endo_{state}'].unfix(db = self.db)}
+{self.unfixText(state=state)}
 
-solve {self.name}_{state} using CNS;
+solve M_{self.name}_{state} using CNS;
 """
 
 	@property
@@ -132,8 +139,8 @@ solve {self.name}_{state} using CNS;
 {gmsWrite.FromDB.load(self.db, gdx = self.db.name)}
 
 {''.join(self.textBlocks.values())}
-$Model {self.name}_B {','.join(self.models(state = 'B'))};
-$Model {self.name}_C {','.join(self.models(state = 'C'))};
+$Model M_{self.name}_B {','.join(self.models(state='B'))};
+$Model M_{self.name}_C {','.join(self.models(state='C'))};
 """ 
 
 	### AUX: SPECIFICATION OF INDIVIDUAL AND METAGROUPS
@@ -151,26 +158,28 @@ $Model {self.name}_C {','.join(self.models(state = 'C'))};
 		return Group(f'{self.name}_exo_C', g = [self.groups[f'{self.name}_{k}'] for k in ('alwaysExo','exoInCalib')])
 	@property
 	def group_alwaysExo(self):
-		return Group(f'{self.name}_alwaysExo', v = [('qS', self.g('output')),
-													('sigma', self.g('kninp')),
-													('mu', self.g('map')),
-													('tauNonEnv0', self.g('output')),
-													('tauD', self.g('input')),
-													('tauLump', self.g('sm')),
-													('p', self.g('input_n')),
-													('qCO2', self.g('output')),
-													('tauCO2', self.g('output')),
-													('Rrate', None),
-													('rDepr', self.g('dur')),
-													('adjCostPar', self.g('dur')),
-													('K_tvc', self.g('dur')),
-													('qD', ('and', [self.g('dur'), self.g('t0')]))],
-												sub_v = [('mu', self.g('endoMu')),
-														 ('p', self.g('output_n'))])
+		if not self.partial:
+			return Group(f'{self.name}_alwaysExo', v = [('sigma', self.g('kninp')),
+											('mu', self.g('map')),
+											('tauNonEnv0', self.g('output')),
+											('tauD', self.g('input')),
+											('tauLump', self.g('sm')),
+											('tauCO2', ('and', [self.g('output'), self.g('dqCO2')])),
+											('rDepr', self.g('dur')),
+											('adjCostPar', self.g('dur')),
+											('K_tvc', self.g('dur')),
+											('qD', ('and', [self.g('dur'), self.g('t0')]))],
+										sub_v = [('mu', self.g('endoMu'))])
+		else:
+			self.partial = False
+			g = self.group_alwaysExo
+			g.v += [('qS', self.g('output')), ('p', self.g('input_n')), ('qCO2', ('and', [self.g('output'), self.g('dqCO2')])), ('Rrate', None)]
+			g.sub_v += [('p', self.g('output_n'))]
+			self.partial = True
+			return g
 	@property
 	def group_alwaysEndo(self):
-		return Group(f'{self.name}_alwaysEndo', v = [('pD', self.g('int')),
-													 ('pD', self.g('input')),
+		return Group(f'{self.name}_alwaysEndo', v = [('pD', ('or', [self.g('int'), self.g('input')])),
 													 ('pS', self.g('output')),
 													 ('p', ('and', [self.g('output_n'), self.g('tx0')])),
 													 ('qD', self.g('int')),

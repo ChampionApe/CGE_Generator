@@ -26,10 +26,11 @@ $ENDBLOCK
 def priceWedgeEmissions(name,m):
 	return f"""
 $BLOCK B_{name}
-	E_{name}_pwInp[t,s,n]$({m}_input[s,n] and txE[t])..			pD[t,s,n]		=E= p[t,n]+tauD[t,s,n];
-	E_{name}_pwOut[t,s,n]$({m}_output[s,n] and txE[t])..		p[t,n] 			=E= (1+markup[s])*(pS[t,s,n]+tauS[t,s,n]+(adjCost[t,s]+tauLump[t,s])/qS[t,s,n]);
-	E_{name}_taxRev[t,s]$(s_{m}[s] and txE[t])..				TotalTax[t,s]	=E= tauLump[t,s]+sum(n$({m}_input[s,n]), tauD[t,s,n] * qD[t,s,n])+sum(n$({m}_output[s,n]), tauS[t,s,n]*qS[t,s,n]);
-	E_{name}_tauS[t,s,n]$({m}_output[s,n] and txE[t])..			tauS[t,s,n]		=E= tauCO2[t,s,n] * qCO2[t,s,n]/qS[t,s,n]+tauNonEnv[t,s,n];
+	E_{name}_pwInp[t,s,n]$({m}_input[s,n] and txE[t])..					pD[t,s,n]		=E= p[t,n]+tauD[t,s,n];
+	E_{name}_pwOut[t,s,n]$({m}_output[s,n] and txE[t])..				p[t,n] 			=E= (1+markup[s])*(pS[t,s,n]+tauS[t,s,n]+(adjCost[t,s]+tauLump[t,s])/qS[t,s,n]);
+	E_{name}_taxRev[t,s]$({m}_sm[s] and txE[t])..						TotalTax[t,s]	=E= tauLump[t,s]+sum(n$({m}_input[s,n]), tauD[t,s,n] * qD[t,s,n])+sum(n$({m}_output[s,n]), tauS[t,s,n]*qS[t,s,n]);
+	E_{name}_tauS1[t,s,n]$({m}_output[s,n] and dqCO2[s,n] and txE[t])..	tauS[t,s,n]		=E= tauCO2[t,s,n] * qCO2[t,s,n]/qS[t,s,n]+tauNonEnv[t,s,n];
+	E_{name}_tauS2[t,s,n]$({m}_output[s,n] and not dqCO2[s,n] and txE[t])..	tauS[t,s,n] =E= tauNonEnv[t,s,n];
 $ENDBLOCK
 """
 
@@ -54,3 +55,13 @@ $BLOCK B_ValueShares
 	E_Inp_shares2no[t,s,n,nn]$(mapInp[s,n,nn] and branch2NOut[s,nn])..	mu[t,s,n,nn]=E= vD[t,s,nn]/vD[t,s,n];
 $ENDBLOCK
 """
+
+# $BLOCK B_ValueShares
+# 	E_Out_knot[t,s,n]$(knotOutTree[s,n])..								vD[t,s,n]	=E= sum(nn$(map[s,nn,n] and branchOut[s,nn]), vS[t,s,n])+sum(nn$(map[s,nn,n] and branchNOut[s,nn]), vD[t,s,n]);
+# 	E_Out_shares_o[t,s,n,nn]$(mapOut[s,n,nn] and branchOut[s,n])..		mu[t,s,n,nn]=E= vS[t,s,n]/vD[t,s,nn];
+# 	E_Out_shares_no[t,s,n,nn]$(mapOut[s,n,nn] and branchNOut[s,n])..	mu[t,s,n,nn]=E= vD[t,s,n]/vD[t,s,nn];
+# 	E_Inp_knot_o[t,s,n]$(knotOut[s,n])..								vS[t,s,n]	=E= sum(nn$(map[s,n,nn]), vD[t,s,nn]);
+# 	E_Inp_knot_no[t,s,n]$(knotNOut[s,n])..								vD[t,s,n]	=E= sum(nn$(map[s,n,nn]), vD[t,s,nn]);
+# 	E_Inp_shares2o[t,s,n,nn]$(mapInp[s,n,nn] and branch2Out[s,nn])..	mu[t,s,n,nn]=E= vD[t,s,nn]/vS[t,s,n];
+# 	E_Inp_shares2no[t,s,n,nn]$(mapInp[s,n,nn] and branch2NOut[s,nn])..	mu[t,s,n,nn]=E= vD[t,s,nn]/vD[t,s,n];
+# $ENDBLOCK
