@@ -1,10 +1,10 @@
 from auxfuncs import *
 from pyDatabases.gpyDB import MergeDbs
 from pyDatabases import cartesianProductIndex as cpi, noneInit
-from gmsPython import gmsWrite, Group, Model
+from gmsPython import gmsWrite, Group, GModel
 import gamsGovernment
 
-class BalancedBudget(Model):
+class BalancedBudget(GModel):
 	def __init__(self, tree, L = None, partial = False, **kwargs):
 		super().__init__(name = tree.name, database = tree.db, **kwargs)
 		self.readTree(tree)
@@ -43,15 +43,11 @@ class BalancedBudget(Model):
 		self.db.aom(pd.Series(0, index = self.get('sm')), name ='taxRevPar')
 		self.db.aom(pd.Series(0, index = self.get('sm')), name = 'jTerm')
 
-	def models(self, **kwargs):
+	def modelName(self, state = 'B'):
+		return '_'.join(['M',self.name])
+	@property
+	def model_B(self):
 		return OrdSet([f"B_{name}" for name in self.m])+OrdSet([f"B_{self.name}_{k}" for k in ('bb','taxCalib')])
-
-	def initGroups(self):
-		self.groups = {g.name: g for g in (getattr(self, f'group_{k}') for k in ('alwaysExo','alwaysEndo','exoInCalib','endoInCalib'))}
-		[grp() for grp in self.groups.values()]; # initialize groups
-		metaGroups = ({g.name: g for g in (getattr(self, f'group_{k}') for k in ('endo_B','endo_C','exo_B','exo_C'))})
-		[grp() for grp in metaGroups.values()]; # initialize metagroups
-		self.groups.update(metaGroups)
 
 	#### 4. WRITING METHODS
 	@property
@@ -67,45 +63,17 @@ class BalancedBudget(Model):
 	def taxCalib(self):
 		return gamsGovernment.taxCalibration(f'{self.name}_taxCalib', self.name)
 
-	def fixText(self, state ='B'):
-		return self.groups[f'{self.name}_exo_{state}'].fix(db = self.db)
-	def unfixText(self, state = 'B'):
-		return self.groups[f'{self.name}_endo_{state}'].unfix(db = self.db)
-
-	def solveText(self, state = 'B'):
-		return f"""
-# Fix exogenous variables in state {state}:
-{self.fixText(state=state)}
-
-# Unfix endogenous variables in state {state}:
-{self.unfixText(state=state)}
-
-solve M_{self.name} using CNS;
-"""
-
 	@property
-	def text(self):
-		return f"""
-{gmsWrite.StdArgs.root()}
-{gmsWrite.StdArgs.funcs()}
-{gmsWrite.FromDB.declare(self.db)}
-{gmsWrite.FromDB.load(self.db, gdx = self.db.name)}
-
-{''.join(self.textBlocks.values())}
-$Model M_{self.name} {','.join(self.models())};
-""" 
-
-	@property
-	def group_endo_B(self):
+	def metaGroup_endo_B(self):
 		return Group(f'{self.name}_endo_B', g = [self.groups[f'{self.name}_{k}'] for k in ('alwaysEndo','exoInCalib')])
 	@property
-	def group_endo_C(self):
+	def metaGroup_endo_C(self):
 		return Group(f'{self.name}_endo_C', g = [self.groups[f'{self.name}_{k}'] for k in ('alwaysEndo', 'endoInCalib')])
 	@property
-	def group_exo_B(self):
+	def metaGroup_exo_B(self):
 		return Group(f'{self.name}_exo_B', g = [self.groups[f'{self.name}_{k}'] for k in ('alwaysExo','endoInCalib')])
 	@property
-	def group_exo_C(self):
+	def metaGroup_exo_C(self):
 		return Group(f'{self.name}_exo_C', g = [self.groups[f'{self.name}_{k}'] for k in ('alwaysExo','exoInCalib')])
 
 	@property
@@ -122,12 +90,15 @@ $Model M_{self.name} {','.join(self.models())};
 													 ('qD', self.g('int')),
 													 ('tauD', self.g('input')),
 													 ('TotalTax', ('and', [self.g('sm'), self.g('tx0E')])),
-													 ('tauS', ('and', [self.g('L'), self.g('tx0E')]))])
+													 # ('tauS', ('and', [self.g('L'), self.g('tx0E')])), # use labor tax to balance budget
+													 ('tauLump', ('and', [self.g('s_HH'), self.g('tx0E')]))] # use lump-sum tax on households to balance budget
+													 )
 	@property
 	def group_exoInCalib(self):
 		return Group(f'{self.name}_exoInCalib', v = [('TotalTax', ('and', [self.g('sm'), self.g('t0')])),
 													 ('qD', ('and', [self.g('input'), self.g('t0')])),
-													 ('tauS', ('and', [self.g('L'), self.g('t0')]))])
+													 ('tauLump', ('and', [self.g('s_HH'), self.g('t0')]))]
+													 )
 	@property
 	def group_endoInCalib(self):
 		return Group(f'{self.name}_endoInCalib', v = [('mu', self.g('endoMu')),

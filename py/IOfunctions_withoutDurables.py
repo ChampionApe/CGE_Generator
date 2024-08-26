@@ -41,7 +41,7 @@ def leaveOutMax(v0):
 
 class readIO:
 	def __init__(self, name = None, db = None, ws = None, file_v = None, kwargs_v = None):
-		self.db = GpyDB(name = name, db = db, ws = ws, alias = [('n','nn'),('n','nnn'), ('s','ss')])
+		self.db = GpyDB(name = name, db = db, ws = ws, alias = [('n','nn'),('n','nnn'), ('s','ss'), ('t','tt')])
 		self.wb = {'v': DbFromExcel.simpleLoad(file_v)}
 		self.IO = {'v': pd.DataFrame(self.wb['v']['IO'].values)}
 		self.locs = {}

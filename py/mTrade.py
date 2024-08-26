@@ -1,8 +1,8 @@
 from auxfuncs import *
-from pyDatabases.gpyDB import MergeDbs, GpyDB
-from gmsPython import gmsWrite, Group, Model
+from pyDatabases.gpyDB import MergeDbs
+from gmsPython import Group, GModel
 
-class Armington(Model):
+class Armington(GModel):
 	def __init__(self, name, database, partial = False, dExport = None, **kwargs):
 		super().__init__(name = name, database = database, **kwargs)
 		self.partial = partial # use module in partial or general equilibrium; this affects compilation of groups 
@@ -25,61 +25,15 @@ class Armington(Model):
 		""" Add initial values to database (only the ones data we do not have from an IO database though)"""
 		self.db.aom(pd.Series(1, index = self.get('dExport')), name = 'Fscale', priority='first')
 
-	def initGroups(self):
-		self.groups = {g.name: g for g in (getattr(self, f'group_{k}') for k in ('alwaysExo','alwaysEndo','exoInCalib','endoInCalib'))}
-		[grp() for grp in self.groups.values()]; # initialize groups
-		metaGroups = ({g.name: g for g in (getattr(self, f'group_{k}') for k in ('endo_B','endo_C','exo_B','exo_C'))})
-		[grp() for grp in metaGroups.values()]; # initialize metagroups
-		self.groups.update(metaGroups)
-
-	def solve(self, text = None, state = 'B'):
-		self.job = self.ws.add_job_from_string(noneInit(text, self.write(state = state)))
-		self.job.run(databases = self.db.database)
-		self.out_db = GpyDB(self.job.out_db, ws = self.ws)
-		return self.out_db
-
-	def write(self, state = 'B'):
-		return self.compiler(self.write_gamY(state = state), has_read_file = False)
-
-	def write_gamY(self, state = 'B'):
-		return self.text+self.solveText(state = 'B')
-
-	def models(self, **kwargs):
+	# Re-specify model names as we call the same model for baseline/calibration
+	def modelName(self, state = 'B'):
+		return '_'.join(['M',self.name])
+	@property
+	def model_B(self):
 		return OrdSet([f"B_{self.name}"])
-
 	@property
 	def textBlocks(self):
 		return {'trade': self.equationText}
-
-	def fixText(self, state ='B'):
-		return self.groups[f'{self.name}_exo_{state}'].fix(db = self.db)
-	def unfixText(self, state = 'B'):
-		return self.groups[f'{self.name}_endo_{state}'].unfix(db = self.db)
-
-	def solveText(self, state = 'B'):
-		return f"""
-# Fix exogenous variables in state {state}:
-{self.fixText(state=state)}
-
-# Unfix endogenous variables in state {state}:
-{self.unfixText(state=state)}
-
-solve M_{self.name} using CNS;
-"""
-
-	@property
-	def text(self):
-		return f"""
-{gmsWrite.StdArgs.root()}
-{gmsWrite.StdArgs.funcs()}
-{gmsWrite.FromDB.declare(self.db)}
-{gmsWrite.FromDB.load(self.db, gdx = self.db.name)}
-
-{''.join(self.textBlocks.values())}
-$Model M_{self.name} {','.join(self.models())};
-""" 
-
-
 	@property
 	def equationText(self):
 		return f"""
@@ -90,18 +44,17 @@ $BLOCK B_{self.name}
 $ENDBLOCK
 """
 
-
 	@property
-	def group_endo_B(self):
+	def metaGroup_endo_B(self):
 		return Group(f'{self.name}_endo_B', g = [self.groups[f'{self.name}_{k}'] for k in ('alwaysEndo','exoInCalib')])
 	@property
-	def group_endo_C(self):
+	def metaGroup_endo_C(self):
 		return Group(f'{self.name}_endo_C', g = [self.groups[f'{self.name}_{k}'] for k in ('alwaysEndo', 'endoInCalib')])
 	@property
-	def group_exo_B(self):
+	def metaGroup_exo_B(self):
 		return Group(f'{self.name}_exo_B', g = [self.groups[f'{self.name}_{k}'] for k in ('alwaysExo','endoInCalib')])
 	@property
-	def group_exo_C(self):
+	def metaGroup_exo_C(self):
 		return Group(f'{self.name}_exo_C', g = [self.groups[f'{self.name}_{k}'] for k in ('alwaysExo','exoInCalib')])
 	@property
 	def group_alwaysExo(self):

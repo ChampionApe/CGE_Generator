@@ -30,7 +30,7 @@ def createDataBlock(v0, conditions, threshold, leaveRows = None, leaveCols = Non
 
 class readIO:
 	def __init__(self, name = None, db = None, file_v = None, file_i = None, file_k = None, kwargs_v = None, kwargs_i=None, kwargs_k = None):
-		self.db = GpyDB(name = name, db = db, alias = [('n','nn'),('n','nnn'), ('s','ss')])
+		self.db = GpyDB(name = name, db = db, alias = [('n','nn'),('n','nnn'), ('s','ss'), ('t','tt')])
 		self.wb = {'v': DbFromExcel.simpleLoad(file_v),
 				   'i': DbFromExcel.simpleLoad(file_i),
 				   'k': DbFromExcel.simpleLoad(file_k)}

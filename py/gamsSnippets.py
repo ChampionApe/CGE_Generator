@@ -1,3 +1,5 @@
+from gmsPython.gmsWrite import Syms
+
 # 0.1: Auxiliary functions used for scale-preserving nests:
 def _CES(px,py,mu,sigma,norm=None):
 	return f"{mu} * ({py}/{px})**({sigma})" if norm is None else f"{mu} * ({py}/({px}*(1+{norm})))**({sigma})"
@@ -84,3 +86,26 @@ def CET_norm(name, inclusiveVal = False):
 	return Fnorm_output('CES', name, inclusiveVal=inclusiveVal)
 def MNL_out(name, inclusiveVal = False):
 	return Fnorm_output('exp', name, inclusiveVal=inclusiveVal)
+
+
+
+# 3: Technology Functions:
+techEOP = """
+$MACRO stdNormPdf(x) exp(-sqr(x)/2)/(2*sqrt(Pi))
+$MACRO EOP_Logit(p, c, e) (1/(1+exp((c-p)/e)))
+$MACRO EOP_Normal(p, c, e) errorf((p-c)/e)
+$MACRO EOP_NormalMult(p, c, e) errorf((p/c-1)/e)
+
+$MACRO EOP_NormalCost(p, c, e) EOP_Normal(p, c, e)*c-e*stdNormPdf((p-c)/e)
+$MACRO EOP_NormalMultCost(p, c, e) c*(EOP_NormalMult(p, c, e)-
+
+
+$FUNCTION EOP_Tech({p}, {c}, {e}):
+	$IF %techType% == 'normal': EOP_Normal( ({p}), ({c}), ({e}) ) $ENDIF
+	$IF %techType% == 'logit' : EOP_Logit( ({p}), ({c}), ({e}) ) $ENDIF
+$ENDFUNCTION
+
+$FUNCTION EOP_Cost({p}, {c}, {e}):
+	$IF %techType% == 'normal': EOP_NormalCost( ({p}), ({c}), ({e}) ) $ENDIF
+$ENDFUNCTION
+"""

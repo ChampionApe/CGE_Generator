@@ -1,4 +1,4 @@
-import pyDatabases, pandas as pd
+import pyDatabases, pandas as pd, numpy as np
 import warnings
 from pyDatabases import OrdSet, noneInit, adj, adjMultiIndex
 

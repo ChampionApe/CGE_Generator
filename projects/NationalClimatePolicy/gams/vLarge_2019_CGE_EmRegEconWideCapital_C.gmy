@@ -1,0 +1,947 @@
+
+
+$SETLOCAL qmark ";
+OPTION SYSOUT=OFF, SOLPRINT=OFF, LIMROW=0, LIMCOL=0, DECIMALS=6;
+
+
+# User defined functions:
+$FUNCTION SolveEmptyNLP({name})
+variable randomnameobj;  
+randomnameobj.L = 0;
+
+EQUATION E_EmptyNLPObj;
+E_EmptyNLPObj..    randomnameobj  =E=  0;
+
+Model M_SolveEmptyNLP /
+E_EmptyNLPObj, {name}
+/;
+solve M_SolveEmptyNLP using NLP min randomnameobj;
+$ENDFUNCTION
+
+# DEFINE LOCAL FUNCTIONS/MACROS:
+
+$MACRO stdNormPdf(x) exp(-sqr(x)/2)/(2*sqrt(Pi))
+$MACRO EOP_Logit(p, c, e) (1/(1+exp((c-p)/e)))
+$MACRO EOP_Normal(p, c, e) errorf((p-c)/e)
+$MACRO EOP_NormalMult(p, c, e) errorf((p/c-1)/e)
+
+$MACRO EOP_NormalCost(p, c, e) EOP_Normal(p, c, e)*c-e*stdNormPdf((p-c)/e)
+$MACRO EOP_NormalMultCost(p, c, e) c*(EOP_NormalMult(p, c, e)-e*stdNormPdf((p/c-1)/e))
+
+$FUNCTION EOP_Tech({p}, {c}, {e}):
+	$IF %techType% == 'normal': EOP_Normal( ({p}), ({c}), ({e}) ) $ENDIF
+	$IF %techType% == 'logit' : EOP_Logit( ({p}), ({c}), ({e}) ) $ENDIF
+	$IF %techType% == 'normalMult': EOP_NormalMult( ({p}), ({c}), ({e}) ) $ENDIF
+$ENDFUNCTION
+
+$FUNCTION EOP_Cost({p}, {c}, {e}):
+	$IF %techType% == 'normal': EOP_NormalCost( ({p}), ({c}), ({e}) ) $ENDIF
+	$IF %techType% == 'normalMult': EOP_NormalMultCost( ({p}), ({c}), ({e}) ) $ENDIF
+$ENDFUNCTION
+
+
+# DECLARE SYMBOLS FROM DATABASE:
+sets
+	alias_set
+	alias_map2
+	taxTypes
+	s
+	n
+	t
+	tech
+;
+
+alias(n,nn,nnn);
+alias(s,ss);
+alias(t,tt);
+
+sets
+	alias_[alias_set,alias_map2]
+	s_p[s]
+	n_p[n]
+	n_F[n]
+	s_HH[s]
+	s_G[s]
+	s_i[s]
+	s_f[s]
+	dur_p[n]
+	inv_p[n]
+	dur2inv[n,nn]
+	nEqui[n]
+	d_qS[s,n]
+	d_qD[s,n]
+	d_qSEqui[s,n]
+	d_pEqui[n]
+	dom2for[n,nn]
+	dExport[s,n]
+	dImport[s,n,nn]
+	dImport_dom[s,n]
+	dImport_for[s,n]
+	t0[t]
+	t1[t]
+	tx0[t]
+	tE[t]
+	t2E[t]
+	txE[t]
+	tx2E[t]
+	tx0E[t]
+	tx02E[t]
+	nestProduction[s,n,nn]
+	dtauCO2[s,n]
+	dqCO2[s,n]
+	nestInvestment[s,n,nn]
+	nestHH[s,n,nn]
+	L2C[s,n,nn]
+	nestG[s,n,nn]
+	d_TotalTax[s]
+	t_SYT[t]
+	t_SYT_NB[t]
+	t_LRP[t]
+	t_EB[t]
+	t2tt_EB[t,tt]
+	t_EB_SYT[t]
+	t_EB_NB[t]
+	P_map[s,n,nn]
+	P_map_spinp[s,n,nn]
+	P_map_spout[s,n,nn]
+	P_knout[s,n]
+	P_kninp[s,n]
+	P_spout[s,n]
+	P_spinp[s,n]
+	P_input[s,n]
+	P_output[s,n]
+	P_int[s,n]
+	P_knot[s,n]
+	P_branch[s,n]
+	P_knot_o[s,n]
+	P_knot_no[s,n]
+	P_branch2o[s,n]
+	P_branch2no[s,n]
+	P_sm[s]
+	P_output_n[n]
+	P_input_n[n]
+	P_endoMu[s,n,nn]
+	P_dur[s,n]
+	P_dur2inv[s,n,nn]
+	P_inv[s,n]
+	I_map[s,n,nn]
+	I_map_spinp[s,n,nn]
+	I_map_spout[s,n,nn]
+	I_knout[s,n]
+	I_kninp[s,n]
+	I_spout[s,n]
+	I_spinp[s,n]
+	I_input[s,n]
+	I_output[s,n]
+	I_int[s,n]
+	I_knot[s,n]
+	I_branch[s,n]
+	I_knot_o[s,n]
+	I_knot_no[s,n]
+	I_branch2o[s,n]
+	I_branch2no[s,n]
+	I_sm[s]
+	I_output_n[n]
+	I_input_n[n]
+	I_endoMu[s,n,nn]
+	I_dur[s,n]
+	I_dur2inv[s,n,nn]
+	I_inv[s,n]
+	HH_map[s,n,nn]
+	HH_map_spinp[s,n,nn]
+	HH_map_spout[s,n,nn]
+	HH_knout[s,n]
+	HH_kninp[s,n]
+	HH_spout[s,n]
+	HH_spinp[s,n]
+	HH_input[s,n]
+	HH_output[s,n]
+	HH_int[s,n]
+	HH_knot[s,n]
+	HH_branch[s,n]
+	HH_knot_o[s,n]
+	HH_knot_no[s,n]
+	HH_branch2o[s,n]
+	HH_branch2no[s,n]
+	HH_endoMu[s,n,nn]
+	HH_L2C[s,n,nn]
+	HH_L[s,n]
+	HH_output_n[n]
+	HH_input_n[n]
+	HH_sm[s]
+	G_map[s,n,nn]
+	G_map_spinp[s,n,nn]
+	G_map_spout[s,n,nn]
+	G_knout[s,n]
+	G_kninp[s,n]
+	G_spout[s,n]
+	G_spinp[s,n]
+	G_input[s,n]
+	G_output[s,n]
+	G_int[s,n]
+	G_knot[s,n]
+	G_branch[s,n]
+	G_knot_o[s,n]
+	G_knot_no[s,n]
+	G_branch2o[s,n]
+	G_branch2no[s,n]
+	G_endoMu[s,n,nn]
+	G_L[s,n]
+	G_input_n[n]
+	G_sm[s]
+	s_itory[s]
+	d_itory[s,n]
+	T_dExport[s,n]
+	T_nF[n]
+	T_nD[n]
+	T_sm[s]
+;
+
+parameters
+	R_LR
+	infl_LR
+	g_LR
+	itoryAR[s,n]
+;
+
+variables
+	TotalTax[t,s]
+	qCO2[t,s,n]
+	M1990
+	rDepr[t,s,n]
+	p[t,n]
+	qD[t,s,n]
+	qS[t,s,n]
+	sigma[s,n]
+	tauCO2[t,s,n]
+	tauCO2agg[t]
+	tauS[t,s,n]
+	tauD[t,s,n]
+	tauLump[t,s]
+	tauS0[t,s,n]
+	pD[t,s,n]
+	frisch[s]
+	crra[s]
+	discF[s]
+	pS[t,s,n]
+	vAssets[t,s]
+	techCost[tech,t]
+	techPot[tech,t]
+	DACCost[t]
+	qCO2Base
+	uCO2[t,s,n]
+	tauDist[t,s,n]
+	qCO2agg[t]
+	tauEffCO2[t,s,n]
+	qCO2_SYT[t]
+	qCO2_LRP[t]
+	qCO2_EB[t]
+	qCO2_EB_SYT[t]
+	Rrate[t]
+	iRate[t]
+	mu[s,n,nn]
+	adjCostPar[s,n]
+	K_tvc[s,n]
+	adjCost[t,s]
+	markup[s]
+	taxRevPar[s]
+	jTerm[s]
+	sp[t,s]
+	qC[t,s]
+	discUtil[t,s]
+	h_tvc[s]
+	Lscale[s]
+	tauD0[t,s,n]
+	Fscale[s,n]
+	uCO20[t,s,n]
+	uAbate[t,s,n]
+	uCO2Calib[s,n]
+	DACSmooth[t]
+	techSmooth[tech,t]
+	tauCO2Base
+	softConstr
+	obj
+	rDepr_EOP
+	adjCostPar_EOP
+	Ktvc_EOP
+	adjCostEOP[t]
+	pK_EOP[t]
+	qK_EOP[t]
+	qI_EOP[t]
+;
+
+
+# LOAD SYMBOLS FROM DATABASE:
+$GDXIN vLarge_2019_EmRegEconWideCapital
+$onMulti
+$load alias_set
+$load alias_map2
+$load taxTypes
+$load s
+$load n
+$load t
+$load tech
+$load alias_
+$load s_p
+$load n_p
+$load n_F
+$load s_HH
+$load s_G
+$load s_i
+$load s_f
+$load dur_p
+$load inv_p
+$load dur2inv
+$load nEqui
+$load d_qS
+$load d_qD
+$load d_qSEqui
+$load d_pEqui
+$load dom2for
+$load dExport
+$load dImport
+$load dImport_dom
+$load dImport_for
+$load t0
+$load t1
+$load tx0
+$load tE
+$load t2E
+$load txE
+$load tx2E
+$load tx0E
+$load tx02E
+$load nestProduction
+$load dtauCO2
+$load dqCO2
+$load nestInvestment
+$load nestHH
+$load L2C
+$load nestG
+$load d_TotalTax
+$load t_SYT
+$load t_SYT_NB
+$load t_LRP
+$load t_EB
+$load t2tt_EB
+$load t_EB_SYT
+$load t_EB_NB
+$load P_map
+$load P_map_spinp
+$load P_map_spout
+$load P_knout
+$load P_kninp
+$load P_spout
+$load P_spinp
+$load P_input
+$load P_output
+$load P_int
+$load P_knot
+$load P_branch
+$load P_knot_o
+$load P_knot_no
+$load P_branch2o
+$load P_branch2no
+$load P_sm
+$load P_output_n
+$load P_input_n
+$load P_endoMu
+$load P_dur
+$load P_dur2inv
+$load P_inv
+$load I_map
+$load I_map_spinp
+$load I_map_spout
+$load I_knout
+$load I_kninp
+$load I_spout
+$load I_spinp
+$load I_input
+$load I_output
+$load I_int
+$load I_knot
+$load I_branch
+$load I_knot_o
+$load I_knot_no
+$load I_branch2o
+$load I_branch2no
+$load I_sm
+$load I_output_n
+$load I_input_n
+$load I_endoMu
+$load I_dur
+$load I_dur2inv
+$load I_inv
+$load HH_map
+$load HH_map_spinp
+$load HH_map_spout
+$load HH_knout
+$load HH_kninp
+$load HH_spout
+$load HH_spinp
+$load HH_input
+$load HH_output
+$load HH_int
+$load HH_knot
+$load HH_branch
+$load HH_knot_o
+$load HH_knot_no
+$load HH_branch2o
+$load HH_branch2no
+$load HH_endoMu
+$load HH_L2C
+$load HH_L
+$load HH_output_n
+$load HH_input_n
+$load HH_sm
+$load G_map
+$load G_map_spinp
+$load G_map_spout
+$load G_knout
+$load G_kninp
+$load G_spout
+$load G_spinp
+$load G_input
+$load G_output
+$load G_int
+$load G_knot
+$load G_branch
+$load G_knot_o
+$load G_knot_no
+$load G_branch2o
+$load G_branch2no
+$load G_endoMu
+$load G_L
+$load G_input_n
+$load G_sm
+$load s_itory
+$load d_itory
+$load T_dExport
+$load T_nF
+$load T_nD
+$load T_sm
+$GDXIN
+$offMulti;
+
+$GDXIN vLarge_2019_EmRegEconWideCapital
+$onMulti
+$load R_LR
+$load infl_LR
+$load g_LR
+$load itoryAR
+$GDXIN
+$offMulti;
+
+$GDXIN vLarge_2019_EmRegEconWideCapital
+$onMulti
+$load TotalTax
+$load qCO2
+$load M1990
+$load rDepr
+$load p
+$load qD
+$load qS
+$load sigma
+$load tauCO2
+$load tauCO2agg
+$load tauS
+$load tauD
+$load tauLump
+$load tauS0
+$load pD
+$load frisch
+$load crra
+$load discF
+$load pS
+$load vAssets
+$load techCost
+$load techPot
+$load DACCost
+$load qCO2Base
+$load uCO2
+$load tauDist
+$load qCO2agg
+$load tauEffCO2
+$load qCO2_SYT
+$load qCO2_LRP
+$load qCO2_EB
+$load qCO2_EB_SYT
+$load Rrate
+$load iRate
+$load mu
+$load adjCostPar
+$load K_tvc
+$load adjCost
+$load markup
+$load taxRevPar
+$load jTerm
+$load sp
+$load qC
+$load discUtil
+$load h_tvc
+$load Lscale
+$load tauD0
+$load Fscale
+$load uCO20
+$load uAbate
+$load uCO2Calib
+$load DACSmooth
+$load techSmooth
+$load tauCO2Base
+$load softConstr
+$load obj
+$load rDepr_EOP
+$load adjCostPar_EOP
+$load Ktvc_EOP
+$load adjCostEOP
+$load pK_EOP
+$load qK_EOP
+$load qI_EOP
+$GDXIN
+$offMulti;
+
+
+# WRITE INIT STATEMENTS FROM MODULES:
+
+
+qK_EOP.l[t] = 1e6*(sum([s,n]$(dqCO2[s,n]), uCO2.l[t,s,n]*qS.l[t,s,n]*sum(tech, techPot.l[tech,t]*@EOP_Cost(tauCO2.l[t,s,n], techCost.l[tech,t]*pK_EOP.l[t]/[R_LR-1+rDepr_EOP.l], techSmooth.l[tech,t])/pK_EOP.l[t])));
+qI_EOP.l[t]	= (rDepr_EOP.l+g_LR)*qK_EOP.l[t];
+
+
+# WRITE BLOCKS OF EQUATIONS:
+
+$BLOCK B_P
+	E_P_zpOut[t,s,n]$(P_knot_o[s,n] and txE[t])..	pS[t,s,n]*qS[t,s,n] =E= sum(nn$(P_map[s,n,nn]), qD[t,s,nn]*pD[t,s,nn]);
+	E_P_zpNOut[t,s,n]$(P_knot_no[s,n] and txE[t])..	pD[t,s,n]*qD[t,s,n] =E= sum(nn$(P_map[s,n,nn]), qD[t,s,nn]*pD[t,s,nn]);
+	E_P_qOut[t,s,n]$(P_branch2o[s,n] and txE[t])..	qD[t,s,n] =E= sum(nn$(P_map[s,nn,n]), mu[s,nn,n] * (pS[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qS[t,s,nn]);
+	E_P_qNOut[t,s,n]$(P_branch2no[s,n] and txE[t])..	qD[t,s,n] =E= sum(nn$(P_map[s,nn,n]), mu[s,nn,n] * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn]);
+$ENDBLOCK
+
+$BLOCK B_P_adjCost
+	E_P_adjCost_lom[t,s,n]$(P_dur[s,n] and txE[t])..		qD[t+1,s,n]	=E= (qD[t,s,n]*(1-rDepr[t,s,n])+sum(nn$(P_dur2inv[s,n,nn]), qD[t,s,nn]))/(1+g_LR);
+	E_P_adjCost_pk[t,s,n]$(P_dur[s,n] and tx02E[t])..	pD[t,s,n]	=E= sqrt(sqr(sum(nn$(P_dur2inv[s,n,nn]), Rrate[t]*pD[t-1,s,nn]*(1+adjCostPar[s,n]*(qD[t-1,s,nn]/qD[t-1,s,n]-(rDepr[t-1,s,n]+g_LR)))/(1+infl_LR)+pD[t,s,nn]*(adjCostPar[s,n]*0.5*(sqr(rDepr[t,s,n]+g_LR)-sqr(qD[t,s,nn]/qD[t,s,n]))-(1-rDepr[t,s,n])*(1+adjCostPar[s,n]*(qD[t,s,nn]/qD[t,s,n]-(rDepr[t,s,n]+g_LR)))))));
+	E_P_adjCost_pkT[t,s,n]$(P_dur[s,n] and t2E[t])..		pD[t,s,n]	=E= sum(nn$(P_dur2inv[s,n,nn]), Rrate[t]*pD[t-1,s,nn] * (1+adjCostPar[s,n]*(qD[t-1,s,nn]/qD[t-1,s,n]-(rDepr[t-1,s,n]+g_LR)))/(1+infl_LR) + (rDepr[t,s,n]-1)*pD[t,s,nn]);
+	E_P_adjCost_K_tvc[t,s,n]$(P_dur[s,n] and tE[t])..	qD[t,s,n]	=E= (1+K_tvc[s,n])*qD[t-1,s,n];
+	E_P_adjCost_adjCost[t,s]$(P_sm[s] and txE[t])..		adjCost[t,s] 	=E= sum([n,nn]$(P_dur2inv[s,n,nn]), pD[t,s,nn] * adjCostPar[s,n]*0.5*qD[t,s,n]*sqr(qD[t,s,nn]/qD[t,s,n]-(rDepr[t,s,n]+g_LR)));
+$ENDBLOCK
+
+$BLOCK B_P_pWedge
+	E_P_pWedge_pwInp[t,s,n]$(P_input[s,n] and txE[t])..					pD[t,s,n]		=E= p[t,n]+tauD[t,s,n];
+	E_P_pWedge_pwOut[t,s,n]$(P_output[s,n] and txE[t])..				p[t,n] 			=E= (pS[t,s,n]+(tauEffCO2[t,s,n]*uCO2[t,s,n])$(dqCO2[s,n])+tauS[t,s,n]+(adjCost[t,s]+tauLump[t,s])/qS[t,s,n])+jTerm[s];
+	E_P_pWedge_taxRev[t,s]$(P_sm[s] and txE[t])..						TotalTax[t,s]	=E= tauLump[t,s]+sum(n$(P_input[s,n]), tauD[t,s,n] * qD[t,s,n])+sum(n$(P_output[s,n]), tauS[t,s,n]*qS[t,s,n]+(tauCO2[t,s,n]*qCO2[t,s,n])$(dqCO2[s,n]));
+$ENDBLOCK
+
+$BLOCK B_P_taxCalib
+	E_P_taxCalib_taxCal[t,s,n]$(P_output[s,n] and txE[t])..	tauS[t,s,n]	=E= tauS0[t,s,n] + taxRevPar[s];
+$ENDBLOCK
+
+
+$BLOCK B_I
+	E_I_zpOut[t,s,n]$(I_knot_o[s,n] and txE[t])..	pS[t,s,n]*qS[t,s,n] =E= sum(nn$(I_map[s,n,nn]), qD[t,s,nn]*pD[t,s,nn]);
+	E_I_zpNOut[t,s,n]$(I_knot_no[s,n] and txE[t])..	pD[t,s,n]*qD[t,s,n] =E= sum(nn$(I_map[s,n,nn]), qD[t,s,nn]*pD[t,s,nn]);
+	E_I_qOut[t,s,n]$(I_branch2o[s,n] and txE[t])..	qD[t,s,n] =E= sum(nn$(I_map[s,nn,n]), mu[s,nn,n] * (pS[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qS[t,s,nn]);
+	E_I_qNOut[t,s,n]$(I_branch2no[s,n] and txE[t])..	qD[t,s,n] =E= sum(nn$(I_map[s,nn,n]), mu[s,nn,n] * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn]);
+$ENDBLOCK
+
+$BLOCK B_I_adjCost
+	E_I_adjCost_lom[t,s,n]$(I_dur[s,n] and txE[t])..		qD[t+1,s,n]	=E= (qD[t,s,n]*(1-rDepr[t,s,n])+sum(nn$(I_dur2inv[s,n,nn]), qD[t,s,nn]))/(1+g_LR);
+	E_I_adjCost_pk[t,s,n]$(I_dur[s,n] and tx02E[t])..	pD[t,s,n]	=E= sqrt(sqr(sum(nn$(I_dur2inv[s,n,nn]), Rrate[t]*pD[t-1,s,nn]*(1+adjCostPar[s,n]*(qD[t-1,s,nn]/qD[t-1,s,n]-(rDepr[t-1,s,n]+g_LR)))/(1+infl_LR)+pD[t,s,nn]*(adjCostPar[s,n]*0.5*(sqr(rDepr[t,s,n]+g_LR)-sqr(qD[t,s,nn]/qD[t,s,n]))-(1-rDepr[t,s,n])*(1+adjCostPar[s,n]*(qD[t,s,nn]/qD[t,s,n]-(rDepr[t,s,n]+g_LR)))))));
+	E_I_adjCost_pkT[t,s,n]$(I_dur[s,n] and t2E[t])..		pD[t,s,n]	=E= sum(nn$(I_dur2inv[s,n,nn]), Rrate[t]*pD[t-1,s,nn] * (1+adjCostPar[s,n]*(qD[t-1,s,nn]/qD[t-1,s,n]-(rDepr[t-1,s,n]+g_LR)))/(1+infl_LR) + (rDepr[t,s,n]-1)*pD[t,s,nn]);
+	E_I_adjCost_K_tvc[t,s,n]$(I_dur[s,n] and tE[t])..	qD[t,s,n]	=E= (1+K_tvc[s,n])*qD[t-1,s,n];
+	E_I_adjCost_adjCost[t,s]$(I_sm[s] and txE[t])..		adjCost[t,s] 	=E= sum([n,nn]$(I_dur2inv[s,n,nn]), pD[t,s,nn] * adjCostPar[s,n]*0.5*qD[t,s,n]*sqr(qD[t,s,nn]/qD[t,s,n]-(rDepr[t,s,n]+g_LR)));
+$ENDBLOCK
+
+$BLOCK B_I_pWedge
+	E_I_pWedge_pwInp[t,s,n]$(I_input[s,n] and txE[t])..					pD[t,s,n]		=E= p[t,n]+tauD[t,s,n];
+	E_I_pWedge_pwOut[t,s,n]$(I_output[s,n] and txE[t])..				p[t,n] 			=E= (pS[t,s,n]+(tauEffCO2[t,s,n]*uCO2[t,s,n])$(dqCO2[s,n])+tauS[t,s,n]+(adjCost[t,s]+tauLump[t,s])/qS[t,s,n])+jTerm[s];
+	E_I_pWedge_taxRev[t,s]$(I_sm[s] and txE[t])..						TotalTax[t,s]	=E= tauLump[t,s]+sum(n$(I_input[s,n]), tauD[t,s,n] * qD[t,s,n])+sum(n$(I_output[s,n]), tauS[t,s,n]*qS[t,s,n]+(tauCO2[t,s,n]*qCO2[t,s,n])$(dqCO2[s,n]));
+$ENDBLOCK
+
+$BLOCK B_I_taxCalib
+	E_I_taxCalib_taxCal[t,s,n]$(I_output[s,n] and txE[t])..	tauS[t,s,n]	=E= tauS0[t,s,n] + taxRevPar[s];
+$ENDBLOCK
+
+
+$BLOCK B_HH
+	E_HH_zp[t,s,n]$(HH_knot[s,n] and txE[t])..	pD[t,s,n]*qD[t,s,n] =E= sum(nn$(HH_map[s,n,nn]), qD[t,s,nn]*pD[t,s,nn]);
+	E_HH_q[t,s,n]$(HH_branch[s,n] and txE[t])..	qD[t,s,n] =E= sum(nn$(HH_map[s,nn,n]), mu[s,nn,n] * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn]);
+$ENDBLOCK
+
+$BLOCK B_HH_CRRA_GHH
+	E_HH_CRRA_GHH_qC[t,s]$(HH_sm[s] and txE[t])..	qC[t,s]			=E= sum([n,nn]$(HH_L2C[s,n,nn]), qD[t,s,nn]-frisch[s]*(qS[t,s,n]/Lscale[s])**((1+frisch[s])/frisch[s])/(1+frisch[s]));
+	E_HH_CRRA_GHH_V[t,s]$(HH_sm[s] and txE[t])..	discUtil[t,s]	=E= qC[t,s]**(1-crra[s])/(1-crra[s])+discF[s]*discUtil[t+1,s];
+	E_HH_CRRA_GHH_VT[t,s]$(HH_sm[s] and tE[t])..	discUtil[t,s]	=E= (qC[t-1,s]**(1-crra[s])/(1-crra[s]))/(1-discF[s]);
+	E_HH_CRRA_GHH_L[t,s,n]$(HH_L[s,n] and txE[t])..	qS[t,s,n]		=E= Lscale[s] * sum(nn$(HH_L2C[s,n,nn]), pS[t,s,n]/pD[t,s,nn])**(frisch[s]);
+$ENDBLOCK
+
+$BLOCK B_HH_pWedge
+	E_HH_pWedge_pwOut[t,s,n]$(HH_L[s,n] and txE[t])..	pS[t,s,n] 		=E= p[t,n]-tauS[t,s,n];
+	E_HH_pWedge_pwInp[t,s,n]$(HH_input[s,n] and txE[t])..	pD[t,s,n]		=E= p[t,n]+tauD[t,s,n];
+	E_HH_pWedge_TaxRev[t,s]$(HH_sm[s] and txE[t])..		TotalTax[t,s]	=E= tauLump[t,s]+sum(n$(HH_input[s,n]), tauD[t,s,n] * qD[t,s,n])+sum(n$(HH_L[s,n]), tauS[t,s,n]*qS[t,s,n]);
+	E_HH_pWedge_sp[t,s]$(HH_sm[s] and txE[t])..			sp[t,s]			=E= sum(n$(HH_L[s,n]), pS[t,s,n]*qS[t,s,n]) - sum(n$(HH_input[s,n]), pD[t,s,n]*qD[t,s,n])-tauLump[t,s];
+$ENDBLOCK
+
+$BLOCK B_HH_euler
+	E_HH_euler_lom[t,s]$(HH_sm[s] and txE[t])..				vAssets[t+1,s]	=E= ((vAssets[t,s]+jTerm[s])*iRate[t]+sp[t,s])/((1+g_LR)*(1+infl_LR));
+	E_HH_euler_euler[t,s]$(HH_sm[s] and tx0E[t])..			qC[t,s]			=E= qC[t-1,s]*(discF[s]*Rrate[t]*sum(n$(HH_output[s,n]), pD[t-1,s,n]/pD[t,s,n]))**(1/crra[s]);
+	E_HH_euler_tvc[t,s]$(HH_sm[s] and tE[t])..				vAssets[t,s]	=E= (1+h_tvc[s])*vAssets[t-1,s];
+$ENDBLOCK
+
+
+$BLOCK B_G
+	E_G_zp[t,s,n]$(G_knot[s,n] and txE[t])..	pD[t,s,n]*qD[t,s,n] =E= sum(nn$(G_map[s,n,nn]), qD[t,s,nn]*pD[t,s,nn]);
+	E_G_q[t,s,n]$(G_branch[s,n] and txE[t])..	qD[t,s,n] =E= sum(nn$(G_map[s,nn,n]), mu[s,nn,n] * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn]);
+$ENDBLOCK
+
+$BLOCK B_G_bb
+	E_G_bb_pw[t,s,n]$(G_input[s,n] and txE[t])..	pD[t,s,n]	=E= p[t,n]+tauD[t,s,n];
+	E_G_bb_taxRev[t,s]$(G_sm[s] and txE[t])..	TotalTax[t,s]	=E= sum(n$(G_input[s,n]), tauD[t,s,n] * qD[t,s,n]);
+	E_G_bb_bb[t,s]$(G_sm[s] and txE[t])..			jTerm[s]	=E= sum(ss$(d_TotalTax[ss]), TotalTax[t,ss])-sum(n$(G_input[s,n]), pD[t,s,n]*qD[t,s,n]);
+$ENDBLOCK
+
+$BLOCK B_G_taxCalib
+	E_G_taxCalib_taxCal[t,s,n]$(G_input[s,n] and txE[t])..	tauD[t,s,n]	=E= tauD0[t,s,n]*(1+taxRevPar[s]);
+$ENDBLOCK
+
+
+$BLOCK B_Itory
+	E_Itory[t,s,n]$(d_itory[s,n] and tx0E[t])..	qD[t,s,n] =E= itoryAR[s,n] * qD[t-1,s,n];
+$ENDBLOCK
+
+
+$BLOCK B_T
+	E_T_armington[t,s,n]$(T_dExport[s,n] and txE[t])..	qD[t,s,n]		=E= sum(nn$(dom2for[n,nn]), Fscale[s,n] * (p[t,nn]/pD[t,s,n])**(sigma[s,n]));
+	E_T_pwInp[t,s,n]$(T_dExport[s,n] and txE[t])..		pD[t,s,n]		=E= p[t,n] + tauD[t,s,n];
+	E_T_TaxRev[t,s]$(T_sm[s] and txE[t])..				TotalTax[t,s]	=E= tauLump[t,s]+sum(n$(T_dExport[s,n]), tauD[t,s,n]*qD[t,s,n]);
+$ENDBLOCK
+
+
+
+$BLOCK B_M
+	E_uAbate[t,s,n]$(dqCO2[s,n] and txE[t])..		uAbate[t,s,n]		=E= sum(tech, techPot[tech,t] * @EOP_Tech(tauCO2[t,s,n], techCost[tech,t]*pK_EOP[t]/[R_LR-1+rDepr_EOP], techSmooth[tech,t]));
+	E_tauCO2Eff[t,s,n]$(dtauCO2[s,n] and txE[t])..	tauEffCO2[t,s,n]	=E= tauCO2[t,s,n]*(1-uAbate[t,s,n])+sum(tech, techPot[tech,t] * @EOP_Cost(tauCO2[t,s,n], techCost[tech,t]*pK_EOP[t]/[R_LR-1+rDepr_EOP], techSmooth[tech,t]));
+	E_tauCO2[t,s,n]$(dtauCO2[s,n] and txE[t])..		tauCO2[t,s,n]		=E= tauCO2agg[t] * tauDist[t,s,n];
+	E_qCO2[t,s,n]$(dqCO2[s,n] and txE[t])..			qCO2[t,s,n]			=E= uCO2[t,s,n] * (1-uAbate[t,s,n]) * qS[t,s,n];
+	E_qCO2agg[t]$(txE[t])..							qCO2agg[t]			=E= sum([s,n]$(dqCO2[s,n]), qCO2[t,s,n])-qCO2Base * @EOP_Tech(tauCO2agg[t], DACCost[t], DACSmooth[t]);
+$ENDBLOCK
+
+$BLOCK B_M_calib
+	E_qCO2calib[t,s,n]$(dqCO2[s,n] and txE[t])..	uCO2[t,s,n]	=E= uCO20[t,s,n] * (1+uCO2calib[s,n]);
+$ENDBLOCK
+
+
+$BLOCK B_M_adjCost
+	E_M_lom[t]$(txE[t])..		qK_EOP[t+1]	  =E= (qK_EOP[t]*(1-rDepr_EOP)+qI_EOP[t])/(1+g_LR);
+	E_M_pk[t]$(tx02E[t])..		pK_EOP[t]	  =E= sqrt(sqr(Rrate[t]*(1+adjCostPar_EOP*(qI_EOP[t-1]/qK_EOP[t-1]-(rDepr_EOP+g_LR)))/(1+infl_LR)+adjCostPar_EOP*0.5*(sqr(rDepr_EOP+g_LR)-sqr(qI_EOP[t]/qK_EOP[t]))-(1-rDepr_EOP)*(1+adjCostPar_EOP*(qI_EOP[t]/qK_EOP[t]-(rDepr_EOP+g_LR)))));
+	E_M_pKT[t]$(t2E[t])..		pK_EOP[t]	  =E= Rrate[t]*(1+adjCostPar_EOP*(qI_EOP[t-1]/qK_EOP[t-1]-(rDepr_EOP+g_LR)))/(1+infl_LR)+(rDepr_EOP-1);
+	E_M_Ktvc[t]$(tE[t])..		qK_EOP[t]	  =E= (1+Ktvc_EOP)*qK_EOP[t-1];
+	E_M_adjCost[t]$(txE[t])..	adjCostEOP[t] =E= adjCostPar_EOP*0.5*qK_EOP[t]*sqr(qI_EOP[t]/qK_EOP[t]-(rDepr_EOP+g_LR));
+$ENDBLOCK
+
+$BLOCK B_M_Equi
+	E_M_equi[t]$(txE[t]).. qK_EOP[t]	=E= 1e6*sum([s,n]$(dqCO2[s,n]), uCO2[t,s,n]*qS[t,s,n]*sum(tech, techPot[tech,t]*@EOP_Cost(tauCO2[t,s,n], techCost[tech,t]*pK_EOP[t]/[R_LR-1+rDepr_EOP], techSmooth[tech,t])/pK_EOP[t]));
+$ENDBLOCK
+
+$BLOCK B_M_calibK0
+	# E_qK_EOPt0[t]$(t0[t])..	pK_EOP[t]	=E= Rrate[t]+g_LR;
+	E_qK_EOPt0[t]$(t0[t])..	pK_EOP[t]	=E= sqrt(sqr(Rrate[t]+adjCostPar_EOP*0.5*(sqr(rDepr_EOP+g_LR)-sqr(qI_EOP[t]/qK_EOP[t]))-(1-rDepr_EOP)*(1+adjCostPar_EOP*(qI_EOP[t]/qK_EOP[t]-(rDepr_EOP+g_LR)))));
+$ENDBLOCK
+
+$BLOCK B_M_SYT_Calib
+	E_SYT_qCO2agg[t]$(t_SYT[t] and tx0E[t]).. 	qCO2agg[t]		=E= qCO2_SYT[t];
+	E_SYT_tauCO2agg[t]$(t_SYT_NB[t])..			tauCO2agg[t]	=E= 0;
+$ENDBLOCK
+$BLOCK B_M_SYT_t0
+	E_SYT_t0[t]$(t_SYT[t] and t0[t])..	qCO2agg[t]	=E= qCO2_SYT[t];
+$ENDBLOCK
+$MODEL B_M_SYT
+	B_M_SYT_Calib
+	B_M_SYT_t0
+;
+
+$BLOCK B_M_SYT_HR_Calib
+	E_SYT_HR_qCO2agg[t]$(t_SYT[t] and tx0E[t])..	 	qCO2agg[t]		=E= qCO2_SYT[t];
+	E_SYT_HR_tauCO2agg[t]$(t_SYT_NB[t])..				tauCO2agg[t]	=E= tauCO2agg[t+1]/Rrate[t];
+$ENDBLOCK
+$MODEL B_M_SYT_HR
+	B_M_SYT_HR_Calib
+	B_M_SYT_t0
+;
+
+$BLOCK B_M_SYT_OPT_Calib
+	E_SYT_OPT_qCO2agg[t]$(t_SYT[t] and tx0E[t]).. 	qCO2agg[t]		=E= qCO2_SYT[t];
+	# E_SYT_OPT_obj..								obj =E= 1;
+	E_SYT_OPT_obj..									obj =E= sum([t,s]$(t0[t] and s_HH[s]), discUtil[t,s]);
+$ENDBLOCK
+$MODEL B_M_SYT_OPT
+	B_M_SYT_OPT_Calib
+	B_M_SYT_t0
+;
+
+$BLOCK B_M_LRP_Calib
+	E_LRP_qCO2agg[t]$(t_LRP[t] and tx0E[t]).. 		qCO2agg[t]		=E= qCO2_LRP[t];
+$ENDBLOCK
+$BLOCK B_M_LRP_t0
+	E_LRP_t0[t]$(t_LRP[t] and t0[t])..	qCO2agg[t]	=E= qCO2_LRP[t];
+$ENDBLOCK
+$MODEL B_M_LRP
+	B_M_LRP_Calib
+	B_M_LRP_t0
+;
+
+$BLOCK B_M_EB_HR_Calib
+	E_EB_HR_qCO2agg[t]$(t_EB[t] and tx0E[t]).. 		qCO2_EB[t]		=E= sum(tt$(t2tt_EB[t, tt]), qCO2agg[tt]);
+	E_EB_HR_SYT_qCO2agg[t]$(t_EB_SYT[t])..			qCO2agg[t]		=E= qCO2_EB_SYT[t];
+	E_EB_HR_tauCO2agg[t]$(t_EB_NB[t])..				tauCO2agg[t]	=E= tauCO2agg[t+1]/Rrate[t];
+$ENDBLOCK
+$BLOCK B_M_EB_t0
+	E_EB_t0[t]$(t_EB[t] and t0[t])..	qCO2_EB[t]		=E= sum(tt$(t2tt_EB[t, tt]), qCO2agg[tt]);
+$ENDBLOCK
+$MODEL B_M_EB_HR
+	B_M_EB_HR_Calib
+	B_M_EB_t0
+;	
+
+$BLOCK B_M_EB_OPT_Calib
+	E_EB_OPT_qCO2agg[t]$(t_EB[t] and tx0E[t]).. 	qCO2_EB[t]	=E= sum(tt$(t2tt_EB[t, tt]), qCO2agg[tt]);
+	E_EB_OPT_SYT_qCO2agg[t]$(t_EB_SYT[t])..			qCO2agg[t]	=E= qCO2_EB_SYT[t];
+	E_EB_OPT_obj..									obj =E= sum([t,s]$(t0[t] and s_HH[s]), discUtil[t,s]);
+$ENDBLOCK
+$MODEL B_M_EB_OPT
+	B_M_EB_OPT_Calib
+	B_M_EB_t0
+;
+
+
+
+$BLOCK B_Equi_baseline
+	E_Equi_equi[t,n]$(nEqui[n] and txE[t])..	 sum(s$(d_qS[s,n]), qS[t,s,n]) =E= sum(s$(d_qD[s,n]), qD[t,s,n]);
+$ENDBLOCK
+
+$BLOCK B_Equi_calib
+	E_Equi_equi_tx0E[t,n]$(nEqui[n] and tx0E[t])..	 sum(s$(d_qS[s,n]), qS[t,s,n]) =E= sum(s$(d_qD[s,n]), qD[t,s,n]);
+$ENDBLOCK
+
+
+# DEFINE MODELS:
+$Model M_vLarge_2019_CGE_EmRegEconWideCapital_B_SYT_HR B_P,B_P_adjCost,B_P_pWedge,B_I,B_I_adjCost,B_I_pWedge,B_HH,B_HH_CRRA_GHH,B_HH_pWedge,B_HH_euler,B_G,B_G_bb,B_G_taxCalib,B_Itory,B_T,B_M,B_M_adjCost,B_M_Equi,B_M_SYT_HR,B_Equi_baseline;
+$Model M_vLarge_2019_CGE_EmRegEconWideCapital_C_SYT_HR B_P,B_P_adjCost,B_P_pWedge,B_P_taxCalib,B_I,B_I_adjCost,B_I_pWedge,B_I_taxCalib,B_HH,B_HH_CRRA_GHH,B_HH_pWedge,B_HH_euler,B_G,B_G_bb,B_G_taxCalib,B_Itory,B_T,B_M,B_M_adjCost,B_M_Equi,B_M_SYT_HR,B_M_calib,B_M_calibK0,B_M_SYT_HR_Calib,B_Equi_calib;
+
+# Fix exogenous variables in state C:
+sigma.fx[s,n]$(P_kninp[s,n]) = sigma.l[s,n]$(P_kninp[s,n]);
+mu.fx[s,n,nn]$((P_map[s,n,nn] and ( not (P_endoMu[s,n,nn])))) = mu.l[s,n,nn]$((P_map[s,n,nn] and ( not (P_endoMu[s,n,nn]))));
+tauS0.fx[t,s,n]$(P_output[s,n]) = tauS0.l[t,s,n]$(P_output[s,n]);
+tauD.fx[t,s,n]$(P_input[s,n]) = tauD.l[t,s,n]$(P_input[s,n]);
+tauLump.fx[t,s]$(P_sm[s]) = tauLump.l[t,s]$(P_sm[s]);
+tauCO2.fx[t,s,n]$((P_output[s,n] and dqCO2[s,n])) = tauCO2.l[t,s,n]$((P_output[s,n] and dqCO2[s,n]));
+rDepr.fx[t,s,n]$(P_dur[s,n]) = rDepr.l[t,s,n]$(P_dur[s,n]);
+adjCostPar.fx[s,n]$(P_dur[s,n]) = adjCostPar.l[s,n]$(P_dur[s,n]);
+K_tvc.fx[s,n]$(P_dur[s,n]) = K_tvc.l[s,n]$(P_dur[s,n]);
+qD.fx[t,s,n]$(((P_dur[s,n] and t0[t]) or (P_input[s,n] and t0[t]))) = qD.l[t,s,n]$(((P_dur[s,n] and t0[t]) or (P_input[s,n] and t0[t])));
+qS.fx[t,s,n]$(P_output[s,n]) = qS.l[t,s,n]$(P_output[s,n]);
+p.fx[t,n]$(((P_input_n[n] and ( not (P_output_n[n]))) or (P_output_n[n] and t0[t]))) = p.l[t,n]$(((P_input_n[n] and ( not (P_output_n[n]))) or (P_output_n[n] and t0[t])));
+qCO2.fx[t,s,n]$((P_output[s,n] and dqCO2[s,n])) = qCO2.l[t,s,n]$((P_output[s,n] and dqCO2[s,n]));
+Rrate.fx[t] = Rrate.l[t];
+uCO2.fx[t,s,n]$((P_output[s,n] and dqCO2[s,n])) = uCO2.l[t,s,n]$((P_output[s,n] and dqCO2[s,n]));
+tauEffCO2.fx[t,s,n]$((P_output[s,n] and dqCO2[s,n])) = tauEffCO2.l[t,s,n]$((P_output[s,n] and dqCO2[s,n]));
+TotalTax.fx[t,s]$((P_sm[s] and t0[t])) = TotalTax.l[t,s]$((P_sm[s] and t0[t]));
+sigma.fx[s,n]$(I_kninp[s,n]) = sigma.l[s,n]$(I_kninp[s,n]);
+mu.fx[s,n,nn]$((I_map[s,n,nn] and ( not (I_endoMu[s,n,nn])))) = mu.l[s,n,nn]$((I_map[s,n,nn] and ( not (I_endoMu[s,n,nn]))));
+tauS0.fx[t,s,n]$(I_output[s,n]) = tauS0.l[t,s,n]$(I_output[s,n]);
+tauD.fx[t,s,n]$(I_input[s,n]) = tauD.l[t,s,n]$(I_input[s,n]);
+tauLump.fx[t,s]$(I_sm[s]) = tauLump.l[t,s]$(I_sm[s]);
+tauCO2.fx[t,s,n]$((I_output[s,n] and dqCO2[s,n])) = tauCO2.l[t,s,n]$((I_output[s,n] and dqCO2[s,n]));
+rDepr.fx[t,s,n]$(I_dur[s,n]) = rDepr.l[t,s,n]$(I_dur[s,n]);
+adjCostPar.fx[s,n]$(I_dur[s,n]) = adjCostPar.l[s,n]$(I_dur[s,n]);
+K_tvc.fx[s,n]$(I_dur[s,n]) = K_tvc.l[s,n]$(I_dur[s,n]);
+qD.fx[t,s,n]$(((I_dur[s,n] and t0[t]) or (I_input[s,n] and t0[t]))) = qD.l[t,s,n]$(((I_dur[s,n] and t0[t]) or (I_input[s,n] and t0[t])));
+qS.fx[t,s,n]$(I_output[s,n]) = qS.l[t,s,n]$(I_output[s,n]);
+p.fx[t,n]$(((I_input_n[n] and ( not (I_output_n[n]))) or (I_output_n[n] and t0[t]))) = p.l[t,n]$(((I_input_n[n] and ( not (I_output_n[n]))) or (I_output_n[n] and t0[t])));
+qCO2.fx[t,s,n]$((I_output[s,n] and dqCO2[s,n])) = qCO2.l[t,s,n]$((I_output[s,n] and dqCO2[s,n]));
+Rrate.fx[t] = Rrate.l[t];
+uCO2.fx[t,s,n]$((I_output[s,n] and dqCO2[s,n])) = uCO2.l[t,s,n]$((I_output[s,n] and dqCO2[s,n]));
+tauEffCO2.fx[t,s,n]$((I_output[s,n] and dqCO2[s,n])) = tauEffCO2.l[t,s,n]$((I_output[s,n] and dqCO2[s,n]));
+TotalTax.fx[t,s]$((I_sm[s] and t0[t])) = TotalTax.l[t,s]$((I_sm[s] and t0[t]));
+sigma.fx[s,n]$(HH_kninp[s,n]) = sigma.l[s,n]$(HH_kninp[s,n]);
+mu.fx[s,n,nn]$((HH_map[s,n,nn] and ( not (HH_endoMu[s,n,nn])))) = mu.l[s,n,nn]$((HH_map[s,n,nn] and ( not (HH_endoMu[s,n,nn]))));
+discF.fx[s]$(HH_sm[s]) = discF.l[s]$(HH_sm[s]);
+frisch.fx[s]$(HH_sm[s]) = frisch.l[s]$(HH_sm[s]);
+crra.fx[s]$(HH_sm[s]) = crra.l[s]$(HH_sm[s]);
+Rrate.fx[t] = Rrate.l[t];
+iRate.fx[t] = iRate.l[t];
+h_tvc.fx[s]$(HH_sm[s]) = h_tvc.l[s]$(HH_sm[s]);
+vAssets.fx[t,s]$(((HH_sm[s] and t0[t]) or (HH_sm[s] and t1[t]))) = vAssets.l[t,s]$(((HH_sm[s] and t0[t]) or (HH_sm[s] and t1[t])));
+tauD.fx[t,s,n]$(HH_input[s,n]) = tauD.l[t,s,n]$(HH_input[s,n]);
+tauS.fx[t,s,n]$(HH_L[s,n]) = tauS.l[t,s,n]$(HH_L[s,n]);
+tauLump.fx[t,s]$((HH_sm[s] and tx0E[t])) = tauLump.l[t,s]$((HH_sm[s] and tx0E[t]));
+p.fx[t,n]$((HH_output_n[n] or HH_input_n[n])) = p.l[t,n]$((HH_output_n[n] or HH_input_n[n]));
+qD.fx[t,s,n]$((HH_input[s,n] and t0[t])) = qD.l[t,s,n]$((HH_input[s,n] and t0[t]));
+qS.fx[t,s,n]$((HH_L[s,n] and t0[t])) = qS.l[t,s,n]$((HH_L[s,n] and t0[t]));
+pD.fx[t,s,n]$((HH_output[s,n] and t0[t])) = pD.l[t,s,n]$((HH_output[s,n] and t0[t]));
+TotalTax.fx[t,s]$((HH_sm[s] and t0[t])) = TotalTax.l[t,s]$((HH_sm[s] and t0[t]));
+sigma.fx[s,n]$(G_kninp[s,n]) = sigma.l[s,n]$(G_kninp[s,n]);
+mu.fx[s,n,nn]$((G_map[s,n,nn] and ( not (G_endoMu[s,n,nn])))) = mu.l[s,n,nn]$((G_map[s,n,nn] and ( not (G_endoMu[s,n,nn]))));
+tauD0.fx[t,s,n]$(G_input[s,n]) = tauD0.l[t,s,n]$(G_input[s,n]);
+qD.fx[t,s,n]$((G_output[s,n] or (G_input[s,n] and t0[t]))) = qD.l[t,s,n]$((G_output[s,n] or (G_input[s,n] and t0[t])));
+TotalTax.fx[t,s]$((G_sm[s] and t0[t])) = TotalTax.l[t,s]$((G_sm[s] and t0[t]));
+tauLump.fx[t,s]$((s_HH[s] and t0[t])) = tauLump.l[t,s]$((s_HH[s] and t0[t]));
+qD.fx[t,s,n]$((d_itory[s,n] and t0[t])) = qD.l[t,s,n]$((d_itory[s,n] and t0[t]));
+p.fx[t,n]$((T_nF[n] or T_nD[n])) = p.l[t,n]$((T_nF[n] or T_nD[n]));
+sigma.fx[s,n]$(T_dExport[s,n]) = sigma.l[s,n]$(T_dExport[s,n]);
+tauD.fx[t,s,n]$(T_dExport[s,n]) = tauD.l[t,s,n]$(T_dExport[s,n]);
+tauLump.fx[t,s]$((T_sm[s] and tx0E[t])) = tauLump.l[t,s]$((T_sm[s] and tx0E[t]));
+qD.fx[t,s,n]$((T_dExport[s,n] and t0[t])) = qD.l[t,s,n]$((T_dExport[s,n] and t0[t]));
+TotalTax.fx[t,s]$((T_sm[s] and t0[t])) = TotalTax.l[t,s]$((T_sm[s] and t0[t]));
+techPot.fx[tech,t] = techPot.l[tech,t];
+techCost.fx[tech,t] = techCost.l[tech,t];
+techSmooth.fx[tech,t] = techSmooth.l[tech,t];
+DACCost.fx[t] = DACCost.l[t];
+DACSmooth.fx[t] = DACSmooth.l[t];
+tauCO2Base.fx = tauCO2Base.l;
+softConstr.fx = softConstr.l;
+qCO2Base.fx = qCO2Base.l;
+tauCO2agg.fx[t] = tauCO2agg.l[t];
+tauDist.fx[t,s,n]$(dtauCO2[s,n]) = tauDist.l[t,s,n]$(dtauCO2[s,n]);
+uCO20.fx[t,s,n]$(dqCO2[s,n]) = uCO20.l[t,s,n]$(dqCO2[s,n]);
+rDepr_EOP.fx = rDepr_EOP.l;
+adjCostPar_EOP.fx = adjCostPar_EOP.l;
+Rrate.fx[t] = Rrate.l[t];
+Ktvc_EOP.fx = Ktvc_EOP.l;
+qCO2_SYT.fx[t]$(t_SYT[t]) = qCO2_SYT.l[t]$(t_SYT[t]);
+qCO2_LRP.fx[t]$(t_LRP[t]) = qCO2_LRP.l[t]$(t_LRP[t]);
+qCO2_EB.fx[t]$(t_EB[t]) = qCO2_EB.l[t]$(t_EB[t]);
+qCO2_EB_SYT.fx[t]$(t_EB_SYT[t]) = qCO2_EB_SYT.l[t]$(t_EB_SYT[t]);
+qS.fx[t,s,n]$(d_qS[s,n]) = qS.l[t,s,n]$(d_qS[s,n]);
+qCO2.fx[t,s,n]$((t0[t] and dqCO2[s,n])) = qCO2.l[t,s,n]$((t0[t] and dqCO2[s,n]));
+Rrate.fx[t] = Rrate.l[t];
+qS.fx[t,s,n]$((t0[t] and d_qSEqui[s,n])) = qS.l[t,s,n]$((t0[t] and d_qSEqui[s,n]));
+p.fx[t,n]$((t0[t] and d_pEqui[n])) = p.l[t,n]$((t0[t] and d_pEqui[n]));
+
+# Unfix endogenous variables in state C:
+pD.lo[t,s,n]$(((P_int[s,n] or P_input[s,n]) or (P_dur[s,n] and txE[t]))) = -inf;
+pD.up[t,s,n]$(((P_int[s,n] or P_input[s,n]) or (P_dur[s,n] and txE[t]))) = inf;
+pS.lo[t,s,n]$(P_output[s,n]) = -inf;
+pS.up[t,s,n]$(P_output[s,n]) = inf;
+p.lo[t,n]$((P_output_n[n] and tx0[t])) = -inf;
+p.up[t,n]$((P_output_n[n] and tx0[t])) = inf;
+qD.lo[t,s,n]$((P_int[s,n] or (P_input[s,n] and tx0[t]) or (P_dur[s,n] and tx0[t]))) = -inf;
+qD.up[t,s,n]$((P_int[s,n] or (P_input[s,n] and tx0[t]) or (P_dur[s,n] and tx0[t]))) = inf;
+adjCost.lo[t,s]$((P_sm[s] and txE[t])) = -inf;
+adjCost.up[t,s]$((P_sm[s] and txE[t])) = inf;
+TotalTax.lo[t,s]$((P_sm[s] and tx0E[t])) = -inf;
+TotalTax.up[t,s]$((P_sm[s] and tx0E[t])) = inf;
+mu.lo[s,n,nn]$(P_endoMu[s,n,nn]) = -inf;
+mu.up[s,n,nn]$(P_endoMu[s,n,nn]) = inf;
+tauS.lo[t,s,n]$(P_output[s,n]) = -inf;
+tauS.up[t,s,n]$(P_output[s,n]) = inf;
+taxRevPar.lo[s]$(P_sm[s]) = -inf;
+taxRevPar.up[s]$(P_sm[s]) = inf;
+jTerm.lo[s]$(P_sm[s]) = -inf;
+jTerm.up[s]$(P_sm[s]) = inf;
+pD.lo[t,s,n]$(((I_int[s,n] or I_input[s,n]) or (I_dur[s,n] and txE[t]))) = -inf;
+pD.up[t,s,n]$(((I_int[s,n] or I_input[s,n]) or (I_dur[s,n] and txE[t]))) = inf;
+pS.lo[t,s,n]$(I_output[s,n]) = -inf;
+pS.up[t,s,n]$(I_output[s,n]) = inf;
+p.lo[t,n]$((I_output_n[n] and tx0[t])) = -inf;
+p.up[t,n]$((I_output_n[n] and tx0[t])) = inf;
+qD.lo[t,s,n]$((I_int[s,n] or (I_input[s,n] and tx0[t]) or (I_dur[s,n] and tx0[t]))) = -inf;
+qD.up[t,s,n]$((I_int[s,n] or (I_input[s,n] and tx0[t]) or (I_dur[s,n] and tx0[t]))) = inf;
+adjCost.lo[t,s]$((I_sm[s] and txE[t])) = -inf;
+adjCost.up[t,s]$((I_sm[s] and txE[t])) = inf;
+TotalTax.lo[t,s]$((I_sm[s] and tx0E[t])) = -inf;
+TotalTax.up[t,s]$((I_sm[s] and tx0E[t])) = inf;
+mu.lo[s,n,nn]$(I_endoMu[s,n,nn]) = -inf;
+mu.up[s,n,nn]$(I_endoMu[s,n,nn]) = inf;
+tauS.lo[t,s,n]$(I_output[s,n]) = -inf;
+tauS.up[t,s,n]$(I_output[s,n]) = inf;
+taxRevPar.lo[s]$(I_sm[s]) = -inf;
+taxRevPar.up[s]$(I_sm[s]) = inf;
+jTerm.lo[s]$(I_sm[s]) = -inf;
+jTerm.up[s]$(I_sm[s]) = inf;
+pD.lo[t,s,n]$(((HH_int[s,n] or HH_input[s,n]) or (HH_output[s,n] and tx0E[t]))) = -inf;
+pD.up[t,s,n]$(((HH_int[s,n] or HH_input[s,n]) or (HH_output[s,n] and tx0E[t]))) = inf;
+qS.lo[t,s,n]$((HH_L[s,n] and tx0E[t])) = -inf;
+qS.up[t,s,n]$((HH_L[s,n] and tx0E[t])) = inf;
+qD.lo[t,s,n]$(((HH_input[s,n] and tx0E[t]) or (HH_int[s,n] or HH_output[s,n]))) = -inf;
+qD.up[t,s,n]$(((HH_input[s,n] and tx0E[t]) or (HH_int[s,n] or HH_output[s,n]))) = inf;
+pS.lo[t,s,n]$((HH_L[s,n] and txE[t])) = -inf;
+pS.up[t,s,n]$((HH_L[s,n] and txE[t])) = inf;
+sp.lo[t,s]$((HH_sm[s] and txE[t])) = -inf;
+sp.up[t,s]$((HH_sm[s] and txE[t])) = inf;
+vAssets.lo[t,s]$((HH_sm[s] and tx0[t])) = -inf;
+vAssets.up[t,s]$((HH_sm[s] and tx0[t])) = inf;
+qC.lo[t,s]$((HH_sm[s] and txE[t])) = -inf;
+qC.up[t,s]$((HH_sm[s] and txE[t])) = inf;
+discUtil.lo[t,s]$(HH_sm[s]) = -inf;
+discUtil.up[t,s]$(HH_sm[s]) = inf;
+TotalTax.lo[t,s]$((HH_sm[s] and tx0E[t])) = -inf;
+TotalTax.up[t,s]$((HH_sm[s] and tx0E[t])) = inf;
+mu.lo[s,n,nn]$(HH_endoMu[s,n,nn]) = -inf;
+mu.up[s,n,nn]$(HH_endoMu[s,n,nn]) = inf;
+Lscale.lo[s]$(HH_sm[s]) = -inf;
+Lscale.up[s]$(HH_sm[s]) = inf;
+tauLump.lo[t,s]$((HH_sm[s] and t0[t])) = -inf;
+tauLump.up[t,s]$((HH_sm[s] and t0[t])) = inf;
+jTerm.lo[s]$(HH_sm[s]) = -inf;
+jTerm.up[s]$(HH_sm[s]) = inf;
+pD.lo[t,s,n]$((G_int[s,n] or G_input[s,n] or G_output[s,n])) = -inf;
+pD.up[t,s,n]$((G_int[s,n] or G_input[s,n] or G_output[s,n])) = inf;
+qD.lo[t,s,n]$(((G_input[s,n] and tx0E[t]) or G_int[s,n])) = -inf;
+qD.up[t,s,n]$(((G_input[s,n] and tx0E[t]) or G_int[s,n])) = inf;
+tauD.lo[t,s,n]$(G_input[s,n]) = -inf;
+tauD.up[t,s,n]$(G_input[s,n]) = inf;
+TotalTax.lo[t,s]$((G_sm[s] and tx0E[t])) = -inf;
+TotalTax.up[t,s]$((G_sm[s] and tx0E[t])) = inf;
+tauLump.lo[t,s]$((s_HH[s] and tx0E[t])) = -inf;
+tauLump.up[t,s]$((s_HH[s] and tx0E[t])) = inf;
+mu.lo[s,n,nn]$(G_endoMu[s,n,nn]) = -inf;
+mu.up[s,n,nn]$(G_endoMu[s,n,nn]) = inf;
+taxRevPar.lo[s]$(G_sm[s]) = -inf;
+taxRevPar.up[s]$(G_sm[s]) = inf;
+jTerm.lo[s]$(G_sm[s]) = -inf;
+jTerm.up[s]$(G_sm[s]) = inf;
+qD.lo[t,s,n]$((d_itory[s,n] and tx0E[t])) = -inf;
+qD.up[t,s,n]$((d_itory[s,n] and tx0E[t])) = inf;
+qD.lo[t,s,n]$((T_dExport[s,n] and tx0E[t])) = -inf;
+qD.up[t,s,n]$((T_dExport[s,n] and tx0E[t])) = inf;
+TotalTax.lo[t,s]$((T_sm[s] and tx0E[t])) = -inf;
+TotalTax.up[t,s]$((T_sm[s] and tx0E[t])) = inf;
+pD.lo[t,s,n]$(T_dExport[s,n]) = -inf;
+pD.up[t,s,n]$(T_dExport[s,n]) = inf;
+Fscale.lo[s,n]$(T_dExport[s,n]) = -inf;
+Fscale.up[s,n]$(T_dExport[s,n]) = inf;
+tauLump.lo[t,s]$((T_sm[s] and t0[t])) = -inf;
+tauLump.up[t,s]$((T_sm[s] and t0[t])) = inf;
+qCO2.lo[t,s,n]$((tx0E[t] and dqCO2[s,n])) = -inf;
+qCO2.up[t,s,n]$((tx0E[t] and dqCO2[s,n])) = inf;
+qCO2agg.lo[t]$(txE[t]) = -inf;
+qCO2agg.up[t]$(txE[t]) = inf;
+tauCO2.lo[t,s,n]$(dtauCO2[s,n]) = -inf;
+tauCO2.up[t,s,n]$(dtauCO2[s,n]) = inf;
+tauEffCO2.lo[t,s,n]$(dtauCO2[s,n]) = -inf;
+tauEffCO2.up[t,s,n]$(dtauCO2[s,n]) = inf;
+uAbate.lo[t,s,n]$(dqCO2[s,n]) = -inf;
+uAbate.up[t,s,n]$(dqCO2[s,n]) = inf;
+qK_EOP.lo[t]$((tx0[t] or t0[t])) = -inf;
+qK_EOP.up[t]$((tx0[t] or t0[t])) = inf;
+pK_EOP.lo[t]$(txE[t]) = -inf;
+pK_EOP.up[t]$(txE[t]) = inf;
+adjCostEOP.lo[t]$(txE[t]) = -inf;
+adjCostEOP.up[t]$(txE[t]) = inf;
+qI_EOP.lo[t]$(txE[t]) = -inf;
+qI_EOP.up[t]$(txE[t]) = inf;
+tauCO2agg.lo[t]$((t_SYT[t] or t_SYT_NB[t])) = -inf;
+tauCO2agg.up[t]$((t_SYT[t] or t_SYT_NB[t])) = inf;
+obj.lo = -inf;
+obj.up = inf;
+uCO2Calib.lo[s,n]$(dqCO2[s,n]) = -inf;
+uCO2Calib.up[s,n]$(dqCO2[s,n]) = inf;
+uCO2.lo[t,s,n]$(dqCO2[s,n]) = -inf;
+uCO2.up[t,s,n]$(dqCO2[s,n]) = inf;
+qS.lo[t,s,n]$((tx0E[t] and d_qSEqui[s,n])) = -inf;
+qS.up[t,s,n]$((tx0E[t] and d_qSEqui[s,n])) = inf;
+p.lo[t,n]$((tx0E[t] and d_pEqui[n])) = -inf;
+p.up[t,n]$((tx0E[t] and d_pEqui[n])) = inf;
+
+# @SolveEmptyNLP(M_vLarge_2019_CGE_EmRegEconWideCapital_C_SYT_HR);
+solve M_vLarge_2019_CGE_EmRegEconWideCapital_C_SYT_HR using CNS;

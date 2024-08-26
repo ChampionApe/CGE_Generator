@@ -106,7 +106,9 @@ def model_vS(db):
 
 def model_p(db):
 	domesticPrices = pd.Series(1, index = db('vS').index.droplevel('s').unique(), name = 'p')
-	foreignPrices  = pd.Series(1, index = db('n_F'), name = 'p')
+	foreignPrices = pd.Series(1, index = pyDatabases.cartesianProductIndex([db('vD').index.levels[0], db('n_F')]) if 't' in db['vD'].domains else db('n_F'), name = 'p')
+	# foreignPrices =  pd.Series(1, index = adj.rc_pd(db('vD'), db['n_F']).droplevel('s').index.unique(), name = 'p')
+	# foreignPrices  = pd.Series(1, index = db('n_F'), name = 'p')
 	db.aom(domesticPrices.combine_first(foreignPrices), name = 'p')
 
 def model_durables(db, R, π):
