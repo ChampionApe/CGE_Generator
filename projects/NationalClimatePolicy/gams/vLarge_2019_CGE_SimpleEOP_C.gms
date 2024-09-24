@@ -495,6 +495,7 @@ $offMulti;
 
 
 
+
 # WRITE BLOCKS OF EQUATIONS:
 
 
@@ -591,6 +592,22 @@ E_P_taxCalib_taxCal[t,s]$(p_sm[s]).. 	tauLump[t,s]  =E=  tauLump0[t,s]+taxRevPar
 # ----------------------------------------------------------------------------------------------------
 Model B_P_taxCalib /
 E_P_taxCalib_taxCal
+/;
+
+
+
+
+# ----------------------------------------------B_IdxFund---------------------------------------------
+#  Initialize B_IdxFund equation block
+# ----------------------------------------------------------------------------------------------------
+EQUATION E_IdxFund[t];
+E_IdxFund[t]$(txe[t]).. 	vIdxFund[t]  =E=  sum(s$(s_p[s]), vA[t,s]);
+
+# ----------------------------------------------------------------------------------------------------
+#  Define B_IdxFund model
+# ----------------------------------------------------------------------------------------------------
+Model B_IdxFund /
+E_IdxFund
 /;
 
 
@@ -995,7 +1012,7 @@ E_Equi_equi_tx0E
 #  Define M_vLarge_2019_CGE_SimpleEOP_B model
 # ----------------------------------------------------------------------------------------------------
 Model M_vLarge_2019_CGE_SimpleEOP_B /
-E_P_zpOut, E_P_zpNOut, E_P_qOut, E_P_qNOut, E_P_adjCost_lom, E_P_adjCost_pk, E_P_adjCost_pkT, E_P_adjCost_K_tvc, E_P_adjCost_adjCost, E_P_pWedge_pwInp, E_P_pWedge_pwOut, E_P_pWedge_taxRev, E_P_firmValue_vA, E_P_firmValue_divd, E_P_firmValue_vAT, E_I_zpOut, E_I_zpNOut, E_I_qOut, E_I_qNOut, E_I_pWedge_pwInp, E_I_pWedge_pwOut, E_I_pWedge_taxRev, E_HH_zp, E_HH_q, E_HH_vU_qC, E_HH_vU_V, E_HH_vU_VT, E_HH_vU_L, E_HH_Euler_vA, E_HH_Euler_vAT, E_HH_Euler_euler, E_HH_vA0_vAt0, E_HH_pWedge_labTax, E_HH_pWedge_inpTax, E_HH_pWedge_taxRev, E_HH_pWedge_sp, E_G_zp, E_G_q, E_G_bb_pw, E_G_bb_taxRev, E_G_bb_bb, E_G_taxCalib_taxCal, E_Itory, E_T_armington, E_T_pwInp, E_T_TaxRev, E_uAbate, E_tauCO2Eff, E_tauCO2, E_qCO2, E_qCO2agg, E_Equi_equi
+E_P_zpOut, E_P_zpNOut, E_P_qOut, E_P_qNOut, E_P_adjCost_lom, E_P_adjCost_pk, E_P_adjCost_pkT, E_P_adjCost_K_tvc, E_P_adjCost_adjCost, E_P_pWedge_pwInp, E_P_pWedge_pwOut, E_P_pWedge_taxRev, E_P_firmValue_vA, E_P_firmValue_divd, E_P_firmValue_vAT, E_IdxFund, E_I_zpOut, E_I_zpNOut, E_I_qOut, E_I_qNOut, E_I_pWedge_pwInp, E_I_pWedge_pwOut, E_I_pWedge_taxRev, E_HH_zp, E_HH_q, E_HH_vU_qC, E_HH_vU_V, E_HH_vU_VT, E_HH_vU_L, E_HH_Euler_vA, E_HH_Euler_vAT, E_HH_Euler_euler, E_HH_vA0_vAt0, E_HH_pWedge_labTax, E_HH_pWedge_inpTax, E_HH_pWedge_taxRev, E_HH_pWedge_sp, E_G_zp, E_G_q, E_G_bb_pw, E_G_bb_taxRev, E_G_bb_bb, E_G_taxCalib_taxCal, E_Itory, E_T_armington, E_T_pwInp, E_T_TaxRev, E_uAbate, E_tauCO2Eff, E_tauCO2, E_qCO2, E_qCO2agg, E_Equi_equi
 /;
 
 
@@ -1003,7 +1020,7 @@ E_P_zpOut, E_P_zpNOut, E_P_qOut, E_P_qNOut, E_P_adjCost_lom, E_P_adjCost_pk, E_P
 #  Define M_vLarge_2019_CGE_SimpleEOP_C model
 # ----------------------------------------------------------------------------------------------------
 Model M_vLarge_2019_CGE_SimpleEOP_C /
-E_P_zpOut, E_P_zpNOut, E_P_qOut, E_P_qNOut, E_P_adjCost_lom, E_P_adjCost_pk, E_P_adjCost_pkT, E_P_adjCost_K_tvc, E_P_adjCost_adjCost, E_P_pWedge_pwInp, E_P_pWedge_pwOut, E_P_pWedge_taxRev, E_P_firmValue_vA, E_P_firmValue_divd, E_P_firmValue_vAT, E_P_taxCalib_taxCal, E_I_zpOut, E_I_zpNOut, E_I_qOut, E_I_qNOut, E_I_pWedge_pwInp, E_I_pWedge_pwOut, E_I_pWedge_taxRev, E_I_taxCalib_taxCal, E_HH_zp, E_HH_q, E_HH_vU_qC, E_HH_vU_V, E_HH_vU_VT, E_HH_vU_L, E_HH_Euler_vA, E_HH_Euler_vAT, E_HH_Euler_euler, E_HH_vA0_vAt0, E_HH_pWedge_labTax, E_HH_pWedge_inpTax, E_HH_pWedge_taxRev, E_HH_pWedge_sp, E_HH_vA0_Calib_vAt0, E_G_zp, E_G_q, E_G_bb_pw, E_G_bb_taxRev, E_G_bb_bb, E_G_taxCalib_taxCal, E_Itory, E_T_armington, E_T_pwInp, E_T_TaxRev, E_uAbate, E_tauCO2Eff, E_tauCO2, E_qCO2, E_qCO2agg, E_qCO2calib, E_Equi_equi_tx0E
+E_P_zpOut, E_P_zpNOut, E_P_qOut, E_P_qNOut, E_P_adjCost_lom, E_P_adjCost_pk, E_P_adjCost_pkT, E_P_adjCost_K_tvc, E_P_adjCost_adjCost, E_P_pWedge_pwInp, E_P_pWedge_pwOut, E_P_pWedge_taxRev, E_P_firmValue_vA, E_P_firmValue_divd, E_P_firmValue_vAT, E_P_taxCalib_taxCal, E_IdxFund, E_I_zpOut, E_I_zpNOut, E_I_qOut, E_I_qNOut, E_I_pWedge_pwInp, E_I_pWedge_pwOut, E_I_pWedge_taxRev, E_I_taxCalib_taxCal, E_HH_zp, E_HH_q, E_HH_vU_qC, E_HH_vU_V, E_HH_vU_VT, E_HH_vU_L, E_HH_Euler_vA, E_HH_Euler_vAT, E_HH_Euler_euler, E_HH_vA0_vAt0, E_HH_pWedge_labTax, E_HH_pWedge_inpTax, E_HH_pWedge_taxRev, E_HH_pWedge_sp, E_HH_vA0_Calib_vAt0, E_G_zp, E_G_q, E_G_bb_pw, E_G_bb_taxRev, E_G_bb_bb, E_G_taxCalib_taxCal, E_Itory, E_T_armington, E_T_pwInp, E_T_TaxRev, E_uAbate, E_tauCO2Eff, E_tauCO2, E_qCO2, E_qCO2agg, E_qCO2calib, E_Equi_equi_tx0E
 /;
 ;
 
@@ -1025,6 +1042,7 @@ uCO2.fx[t,s,n]$((P_output[s,n] and dqCO2[s,n])) = uCO2.l[t,s,n]$((P_output[s,n] 
 tauEffCO2.fx[t,s,n]$((P_output[s,n] and dqCO2[s,n])) = tauEffCO2.l[t,s,n]$((P_output[s,n] and dqCO2[s,n]));
 Rrate.fx[t] = Rrate.l[t];
 TotalTax.fx[t,s]$((P_sm[s] and t0[t])) = TotalTax.l[t,s]$((P_sm[s] and t0[t]));
+
 sigma.fx[s,n]$(I_kninp[s,n]) = sigma.l[s,n]$(I_kninp[s,n]);
 mu.fx[s,n,nn]$(I_map[s,n,nn]) = mu.l[s,n,nn]$(I_map[s,n,nn]);
 tauD.fx[t,s,n]$(I_input[s,n]) = tauD.l[t,s,n]$(I_input[s,n]);
@@ -1108,6 +1126,8 @@ tauLump.lo[t,s]$(P_sm[s]) = -inf;
 tauLump.up[t,s]$(P_sm[s]) = inf;
 jTerm.lo[s]$(P_sm[s]) = -inf;
 jTerm.up[s]$(P_sm[s]) = inf;
+vIdxFund.lo[t] = -inf;
+vIdxFund.up[t] = inf;
 pD.lo[t,s,n]$((I_int[s,n] or I_input[s,n])) = -inf;
 pD.up[t,s,n]$((I_int[s,n] or I_input[s,n])) = inf;
 pS.lo[t,s,n]$(I_output[s,n]) = -inf;

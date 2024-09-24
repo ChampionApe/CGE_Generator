@@ -1,4 +1,5 @@
 from auxfuncs import *
+from pyDatabases import cartesianProductIndex as cpi
 from pyDatabases.gpyDB import MergeDbs
 from gmsPython import Group, GModel
 import gamsEmissions
@@ -21,6 +22,8 @@ class EOP_Simple(GModel):
 
 	def initData(self):
 		self.db.aom(self.db('uCO2'), name='uCO20', priority='first')
+		self.db.aom(pd.Series(0, index= cpi([self.db('txE'), self.get('dtauCO2')])), name = 'avgAbateCosts', priority='first')
+		self.db.aom(pd.Series(0, index= cpi([self.db('txE'), self.get('dtauCO2')])), name = 'abateCosts', priority='first')
 		self.db.aom(pd.Series(0, index=self.db('uCO2').index), name='uAbate', priority='first')
 		self.db.aom(pd.Series(0, index=self.db('dqCO2')), name='uCO2Calib', priority='first')
 		self.db.aom(pd.Series(self.db('tauCO2agg').xs(self.db('t0')[0])/ 2, index = self.db('t')), name='DACSmooth', priority='first')
@@ -74,7 +77,9 @@ class EOP_Simple(GModel):
 												   ('qCO2agg', self.g('txE')),
 												   ('tauCO2', self.g('dtauCO2')),
 												   ('tauEffCO2', self.g('dtauCO2')),
-												   ('uAbate', self.g('dqCO2'))])
+												   ('uAbate', self.g('dqCO2')),
+												   ('avgAbateCosts', self.g('dtauCO2')), 
+												   ('abateCosts', self.g('dtauCO2'))])
 
 	@property
 	def group_exoInCalib(self):
@@ -86,19 +91,36 @@ class EOP_Simple(GModel):
 
 
 class EOP_EconWideCapital(EOP_Simple):
-	def __init__(self, name, partial=False, initFromGms = None, **kwargs):
+	def __init__(self, name, partial=False, initFromGms = None, ctype = 'AdHocCosts', **kwargs):
+		""" ctype indicates the module """
 		super().__init__(name, partial=partial, **kwargs)
 		self.initFromGms = initFromGms
+		self.ctype = ctype
 
 	def initData(self):
-		super().initData()		
+		super().initData()
 		self.db.aom(.05, name='rDepr_EOP', priority='first')
-		self.db.aom(1, name='adjCostPar_EOP', priority='first')
+		if self.ctype == 'AdHocCosts':
+			self.db.aom(25, name='adjCostPar_EOP', priority='first')
+		elif self.ctype == 'SqrUtilCosts':
+			self.db.aom(25, name='adjCostPar_EOP', priority='first')			
+		elif self.ctype == 'SqrAdjCosts':
+			self.db.aom(.1, name='adjCostPar_EOP', priority='first')			
 		self.db.aom(0, name='Ktvc_EOP', priority='first')
-		self.db.aom(pd.Series(0, index = self.db('txE')), name='adjCostEOP', priority='first')
 		self.db.aom(pd.Series(self.db('R_LR')+self.db('rDepr_EOP')-1, index = self.db('t')), name = 'pK_EOP', priority='first')
 		self.db.aom(pd.Series(1, index = self.db('t')), name = 'qK_EOP', priority='first')
 		self.db.aom(self.db('rDepr_EOP')*self.db('qK_EOP'), name = 'qI_EOP', priority='first')
+		if self.ctype == 'SqrAdjCosts':
+			self.db.aom(pd.Series(0, index = cpi([self.db('txE'), self.db('dqCO2')])), name='adjCostEOP', priority='first')
+			self.db.aom(pd.Series(1, index = cpi([self.db('txE'), self.db('dqCO2')])), name='muAdjCostEOP', priority='first')
+		elif self.ctype == 'AdHocCosts':
+			self.db.aom(pd.Series(1, index = self.db('t')), name = 'qK_EOPopt', priority='first')
+			self.db.aom(pd.Series(1, index = self.db('t')), name = 'qK_EOPMax', priority='first')
+		elif self.ctype == 'SqrUtilCosts':
+			self.db.aom(pd.Series(0, index = cpi([self.db('txE'), self.db('dqCO2')])), name='adjCostEOP', priority='first')
+			self.db.aom(pd.Series(1, index = cpi([self.db('txE'), self.db('dqCO2')])), name='muAdjCostEOP', priority='first')
+			self.db.aom(pd.Series(1, index = self.db('t')), name = 'qK_EOPopt', priority='first')
+			self.db.aom(pd.Series(1, index = self.db('t')), name = 'qK_EOPMax', priority='first')
 
 	@property
 	def model_B(self):
@@ -109,11 +131,11 @@ class EOP_EconWideCapital(EOP_Simple):
 
 	@property
 	def textInit(self):
-		return "" if self.initFromGms is None else gamsEmissions.init_EconWideCapital
+		return "" if self.initFromGms is None else getattr(gamsEmissions, f'init_{self.ctype}')
 
 	@property
 	def textBlocks(self):
-		return {'emissions': gamsEmissions.EOP_EconWideCapital(self.name)}
+		return {'emissions': getattr(gamsEmissions, f'EOP_EWC_{self.ctype}')(self.name)}
 	@property
 	def group_alwaysExo(self):
 		g = super().group_alwaysExo
@@ -122,8 +144,15 @@ class EOP_EconWideCapital(EOP_Simple):
 	@property
 	def group_alwaysEndo(self):
 		g = super().group_alwaysEndo
-		g.v += [('qK_EOP', self.g('tx0')), ('pK_EOP', self.g('txE')), ('adjCostEOP', self.g('txE')), ('qI_EOP', self.g('txE'))]
+		g.v += [('qK_EOP', self.g('tx0')), ('pK_EOP', self.g('txE')), ('qI_EOP', self.g('txE'))]
+		if self.ctype == 'SqrAdjCosts':
+			g.v += [('adjCostEOP', ('and', [self.g('txE'), self.g('dqCO2')])), ('muAdjCostEOP', ('and', [self.g('txE'), self.g('dqCO2')]))]
+		elif self.ctype == 'AdHocCosts':
+			g.v += ['qK_EOPopt', 'qK_EOPMax']
+		elif self.ctype == 'SqrUtilCosts':
+			g.v += [('adjCostEOP', ('and', [self.g('txE'), self.g('dqCO2')])), ('muAdjCostEOP', ('and', [self.g('txE'), self.g('dqCO2')])), 'qK_EOPopt', 'qK_EOPMax']
 		return g
+
 	@property
 	def group_endoInCalib(self):
 		g = super().group_endoInCalib
@@ -157,6 +186,13 @@ def EmRegTargetsFromSYT(targets, tIdx, q0):
 	d['t_EB_NB'] = adj.rc_pd(d['t2tt_EB'].rename(['tt','t']), ('not', targets)).droplevel('tt')
 	return d
 
+def EmRegTargetsFromSYT_xt0(targets, tIdx, q0):
+	d = EmRegTargetsFromSYT(targets, tIdx, q0)
+	t0 = tIdx[0:1] 
+	removeT0 = ('not', ('or', [t0, t0.rename('tt')])) # remove t0 if defined over t0 (also if the set is aliased with name tt)
+	[d.__setitem__(k,adj.rc_pd(d[k], removeT0, pm = False)) for k in ('t_SYT_NB','qCO2_LRP', 't_LRP', 't2tt_EB', 't_EB_NB')];
+	d['qCO2_EB'] = adjMultiIndex.applyMult(d['qCO2_LRP'], d['t2tt_EB'].rename(['tt','t'])).groupby('tt').sum().rename_axis('t') # recompute the emission budget without t0
+	return d
 
 class EmRegSimpleEOP(EOP_Simple):
 	def __init__(self, name, partial = False, regulation = None, **kwargs):
@@ -228,8 +264,8 @@ class EmRegSimpleEOP(EOP_Simple):
 
 
 class EmRegEOP_EconWideCapital(EOP_EconWideCapital):
-	def __init__(self, name, partial = False, regulation = None, **kwargs):
-		super().__init__(name, partial = partial, **kwargs)
+	def __init__(self, name, partial = False, regulation = None, ctype = 'AdHocCosts', **kwargs):
+		super().__init__(name, partial = partial, ctype = ctype, **kwargs)
 		self.regulation = regulation
 
 	@property
@@ -263,7 +299,7 @@ class EmRegEOP_EconWideCapital(EOP_EconWideCapital):
 		if self.regulation is None:
 			return g
 		else:
-			g.v += [('tauCO2agg', ('and', [self.g('t0'), self.g(f"t_{self.regulation.split('_')[0]}")]))]
+			g.v += [('tauCO2agg', self.g(f"t_{self.regulation.split('_')[0]}"))]
 			return g
 
 	# Model blocks

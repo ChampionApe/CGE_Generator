@@ -47,14 +47,17 @@ class StaticConsumer(GModel):
 		self.db.aom(pd.Series(1, index = cpi([self.db('txE'), self.get('L')])), name = 'pS', priority = 'first')
 		self.db.aom(pd.Series(1, index = cpi([self.db('txE'), self.get('output').union(self.get('int'))])), name = 'pD', priority='first')
 		self.db.aom(pd.Series(2, index = self.get('sm')), name = 'crra', priority='second')
+		self.db.aom(pd.Series(1, index = cpi([self.db('txE'), self.get('sm')])), name = 'qC', priority = 'first')
+		self.db.aom(pd.Series(1, index = cpi([self.db('txE'), self.get('sm')])), name = 'vU', priority = 'first')
 		self.db.aom(pd.Series(.25, index = self.get('sm')), name = 'frisch', priority = 'first')
+		self.db.aom(pd.Series(1/self.db('R_LR'), index = self.get('sm')), name = 'discF', priority='first')
 		self.db.aom(pd.Series(1, index = self.get('sm')), name = 'Lscale', priority='first')
 		self.db.aom(pd.Series(0, index = self.get('sm')), name = 'jTerm', priority='first')
 
-	#### 2. GROUPINGS AND MODEL SPECIFICATIONS: 
+	#### 2. GROUPINGS AND MODEL SPECIFICATIONS:
 	@property
 	def model_B(self):
-		return OrdSet([f"B_{name}" for name in self.m])+OrdSet([f"B_{self.name}_{k}" for k in ('isoFrisch','pWedge')])
+		return OrdSet([f"B_{name}" for name in self.m])+OrdSet([f"B_{self.name}_{k}" for k in ('pWedge','vU')])
 	@property
 	def model_C(self):
 		return self.model_B
@@ -62,16 +65,16 @@ class StaticConsumer(GModel):
 	# Text blocks
 	@property
 	def textBlocks(self):
-		return self.nestingBlocks | {'isoFrisch': self.isoFrisch, 'pWedge': self.priceWedgeBlocks}
+		return self.nestingBlocks | {'pWedge': self.priceWedgeBlocks, 'vU': self.CRRA_GHH_Blocks}
 	@property
 	def nestingBlocks(self):
 		return {name: getattr(gamsHouseholds, m.f)(name) for name, m in self.m.items()}
 	@property
-	def isoFrisch(self):
-		return gamsHouseholds.isoFrisch(f'{self.name}_isoFrisch', self.name)
-	@property
 	def priceWedgeBlocks(self):
 		return gamsHouseholds.priceWedgeStatic(f'{self.name}_pWedge', self.name)
+	@property
+	def CRRA_GHH_Blocks(self):
+		return gamsHouseholds.CRRA_GHH_vU(f'{self.name}_vU', self.name)
 
 	# Methods for levels in variables
 	@property
@@ -98,6 +101,7 @@ class StaticConsumer(GModel):
 													('mu', self.g('map')),
 													('frisch', self.g('sm')),
 													('crra', self.g('sm')),
+													('discF', self.g('sm')),
 													('tauD', self.g('input')),
 													('tauS', self.g('L')),
 													('tauLump', ('and', [self.g('sm'), self.g('tx0E')]))],
@@ -108,6 +112,7 @@ class StaticConsumer(GModel):
 			g.v += [('p', ('or', [self.g('output_n'), self.g('input_n')]))]
 			self.partial = True
 			return g
+
 	@property
 	def group_alwaysEndo(self):
 		return Group(f'{self.name}_alwaysEndo', v = [('pD', ('or',  [self.g('int'), self.g('input')])),
@@ -116,7 +121,10 @@ class StaticConsumer(GModel):
 													 ('qD', ('and', [self.g('input'), self.g('tx0E')])),
 													 ('qD', ('or',  [self.g('int'), self.g('output')])),
 													 ('pS', ('and', [self.g('L'), self.g('txE')])),
+													 ('qC', ('and', [self.g('sm'), self.g('txE')])), 
+													 ('vU', self.g('sm')),
 													 ('TotalTax', ('and', [self.g('sm'), self.g('tx0E')]))])
+
 	@property
 	def group_exoInCalib(self):
 		return Group(f'{self.name}_exoInCalib', v = [('qD', ('and', [self.g('input'), self.g('t0')])),
@@ -130,32 +138,20 @@ class StaticConsumer(GModel):
 													  ('tauLump', ('and', [self.g('sm'), self.g('t0')])),
 													  ('jTerm', self.g('sm'))])
 
-
 class Ramsey(StaticConsumer):
-
-	# Add a bit more data:
+	# Data
 	def initData(self):
 		super().initData()
 		self.db.aom(pd.Series(0, index = cpi([self.db('txE'), self.get('sm')])), name = 'sp', priority = 'first')
-		self.db.aom(pd.Series(1, index = cpi([self.db('txE'), self.get('sm')])), name = 'qC', priority = 'first')
-		self.db.aom(pd.Series(1, index = cpi([self.db('txE'), self.get('sm')])), name = 'vU', priority = 'first')
 		self.db.aom(pd.Series(0, index = self.get('sm')), name = 'h_tvc', priority = 'first')
-		self.db.aom(pd.Series(1/self.db('R_LR'), index = self.get('sm')), name = 'discF', priority='first')
-		self.db.aom(pd.Series(.1, index = self.get('sm')), name = 'uIdxFund', priority = 'first')
-		self.db.aom(pd.Series(0, index = self.get('sm')), name = 'vA_F', priority='first')
-		self.db.aom(pd.Series(1, index = self.get('sm')), name = 'uA_Dom', priority='first')
 
-	# Specify new blocks of equations (the self.nestingBlocks are the same)
+	# blocks
 	@property
 	def model_B(self):
-		return OrdSet([f"B_{name}" for name in self.m])+OrdSet([f"B_{self.name}_{k}" for k in ('vU','Euler','vA0','pWedge')])
-	@property
-	def model_C(self):
-		return self.model_B+OrdSet([f'B_{self.name}_vA0_Calib'])
-
+		return OrdSet([f"B_{name}" for name in self.m])+OrdSet([f"B_{self.name}_{k}" for k in ('vU','Euler','pWedge')])
 	@property
 	def textBlocks(self):
-		return self.nestingBlocks | {'vU': self.CRRA_GHH_Blocks, 'Euler': self.CRRA_EulerBlocks, 'vA0': self.idxFundBlocks, 'pWedge': self.priceWedgeBlocks}
+		return self.nestingBlocks | {'vU': self.CRRA_GHH_Blocks, 'Euler': self.CRRA_EulerBlocks, 'pWedge': self.priceWedgeBlocks}
 	@property
 	def CRRA_GHH_Blocks(self):
 		return gamsHouseholds.CRRA_GHH_vU(f'{self.name}_vU', self.name)
@@ -163,38 +159,84 @@ class Ramsey(StaticConsumer):
 	def CRRA_EulerBlocks(self):
 		return gamsHouseholds.CRRA_Euler(f'{self.name}_Euler', self.name)	
 	@property
-	def idxFundBlocks(self):
-		return gamsHouseholds.indexFundInvest(f'{self.name}_vA0', self.name)
-	@property
 	def priceWedgeBlocks(self):
 		return gamsHouseholds.priceWedge(f'{self.name}_pWedge', self.name)
 
-	# Specify new groups of variables
+	# Groups
 	@property
 	def group_alwaysExo(self):
 		g = super().group_alwaysExo
-		g.v += [('discF', self.g('sm')), ('h_tvc', self.g('sm')), ('uA_Dom', self.g('sm'))]
+		g.v += [('h_tvc', self.g('sm')), ('vA', ('and', [self.g('sm'), self.g('t0')]))]
 		if self.partial:
-			g.v += ['Rrate', ('vIdxFund', self.g('t0'))]
+			g.v += ['Rrate']
 		return g
 
 	@property
 	def group_alwaysEndo(self):
 		g = super().group_alwaysEndo
 		g.v += [('sp', ('and', [self.g('sm'), self.g('txE')])), 
-				('vA', ('and', [self.g('sm'), self.g('tx0')])), 
-				('qC', ('and', [self.g('sm'), self.g('txE')])), 
-				('vU', self.g('sm'))]
+				('vA', ('and', [self.g('sm'), self.g('tx0')]))]
+		return g
+
+
+class RamseyIdxFund(Ramsey):
+	def __init__(self, tree, targetvA0 = True, **kwargs):
+		""" If not targetvA0 --> fix vA_F, uIdxFund and solve for vA[t0,s].  
+			if targetvA0 --> fix vA[t0,s], uIdxFund and adjust only vA_F."""
+		super().__init__(tree, **kwargs)
+		self.targetvA0 = targetvA0 
+
+	# Add a bit more data:
+	def initData(self):
+		super().initData()
+		self.db.aom(pd.Series(.1, index = self.get('sm')), name = 'uIdxFund', priority = 'first')
+		self.db.aom(pd.Series(0, index = self.get('sm')), name = 'vA_F', priority='first')
+		self.db.aom(pd.Series(1, index = self.get('sm')), name = 'uA_Dom', priority='first')
+
+	# Specify new blocks of equations (the self.nestingBlocks are the same)
+	@property
+	def model_B(self):
+		return super().model_B+OrdSet([f"B_{self.name}_vA0"])
+	@property
+	def model_C(self):
+		return self.model_B+OrdSet([f'B_{self.name}_vA0_Calib']) if self.targetvA0 else self.model_B
+
+	@property
+	def textBlocks(self):
+		return super().textBlocks | {'vA0': self.idxFundBlocks}
+	@property
+	def idxFundBlocks(self):
+		return gamsHouseholds.indexFundInvest(f'{self.name}_vA0', self.name)
+	# Specify new groups of variables
+
+	@property
+	def group_alwaysExo(self):
+		g = super().group_alwaysExo
+		g.v += [('uA_Dom', self.g('sm'))]
+		g.sub_v += [('vA', ('and', [self.g('sm'), self.g('t0')]))]
+		if self.partial:
+			g.v += [('vIdxFund', self.g('t0'))]
+		if not self.targetvA0:
+			g.v += [('vA_F', self.g('sm')), ('uIdxFund', self.g('sm'))]
+		return g
+
+	@property
+	def group_alwaysEndo(self):
+		g = super().group_alwaysEndo
+		if not self.targetvA0:
+			g.v += [('vA', ('and', [self.g('sm'), self.g('t0')]))]
 		return g
 
 	@property
 	def group_exoInCalib(self):
 		g = super().group_exoInCalib
-		g.v += [('vA', ('and', [self.g('sm'), self.g('t0')]))]
+		if self.targetvA0:
+			g.v += [('vA', ('and', [self.g('sm'), self.g('t0')]))]
 		return g
 
 	@property
 	def group_endoInCalib(self):
 		g = super().group_endoInCalib
-		g.v += [('vA_F', self.g('sm')), ('uIdxFund', self.g('sm'))]
+		if self.targetvA0:
+			g.v += [('vA_F', self.g('sm')), ('uIdxFund', self.g('sm'))]
 		return g

@@ -26,6 +26,7 @@ $ENDFUNCTION
 
 
 
+
 $MACRO stdNormPdf(x) exp(-sqr(x)/2)/(2*sqrt(Pi))
 $MACRO EOP_Logit(p, c, e) (1/(1+exp((c-p)/e)))
 $MACRO EOP_Normal(p, c, e) errorf((p-c)/e)
@@ -508,6 +509,7 @@ $offMulti;
 
 
 
+
 # WRITE BLOCKS OF EQUATIONS:
 
 $BLOCK B_P
@@ -539,6 +541,11 @@ $ENDBLOCK
 
 $BLOCK B_P_taxCalib
 	E_P_taxCalib_taxCal[t,s]$(P_sm[s])..	tauLump[t,s] =E= tauLump0[t,s]+taxRevPar[s];
+$ENDBLOCK
+
+
+$BLOCK B_IdxFund
+	E_IdxFund[t]$(txE[t])..	vIdxFund[t] =E= sum(s$(s_p[s]), vA[t,s]);
 $ENDBLOCK
 
 
@@ -644,8 +651,8 @@ $ENDBLOCK
 
 
 # DEFINE MODELS:
-$Model M_vLarge_2019_CGE_SimpleEOP_B B_P,B_P_adjCost,B_P_pWedge,B_P_firmValue,B_I,B_I_pWedge,B_HH,B_HH_vU,B_HH_Euler,B_HH_vA0,B_HH_pWedge,B_G,B_G_bb,B_G_taxCalib,B_Itory,B_T,B_M,B_Equi_baseline;
-$Model M_vLarge_2019_CGE_SimpleEOP_C B_P,B_P_adjCost,B_P_pWedge,B_P_firmValue,B_P_taxCalib,B_I,B_I_pWedge,B_I_taxCalib,B_HH,B_HH_vU,B_HH_Euler,B_HH_vA0,B_HH_pWedge,B_HH_vA0_Calib,B_G,B_G_bb,B_G_taxCalib,B_Itory,B_T,B_M,B_M_calib,B_Equi_calib;;
+$Model M_vLarge_2019_CGE_SimpleEOP_B B_P,B_P_adjCost,B_P_pWedge,B_P_firmValue,B_IdxFund,B_I,B_I_pWedge,B_HH,B_HH_vU,B_HH_Euler,B_HH_vA0,B_HH_pWedge,B_G,B_G_bb,B_G_taxCalib,B_Itory,B_T,B_M,B_Equi_baseline;
+$Model M_vLarge_2019_CGE_SimpleEOP_C B_P,B_P_adjCost,B_P_pWedge,B_P_firmValue,B_P_taxCalib,B_IdxFund,B_I,B_I_pWedge,B_I_taxCalib,B_HH,B_HH_vU,B_HH_Euler,B_HH_vA0,B_HH_pWedge,B_HH_vA0_Calib,B_G,B_G_bb,B_G_taxCalib,B_Itory,B_T,B_M,B_M_calib,B_Equi_calib;;
 
 # Fix exogenous variables in state:
 sigma.fx[s,n]$(P_kninp[s,n]) = sigma.l[s,n]$(P_kninp[s,n]);
@@ -665,6 +672,7 @@ uCO2.fx[t,s,n]$((P_output[s,n] and dqCO2[s,n])) = uCO2.l[t,s,n]$((P_output[s,n] 
 tauEffCO2.fx[t,s,n]$((P_output[s,n] and dqCO2[s,n])) = tauEffCO2.l[t,s,n]$((P_output[s,n] and dqCO2[s,n]));
 Rrate.fx[t] = Rrate.l[t];
 TotalTax.fx[t,s]$((P_sm[s] and t0[t])) = TotalTax.l[t,s]$((P_sm[s] and t0[t]));
+
 sigma.fx[s,n]$(I_kninp[s,n]) = sigma.l[s,n]$(I_kninp[s,n]);
 mu.fx[s,n,nn]$(I_map[s,n,nn]) = mu.l[s,n,nn]$(I_map[s,n,nn]);
 tauD.fx[t,s,n]$(I_input[s,n]) = tauD.l[t,s,n]$(I_input[s,n]);
@@ -748,6 +756,8 @@ tauLump.lo[t,s]$(P_sm[s]) = -inf;
 tauLump.up[t,s]$(P_sm[s]) = inf;
 jTerm.lo[s]$(P_sm[s]) = -inf;
 jTerm.up[s]$(P_sm[s]) = inf;
+vIdxFund.lo[t] = -inf;
+vIdxFund.up[t] = inf;
 pD.lo[t,s,n]$((I_int[s,n] or I_input[s,n])) = -inf;
 pD.up[t,s,n]$((I_int[s,n] or I_input[s,n])) = inf;
 pS.lo[t,s,n]$(I_output[s,n]) = -inf;

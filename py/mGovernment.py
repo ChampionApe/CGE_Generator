@@ -1,7 +1,7 @@
 from auxfuncs import *
 from pyDatabases.gpyDB import MergeDbs
 from pyDatabases import cartesianProductIndex as cpi, noneInit
-from gmsPython import gmsWrite, Group, GModel
+from gmsPython import Group, GModel
 import gamsGovernment
 
 class BalancedBudget(GModel):
