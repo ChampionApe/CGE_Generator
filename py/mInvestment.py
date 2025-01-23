@@ -14,6 +14,7 @@ class NestedCES(mProduction.StaticNCES):
 		self.db.aom(pd.Series(0,  index = self.get('sm')), name = 'taxRevPar')
 		self.db.aom(self.get(self.taxInstr).copy(), name = f'{self.taxInstr}0')
 
+
 	#### 2. GROUPINGS AND MODEL SPECIFICATIONS:
 	# 2. Model specification:
 	@property
