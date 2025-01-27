@@ -84,6 +84,7 @@ def RamseyIdxFund(*args, parent = 'Ramsey', **kwargs):
 
 def getIdxFund(parent, *args, **kwargs):
 	ParentClass = globals()[f'{parent}']
+	global IdxFundBase
 	class IdxFundBase(ParentClass):
 		def __init__(self, *args, **kwargs):
 			super().__init__(*args, **kwargs)
