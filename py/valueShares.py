@@ -1,13 +1,14 @@
 from auxfuncs import *
 from pyDatabases.gpyDB import GpyDB, AggDB
 from gmsPython import gmsWrite, stackIndices, Group, Model
-import gamsProduction, gamsHouseholds
+from gamsSnippets import valueShares
+from gamsSnippets_noOut import valueShares as valueShares_noOut
 
 class nestedShares(Model):
 	def __init__(self, tree, name = 'valueshares', **kwargs):
 		super().__init__(name = name, alias = [('n','nn')], **kwargs)
 		self.tree = tree
-		self.f = gamsProduction.valueShares
+		self.f = valueShares
 
 	def initData(self, db_IO, valueFromQP=True):
 		types = [ti.io for ti in self.tree.trees.values()]
@@ -82,7 +83,7 @@ class nestedShares(Model):
 class nestedShares_noOutputs(nestedShares):
 	def __init__(self, tree, name = 'valueshares', **kwargs):
 		super().__init__(tree, name = name, **kwargs)
-		self.f = gamsHouseholds.valueShares
+		self.f = valueShares_noOut
 
 	def initValues(self, db_IO, valueFromQP = False):
 		tIndex = db_IO('vD').index.get_level_values(0).unique()

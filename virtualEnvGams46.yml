@@ -13,4 +13,4 @@ dependencies:
     - seaborn == 0.12.2
     - gamsapi
     - pyDatabases >= 0.1.7
-    - gmsPython
+    - gmsPython >= 0.1.8
