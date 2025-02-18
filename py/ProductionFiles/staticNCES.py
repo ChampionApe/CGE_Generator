@@ -4,11 +4,11 @@ from pyDatabases import cartesianProductIndex as cpi
 from gmsPython import Group, GModel, gmsWrite
 import ProductionFiles.gamsProduction as gamsProduction
 
-def StaticNCES(tree, extension = 'base', **kwargs):
-	""" Convenience function to initialize classes based on 'extension' """
-	return globals()[f'StaticNCES_{extension}'](tree, **kwargs)
+# def StaticNCES(tree, extension = 'base', **kwargs):
+# 	""" Convenience function to initialize classes based on 'extension' """
+# 	return globals()[f'StaticNCES_{extension}'](tree, **kwargs)
 
-class StaticNCES_base(GModel):
+class StaticNCES(GModel):
 	""" Static Production Module with Nested CES Structure"""
 	def __init__(self, tree, partial = False, initFromGms = None, taxInstr = 'tauLump', properties = None, **kwargs):
 		super().__init__(name = tree.name, database = tree.db, **kwargs)
@@ -16,14 +16,14 @@ class StaticNCES_base(GModel):
 		self.partial = partial # use module in partial or general equilibrium; this affects compilation of groups 
 		self.initFromGms = initFromGms
 		self.taxInstr = taxInstr
-		StaticNCES_base.initProperties(self, **noneInit(properties, {}))
+		StaticNCES.initProperties(self, **noneInit(properties, {}))
 
 	# 1. Specialized init methods:
 	def readTree(self,tree):
 		self.ns.update(tree.ns)
-		self.ns.update({k: f'{self.name}_{k}' for k in ('sm','output_n','input_n')})
+		self.ns.update({k: f'{self.name}_{k}' for k in ('sm','endoP','input_n')})
 		self.db[self.n('sm')] = tree.db('s').copy()
-		self.db[self.n('output_n')] = self.get('output').levels[-1]
+		self.db[self.n('endoP')] = self.get('output').levels[-1] # prices that are endogenous, also in partial eq.
 		self.db[self.n('input_n')]  = self.get('input').levels[-1]
 		[self.readTree_i(t) for t in tree.trees.values()];
 		self.calibrationSubsets(tree)
@@ -115,19 +115,19 @@ class StaticNCES_base(GModel):
 		g = Group(f'{self.name}_alwaysExo', v = [('sigma', self.g('kninp')), ('mu', self.g('map')), ('vA_tvc', self.g('sm')), # parameters
 												 ('tauD', self.g('input')), ('tauS', self.g('output')), ('tauLump', self.g('sm')), # taxes
 												 (f'{self.taxInstr}0', self._taxInstrCondition)],
-											sub_v = [(self.taxInstr, self._taxInstrCondition)])
+											sub_v = [(self.taxInstr, self._taxInstrCondition), ('mu', self.g('endoMu'))])
 		if not self.partial:
 			return g
 		else:
 			g.v += [('qS', self.g('output')), ('p',self.g('input_n')), 'Rrate']
-			g.sub_v += [('p',self.g('output_n'))]
+			g.sub_v += [('p',self.g('endoP'))]
 			return g
 
 	@property
 	def group_alwaysEndo(self):
 		return Group(f'{self.name}_alwaysEndo', v = [('pD', ('or', [self.g('int'), self.g('input')])),
 													 ('pS', self.g('output')),
-													 ('p', ('and', [self.g('output_n'), self.g('tx0')])),
+													 ('p', ('and', [self.g('endoP'), self.g('tx0')])),
 													 ('qD', self.g('int')),
 													 ('qD', ('and', [self.g('input'), self.g('tx0')])),
 													 ('TotalTax', ('and', [self.g('sm'), self.g('tx0E')])),
@@ -136,7 +136,7 @@ class StaticNCES_base(GModel):
 	@property
 	def group_exoInCalib(self):
 		return Group(f'{self.name}_exoInCalib', v = [('qD', ('and', [self.g('input'), self.g('t0')])),
-													 ('p',  ('and', [self.g('output_n'), self.g('t0')])),
+													 ('p',  ('and', [self.g('endoP'), self.g('t0')])),
 													 ('TotalTax', ('and', [self.g('sm'), self.g('t0')]))])
 
 	@property
@@ -147,7 +147,7 @@ class StaticNCES_base(GModel):
 													  (self.taxInstr, self._taxInstrCondition)])
 
 
-class StaticNCES_emission(StaticNCES_base):
+class StaticNCES_emission(StaticNCES):
 	""" Static Production Module with Nested CES Structure"""
 	def __init__(self, tree, abateCosts = False, **kwargs):
 		super().__init__(tree, **kwargs)
@@ -189,7 +189,7 @@ class StaticNCES_emission(StaticNCES_base):
 			return g
 
 
-class InvestNCES(StaticNCES_base):
+class InvestNCES(StaticNCES):
 	def initData(self):
 		""" Add initial values to database (only the ones data we do not have from an IO database though)"""
 		self.db.aom(pd.Series(1,  index = cpi([self.db('txE'), self.get('output')])), name = 'pS', priority = 'first') # get initial value for pS

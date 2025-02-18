@@ -6,10 +6,10 @@ class NCP_CGE(CGE_welfare):
 		s = adj.rc_pd(adj.rc_pd(self.db('qD'), self.db('inv_p')), alias = {'n':'nn'})
 		return adjMultiIndex.applyMult(s, self.db('dur2inv')).droplevel('nn')/adj.rc_pd(self.db('qD'), self.db('dur_p'))-self.db('g_LR')
 
-	def stdProduction(self, tree, cl = 'DynamicNCES', extension = 'emission', abateCosts = 'SqrAdjCosts', taxInstr = 'tauLump', partial = True, initFromGms = 'initFirmValueBlock', adjCosts = True, **kwargs):
+	def stdProduction(self, tree, cl = 'getDynamicNCES', extension = 'emission', abateCosts = 'SqrAdjCosts', taxInstr = 'tauLump', partial = True, initFromGms = 'initFirmValueBlock', adjCosts = True, **kwargs):
 		return self.addProduction(cl, tree, extension = extension, abateCosts = abateCosts, taxInstr = taxInstr, partial = partial, initFromGms = initFromGms, adjCosts = adjCosts, **kwargs)
 
-	def stdInvestment(self, tree, cl = 'StaticNCES', taxInstr = 'tauD', partial = True, initFromGms = 'initFirmValueBlock', **kwargs):
+	def stdInvestment(self, tree, cl = 'getStaticNCES', taxInstr = 'tauD', partial = True, initFromGms = 'initFirmValueBlock', **kwargs):
 		return self.addProduction(cl, tree, taxInstr = taxInstr, partial = partial, initFromGms = initFromGms, **kwargs)
 
 	def stdHousehold(self, tree, L2C, cl = 'RamseyGHHIdxFund', taxInstr = 'tauS', incInstr = 'jTerm', partial = True, initFromGms = 'init_GHH_vU', **kwargs):

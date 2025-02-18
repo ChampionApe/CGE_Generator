@@ -27,14 +27,14 @@ def _Fnorm_output_with_InclusiveValue(ftype,name):
 	f = globals()['_'+ftype]
 	return f"""E_{name}_qOut[t,s,n]$({name}_branch_o[s,n] and txE[t])..	qS[t,s,n] =E= sum(nn$({name}_map[s,n,nn]), qD[t,s,nn]*{f("pD[t,s,nn]","pS[t,s,n]","mu[s,n,nn]","eta[s,nn]")} / qiv_out[t,s,nn]);
 	E_{name}_qNOut[t,s,n]$({name}_branch_no[s,n] and txE[t])..		qD[t,s,n] =E= sum(nn$({name}_map[s,n,nn]), qD[t,s,nn]*{f("pD[t,s,nn]","pD[t,s,n]","mu[s,n,nn]","eta[s,nn]")} / qiv_out[t,s,nn]);
-	E_{name}_inclVal_out[t,s,n]$(knot_{name}[s,n] and txE[t])..		qiv_out[t,s,n]=E= sum(nn$({name}_map[s,nn,n] and {name}_branch_o[s,nn]), {f("pS[t,s,nn]","pD[t,s,n]","mu[s,nn,n]","eta[s,n]",norm='qnorm[t,s,n]')})+sum(nn$({name}_map[s,nn,n] and {name}_branch_no[s,nn]), {f("pD[t,s,nn]","pD[t,s,n]","mu[s,nn,n]","eta[s,n]",norm='qnorm[t,s,n]')});"""
+	E_{name}_inclVal_out[t,s,n]$({name}_knot[s,n] and txE[t])..		qiv_out[t,s,n]=E= sum(nn$({name}_map[s,nn,n] and {name}_branch_o[s,nn]), {f("pS[t,s,nn]","pD[t,s,n]","mu[s,nn,n]","eta[s,n]",norm='qnorm[t,s,n]')})+sum(nn$({name}_map[s,nn,n] and {name}_branch_no[s,nn]), {f("pD[t,s,nn]","pD[t,s,n]","mu[s,nn,n]","eta[s,n]",norm='qnorm[t,s,n]')});"""
 
 # 0.2: Zero profit equations:
 def zp_input(name):
 	return f"""E_{name}_zpOut[t,s,n]$({name}_knot_o[s,n] and txE[t])..	pS[t,s,n]*qS[t,s,n] =E= sum(nn$({name}_map[s,n,nn]), qD[t,s,nn]*pD[t,s,nn]);
 	E_{name}_zpNOut[t,s,n]$({name}_knot_no[s,n] and txE[t])..	pD[t,s,n]*qD[t,s,n] =E= sum(nn$({name}_map[s,n,nn]), qD[t,s,nn]*pD[t,s,nn]);"""
 def zp_output(name):
-	return f"""E_{name}_zp[t,s,n]$(knot_{name}[s,n] and txE[t])..	pD[t,s,n]*qD[t,s,n] =E= sum(nn$({name}_map[s,nn,n] and {name}_branch_o[s,nn]), qS[t,s,nn]*pS[t,s,nn])+sum(nn$({name}_map[s,nn,n] and {name}_branch_no[s,nn]), qD[t,s,nn]*pD[t,s,nn]);"""
+	return f"""E_{name}_zp[t,s,n]$({name}_knot[s,n] and txE[t])..	pD[t,s,n]*qD[t,s,n] =E= sum(nn$({name}_map[s,nn,n] and {name}_branch_o[s,nn]), qS[t,s,nn]*pS[t,s,nn])+sum(nn$({name}_map[s,nn,n] and {name}_branch_no[s,nn]), qD[t,s,nn]*pD[t,s,nn]);"""
 
 # 1: Input type nests:
 # 1.1: CES nest:
@@ -64,7 +64,7 @@ def MNL(name,inclusiveVal = False):
 
 # 2: Output type nests:
 # 2.1: CET function:
-def CET(name,m,**kwargs):
+def CET(name,**kwargs):
 	return f"""
 $BLOCK B_{name}
 	{zp_output(name)}

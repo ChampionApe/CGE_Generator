@@ -1,7 +1,7 @@
 from auxfuncs import *
 from pyDatabases import pdSum
 from pyDatabases.gpyDB import gpy, GpyDB, AggDB
-from gmsPython import gmsWrite
+from gmsPython import gmsWrite, Model
 from gmsPython.gamY import Precompiler
 
 def simpleRAS(v0, vBar, row = 's', col = 'n', leaveCols = None, leaveRows = None, tol = 1e-6, iterMax = 1000):
@@ -41,7 +41,6 @@ def simpleRAS(v0, vBar, row = 's', col = 'n', leaveCols = None, leaveRows = None
 	print(f"""Largest deviation summing over {col}: {max(abs(adj.rc_pd(pdSum(vD,col), cond_s)-sum_s))}
 Largest deviation summing over {row}: {max(abs(adj.rc_pd(pdSum(vD,row), cond_n)-sum_n))}""")
 	return vD
-
 
 class absRAS:
 	def __init__(self, v0, vBar, row = None, col = None, db = None, ws = None, name = "dbRAS", leaveCols=None, leaveRows =None):
@@ -173,4 +172,5 @@ $UNFIX G_RAS_endo;
 
 solve B_RAS minimizing object using QCP;
 """
+
 

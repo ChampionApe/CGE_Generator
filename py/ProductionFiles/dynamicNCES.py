@@ -1,13 +1,13 @@
 from ProductionFiles.staticNCES import *
 
-def DynamicNCES(tree, extension = 'base', **kwargs):
-	""" Convenience function to initialize classes based on 'extension' """
-	return globals()[f'DynamicNCES_{extension}'](tree, **kwargs)
+# def DynamicNCES(tree, extension = 'base', **kwargs):
+# 	""" Convenience function to initialize classes based on 'extension' """
+# 	return globals()[f'DynamicNCES_{extension}'](tree, **kwargs)
 
-class DynamicNCES_base(StaticNCES_base):
+class DynamicNCES(StaticNCES):
 	def __init__(self, tree, adjCosts = True, **kwargs):
 		super().__init__(tree, **kwargs)
-		DynamicNCES_base.addProperties(self, adjCosts = adjCosts)
+		DynamicNCES.addProperties(self, adjCosts = adjCosts)
 
 	@staticmethod
 	def addProperties(self, adjCosts = True):
@@ -16,7 +16,7 @@ class DynamicNCES_base(StaticNCES_base):
 	@staticmethod
 	def initProperties(self, adjCosts = True, **kwargs):
 		super().initProperties(self, **kwargs)
-		DynamicNCES_base.addProperties(self, adjCosts = adjCosts)
+		DynamicNCES.addProperties(self, adjCosts = adjCosts)
 
 	def addDurables(self):
 		self.ns.update({k: f'{self.name}_{k}' for k in ('dur','inv', 'dur2inv', 'input_n')})
@@ -86,7 +86,7 @@ class DynamicNCES_emission(StaticNCES_emission):
 	@staticmethod
 	def initProperties(self, adjCosts = True, **kwargs):
 		super().initProperties(self, **kwargs)
-		DynamicNCES_base.addProperties(self, adjCosts = adjCosts)
+		DynamicNCES_emission.addProperties(self, adjCosts = adjCosts)
 
 	def addDurables(self):
 		self.ns.update({k: f'{self.name}_{k}' for k in ('dur','inv', 'dur2inv', 'input_n')})

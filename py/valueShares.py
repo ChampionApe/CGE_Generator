@@ -4,6 +4,7 @@ from gmsPython import gmsWrite, stackIndices, Group, Model
 from gamsSnippets import valueShares
 from gamsSnippets_noOut import valueShares as valueShares_noOut
 
+
 class nestedShares(Model):
 	def __init__(self, tree, name = 'valueshares', **kwargs):
 		super().__init__(name = name, alias = [('n','nn')], **kwargs)

@@ -101,7 +101,7 @@ sets
 	O_branch2o[s,n]
 	O_branch2no[s,n]
 	O_sm[s]
-	O_output_n[n]
+	O_endoP[n]
 	O_input_n[n]
 	O_endoMu[s,n,nn]
 	O_dur[s,n]
@@ -131,7 +131,7 @@ sets
 	WE_branch2o[s,n]
 	WE_branch2no[s,n]
 	W_sm[s]
-	W_output_n[n]
+	W_endoP[n]
 	W_input_n[n]
 	W_endoMu[s,n,nn]
 	W_dur[s,n]
@@ -154,7 +154,7 @@ sets
 	I_branch2o[s,n]
 	I_branch2no[s,n]
 	I_sm[s]
-	I_output_n[n]
+	I_endoP[n]
 	I_input_n[n]
 	I_endoMu[s,n,nn]
 	HH_map[s,n,nn]
@@ -326,7 +326,7 @@ $load O_knot_no
 $load O_branch2o
 $load O_branch2no
 $load O_sm
-$load O_output_n
+$load O_endoP
 $load O_input_n
 $load O_endoMu
 $load O_dur
@@ -356,7 +356,7 @@ $load WE_knot_no
 $load WE_branch2o
 $load WE_branch2no
 $load W_sm
-$load W_output_n
+$load W_endoP
 $load W_input_n
 $load W_endoMu
 $load W_dur
@@ -379,7 +379,7 @@ $load I_knot_no
 $load I_branch2o
 $load I_branch2no
 $load I_sm
-$load I_output_n
+$load I_endoP
 $load I_input_n
 $load I_endoMu
 $load HH_map
@@ -677,13 +677,13 @@ $Model M_WasteCGE_C B_O,B_O_price,B_O_firmValue,B_O_adjCost,B_O_taxCalib,B_W,B_W
 
 # Fix exogenous variables in state:
 sigma.fx[s,n]$(O_kninp[s,n]) = sigma.l[s,n]$(O_kninp[s,n]);
-mu.fx[s,n,nn]$((O_map[s,n,nn] or O_endoMu[s,n,nn])) = mu.l[s,n,nn]$((O_map[s,n,nn] or O_endoMu[s,n,nn]));
+mu.fx[s,n,nn]$(((O_map[s,n,nn] and ( not (O_endoMu[s,n,nn]))) or O_endoMu[s,n,nn])) = mu.l[s,n,nn]$(((O_map[s,n,nn] and ( not (O_endoMu[s,n,nn]))) or O_endoMu[s,n,nn]));
 vA_tvc.fx[s]$(O_sm[s]) = vA_tvc.l[s]$(O_sm[s]);
 tauD.fx[t,s,n]$(O_input[s,n]) = tauD.l[t,s,n]$(O_input[s,n]);
 tauS.fx[t,s,n]$(O_output[s,n]) = tauS.l[t,s,n]$(O_output[s,n]);
 tauLump0.fx[t,s]$(O_sm[s]) = tauLump0.l[t,s]$(O_sm[s]);
 qS.fx[t,s,n]$(O_output[s,n]) = qS.l[t,s,n]$(O_output[s,n]);
-p.fx[t,n]$((O_input_n[n] and ( not (O_output_n[n])))) = p.l[t,n]$((O_input_n[n] and ( not (O_output_n[n]))));
+p.fx[t,n]$((O_input_n[n] and ( not (O_endoP[n])))) = p.l[t,n]$((O_input_n[n] and ( not (O_endoP[n]))));
 Rrate.fx[t] = Rrate.l[t];
 tauCO2.fx[t,s,n]$((O_output[s,n] and dqCO2[s,n])) = tauCO2.l[t,s,n]$((O_output[s,n] and dqCO2[s,n]));
 qCO2.fx[t,s,n]$((O_output[s,n] and dqCO2[s,n])) = qCO2.l[t,s,n]$((O_output[s,n] and dqCO2[s,n]));
@@ -697,13 +697,13 @@ markup.fx[s]$(O_sm[s]) = markup.l[s]$(O_sm[s]);
 taxRevPar.fx[s]$(O_sm[s]) = taxRevPar.l[s]$(O_sm[s]);
 tauLump.fx[t,s]$(O_sm[s]) = tauLump.l[t,s]$(O_sm[s]);
 sigma.fx[s,n]$(W_kninp[s,n]) = sigma.l[s,n]$(W_kninp[s,n]);
-mu.fx[s,n,nn]$((W_map[s,n,nn] or W_endoMu[s,n,nn])) = mu.l[s,n,nn]$((W_map[s,n,nn] or W_endoMu[s,n,nn]));
+mu.fx[s,n,nn]$(((W_map[s,n,nn] and ( not (W_endoMu[s,n,nn]))) or W_endoMu[s,n,nn])) = mu.l[s,n,nn]$(((W_map[s,n,nn] and ( not (W_endoMu[s,n,nn]))) or W_endoMu[s,n,nn]));
 vA_tvc.fx[s]$(W_sm[s]) = vA_tvc.l[s]$(W_sm[s]);
 tauD.fx[t,s,n]$(W_input[s,n]) = tauD.l[t,s,n]$(W_input[s,n]);
 tauS.fx[t,s,n]$(W_output[s,n]) = tauS.l[t,s,n]$(W_output[s,n]);
 tauLump0.fx[t,s]$(W_sm[s]) = tauLump0.l[t,s]$(W_sm[s]);
 qS.fx[t,s,n]$(W_output[s,n]) = qS.l[t,s,n]$(W_output[s,n]);
-p.fx[t,n]$((W_input_n[n] and ( not (W_output_n[n])))) = p.l[t,n]$((W_input_n[n] and ( not (W_output_n[n]))));
+p.fx[t,n]$((W_input_n[n] and ( not (W_endoP[n])))) = p.l[t,n]$((W_input_n[n] and ( not (W_endoP[n]))));
 Rrate.fx[t] = Rrate.l[t];
 tauCO2.fx[t,s,n]$((W_output[s,n] and dqCO2[s,n])) = tauCO2.l[t,s,n]$((W_output[s,n] and dqCO2[s,n]));
 qCO2.fx[t,s,n]$((W_output[s,n] and dqCO2[s,n])) = qCO2.l[t,s,n]$((W_output[s,n] and dqCO2[s,n]));
@@ -717,13 +717,13 @@ markup.fx[s]$(W_sm[s]) = markup.l[s]$(W_sm[s]);
 taxRevPar.fx[s]$(W_sm[s]) = taxRevPar.l[s]$(W_sm[s]);
 tauLump.fx[t,s]$(W_sm[s]) = tauLump.l[t,s]$(W_sm[s]);
 sigma.fx[s,n]$(I_kninp[s,n]) = sigma.l[s,n]$(I_kninp[s,n]);
-mu.fx[s,n,nn]$((I_map[s,n,nn] or I_endoMu[s,n,nn])) = mu.l[s,n,nn]$((I_map[s,n,nn] or I_endoMu[s,n,nn]));
+mu.fx[s,n,nn]$(((I_map[s,n,nn] and ( not (I_endoMu[s,n,nn]))) or I_endoMu[s,n,nn])) = mu.l[s,n,nn]$(((I_map[s,n,nn] and ( not (I_endoMu[s,n,nn]))) or I_endoMu[s,n,nn]));
 vA_tvc.fx[s]$(I_sm[s]) = vA_tvc.l[s]$(I_sm[s]);
 tauS.fx[t,s,n]$(I_output[s,n]) = tauS.l[t,s,n]$(I_output[s,n]);
 tauLump.fx[t,s]$(I_sm[s]) = tauLump.l[t,s]$(I_sm[s]);
 tauD0.fx[t,s,n]$(I_input[s,n]) = tauD0.l[t,s,n]$(I_input[s,n]);
 qS.fx[t,s,n]$(I_output[s,n]) = qS.l[t,s,n]$(I_output[s,n]);
-p.fx[t,n]$((I_input_n[n] and ( not (I_output_n[n])))) = p.l[t,n]$((I_input_n[n] and ( not (I_output_n[n]))));
+p.fx[t,n]$((I_input_n[n] and ( not (I_endoP[n])))) = p.l[t,n]$((I_input_n[n] and ( not (I_endoP[n]))));
 Rrate.fx[t] = Rrate.l[t];
 markup.fx[s]$(I_sm[s]) = markup.l[s]$(I_sm[s]);
 taxRevPar.fx[s]$(I_sm[s]) = taxRevPar.l[s]$(I_sm[s]);
@@ -771,8 +771,8 @@ pD.lo[t,s,n]$(((O_int[s,n] or O_input[s,n]) or (O_dur[s,n] and txE[t]))) = -inf;
 pD.up[t,s,n]$(((O_int[s,n] or O_input[s,n]) or (O_dur[s,n] and txE[t]))) = inf;
 pS.lo[t,s,n]$(O_output[s,n]) = -inf;
 pS.up[t,s,n]$(O_output[s,n]) = inf;
-p.lo[t,n]$(((O_output_n[n] and tx0[t]) or (O_output_n[n] and t0[t]))) = -inf;
-p.up[t,n]$(((O_output_n[n] and tx0[t]) or (O_output_n[n] and t0[t]))) = inf;
+p.lo[t,n]$(((O_endoP[n] and tx0[t]) or (O_endoP[n] and t0[t]))) = -inf;
+p.up[t,n]$(((O_endoP[n] and tx0[t]) or (O_endoP[n] and t0[t]))) = inf;
 qD.lo[t,s,n]$(((O_int[s,n] or (O_input[s,n] and tx0[t]) or (O_dur[s,n] and tx0[t])) or (O_input[s,n] and t0[t]))) = -inf;
 qD.up[t,s,n]$(((O_int[s,n] or (O_input[s,n] and tx0[t]) or (O_dur[s,n] and tx0[t])) or (O_input[s,n] and t0[t]))) = inf;
 TotalTax.lo[t,s]$(((O_sm[s] and tx0E[t]) or (O_sm[s] and t0[t]))) = -inf;
@@ -787,8 +787,8 @@ pD.lo[t,s,n]$(((W_int[s,n] or W_input[s,n]) or (W_dur[s,n] and txE[t]))) = -inf;
 pD.up[t,s,n]$(((W_int[s,n] or W_input[s,n]) or (W_dur[s,n] and txE[t]))) = inf;
 pS.lo[t,s,n]$(W_output[s,n]) = -inf;
 pS.up[t,s,n]$(W_output[s,n]) = inf;
-p.lo[t,n]$(((W_output_n[n] and tx0[t]) or (W_output_n[n] and t0[t]))) = -inf;
-p.up[t,n]$(((W_output_n[n] and tx0[t]) or (W_output_n[n] and t0[t]))) = inf;
+p.lo[t,n]$(((W_endoP[n] and tx0[t]) or (W_endoP[n] and t0[t]))) = -inf;
+p.up[t,n]$(((W_endoP[n] and tx0[t]) or (W_endoP[n] and t0[t]))) = inf;
 qD.lo[t,s,n]$(((W_int[s,n] or (W_input[s,n] and tx0[t]) or (W_dur[s,n] and tx0[t])) or (W_input[s,n] and t0[t]))) = -inf;
 qD.up[t,s,n]$(((W_int[s,n] or (W_input[s,n] and tx0[t]) or (W_dur[s,n] and tx0[t])) or (W_input[s,n] and t0[t]))) = inf;
 TotalTax.lo[t,s]$(((W_sm[s] and tx0E[t]) or (W_sm[s] and t0[t]))) = -inf;
@@ -803,8 +803,8 @@ pD.lo[t,s,n]$((I_int[s,n] or I_input[s,n])) = -inf;
 pD.up[t,s,n]$((I_int[s,n] or I_input[s,n])) = inf;
 pS.lo[t,s,n]$(I_output[s,n]) = -inf;
 pS.up[t,s,n]$(I_output[s,n]) = inf;
-p.lo[t,n]$(((I_output_n[n] and tx0[t]) or (I_output_n[n] and t0[t]))) = -inf;
-p.up[t,n]$(((I_output_n[n] and tx0[t]) or (I_output_n[n] and t0[t]))) = inf;
+p.lo[t,n]$(((I_endoP[n] and tx0[t]) or (I_endoP[n] and t0[t]))) = -inf;
+p.up[t,n]$(((I_endoP[n] and tx0[t]) or (I_endoP[n] and t0[t]))) = inf;
 qD.lo[t,s,n]$(((I_int[s,n] or (I_input[s,n] and tx0[t])) or (I_input[s,n] and t0[t]))) = -inf;
 qD.up[t,s,n]$(((I_int[s,n] or (I_input[s,n] and tx0[t])) or (I_input[s,n] and t0[t]))) = inf;
 TotalTax.lo[t,s]$(((I_sm[s] and tx0E[t]) or (I_sm[s] and t0[t]))) = -inf;
