@@ -4,8 +4,8 @@ $MACRO stdNormPdf(x) exp(-sqr(x)/2)/(sqrt(2*Pi))
 $MACRO EOP_Logit(p, c, e) (1/(1+exp((c-p)/e)))
 $MACRO EOP_Normal(p, c, e) errorf((p-c)/e)
 $MACRO EOP_NormalMult(p, c, e) errorf((p/c-1)/e)
-$MACRO EOP_LogNorm(p, c, e) errorf(log(p/c)/e+e/2)
-$MACRO EOP_LogNormCost(p, c, e) c * errorf(log(p/c)/e-e/2)
+$MACRO EOP_LogNorm(p, c, e) errorf(log(p/c+1e-6)/e+e/2)
+$MACRO EOP_LogNormCost(p, c, e) c * errorf(log(p/c+1e-6)/e-e/2)
 
 $MACRO EOP_NormalCost(p, c, e) EOP_Normal(p, c, e)*c-e*stdNormPdf((p-c)/e)
 $MACRO EOP_NormalMultCost(p, c, e) c*(EOP_NormalMult(p, c, e)-e*stdNormPdf((p/c-1)/e))
@@ -44,11 +44,34 @@ $BLOCK B_{name}_calib
 $ENDBLOCK
 """
 
-# 3. Abatement with square adjustment costs: This block of equations is added to the EOP_Simple:
+# 3. Abatement with square adjustment costs:
+# Abated emissions and demand for abatement capital:
+def EOP_CapDemand(name, cost = 'techCost[t,s,tech]', addCosts = ''):
+	return f"""
+$BLOCK B_{name}
+	E_{name}_uAbate[t,s,n]$(dqCO2[s,n] and tx0E[t])..				uAbate[t,s,n]		=E= sum(tech$(dtech[s,tech]), techPot[t, s, tech] * @EOP_Tech(tauCO2[t,s,n], {cost}, techSmooth[t,s,tech]));
+	E_{name}_uAbateC[t,s,n,tech]$(dTechTau[s,n,tech] and tx0E[t])..	uAbateC[t,s,n,tech] =E= techPot[t,s,tech] * @EOP_Cost(tauCO2[t,s,n], {cost}, techSmooth[t,s,tech]);
+	E_{name}_avgAbateCost[t,s,n]$(dtauCO2[s,n] and txE[t]).. 		avgAbateCosts[t,s,n]=E= sum(tech$(dtech[s,tech]), uAbateC[t,s,n,tech]);
+	E_{name}_abateCosts[t,s,n]$(dtauCO2[s,n] and txE[t]).. 		abateCosts[t,s,n]	=E= avgAbateCosts[t,s,n]*uCO2[t,s,n]*qS[t,s,n]{addCosts};
+	E_{name}_tauCO2Eff[t,s,n]$(dtauCO2[s,n] and txE[t])..			tauEffCO2[t,s,n]	=E= tauCO2[t,s,n]*(1-uAbate[t,s,n])+avgAbateCosts[t,s,n];
+	E_{name}_tauCO2[t,s,n]$(dtauCO2[s,n] and txE[t])..				tauCO2[t,s,n]		=E= tauCO2agg[t] * tauDist[t,s,n];
+	E_{name}_qCO2[t,s,n]$(dqCO2[s,n] and txE[t])..					qCO2[t,s,n]			=E= uCO2[t,s,n] * (1-uAbate[t,s,n]) * qS[t,s,n];
+	E_{name}_qCO2agg[t]$(txE[t])..									qCO2agg[t]			=E= sum([s,n]$(dqCO2[s,n]), qCO2[t,s,n])-qCO2Base * @EOP_Tech(tauCO2agg[t], DACCost[t], DACSmooth[t]);
+$ENDBLOCK
+
+$BLOCK B_{name}_calibD
+	E_{name}_uAbatet0[t,s,n]$(dqCO2[s,n] and t0[t])..				uAbate[t,s,n]		=E= sum(tech$(dtech[s,tech]), techPot[t, s, tech] * @EOP_Tech(tauCO2[t,s,n], {cost}, techSmooth[t,s,tech]));
+	E_{name}_uAbateCt0[t,s,n,tech]$(dTechTau[s,n,tech] and t0[t])..	uAbateC[t,s,n,tech] =E= techPot[t,s,tech] * @EOP_Cost(tauCO2[t,s,n], {cost}, techSmooth[t,s,tech]);
+	E_{name}_qCO2calib[t,s,n]$(dqCO2[s,n] and txE[t])..	uCO2[t,s,n]	=E= uCO20[t,s,n] * (1+uCO2calib[s,n]);
+$ENDBLOCK
+"""
+
+
+# Cost and supply of abatement capital:
 def EOP_SqrAdjCosts(name):
 	return f""" 
 $BLOCK B_{name}_adjCost
-	E_{name}_qKd[t,s,tech]$(dtech[s,tech] and txE[t])..		pKEOP[t,s,tech]*qKEOP[t,s,tech]	=E= sum(n$(dTechTau[s,n,tech]), uCO2[t,s,n]*qS[t,s,n]*uAbateC[t,s,n,tech]); # demand for abatement capital
+	E_{name}_qKd[t,s,tech]$(dtech[s,tech] and tx0E[t])..	pKEOP[t,s,tech]*qKEOP[t,s,tech]	=E= sum(n$(dTechTau[s,n,tech]), uCO2[t,s,n]*qS[t,s,n]*uAbateC[t,s,n,tech]); # demand for abatement capital
 	E_{name}_techCost[t,s,tech]$(dtech[s,tech] and txE[t])..	techCost[t,s,tech]			=E= uKEOP[t,s,tech]*pKEOP[t,s,tech]; # technology cost index
 	E_{name}_LOM[t,s,tech]$(dtech[s,tech] and txE[t])..			qKEOP[t+1,s,tech]			=E= (qKEOP[t,s,tech]*(1-rDeprEOP[s,tech])+qIEOP[t,s,tech])/(1+g_LR); # Law of motion for abatement capital
 	E_{name}_pK[t,s,tech]$(dtech[s,tech] and tx02E[t])..		pKEOP[t,s,tech]				=E= sqrt(sqr(Rrate[t]*(1+adjCostParEOP[s,tech]*( (qIEOP[t-1,s,tech]+qKmin[t-1,s,tech]*(rDeprEOP[s,tech]+g_LR))/(qKEOP[t-1,s,tech]+qKmin[t-1,s,tech])-(rDeprEOP[s,tech]+g_LR)))/(1+infl_LR)+adjCostParEOP[s,tech]*0.5*(sqr(rDeprEOP[s,tech]+g_LR)-sqr((qIEOP[t,s,tech]+qKmin[t,s,tech]*(rDeprEOP[s,tech]+g_LR))/(qKEOP[t,s,tech]+qKmin[t,s,tech])))-(1-rDeprEOP[s,tech])*(1+adjCostParEOP[s,tech]*((qIEOP[t,s,tech]+qKmin[t,s,tech]*(rDeprEOP[s,tech]+g_LR))/(qKEOP[t,s,tech]+qKmin[t,s,tech])-(rDeprEOP[s,tech]+g_LR))))); # Tobin's Q for abatement capital
@@ -57,7 +80,8 @@ $BLOCK B_{name}_adjCost
 	E_{name}_divd[t,s,tech]$(dtech[s,tech] and txE[t])..		divdEOP[t,s,tech]			=E= pKEOP[t,s,tech]*qKEOP[t,s,tech]-qIEOP[t,s,tech]-(qKEOP[t,s,tech]+qKmin[t,s,tech])*adjCostParEOP[s,tech]*0.5*sqr((qIEOP[t,s,tech]+qKmin[t,s,tech]*(rDeprEOP[s,tech]+g_LR))/(qKEOP[t,s,tech]+qKmin[t,s,tech])-(rDeprEOP[s,tech]+g_LR));
 $ENDBLOCK
 
-$BLOCK B_{name}_calibK0
+$BLOCK B_{name}_calibS
+	E_{name}_pKEOPt0[t,s,tech]$(dtech[s,tech] and t0[t])..	pKEOP[t,s,tech]*qKEOP[t,s,tech]	=E= sum(n$(dTechTau[s,n,tech]), uCO2[t,s,n]*qS[t,s,n]*uAbateC[t,s,n,tech]);
 	E_{name}_qKEOPt0[t,s,tech]$(dtech[s,tech] and t0[t])..	pKEOP[t,s,tech]	=E= Rrate[t]+adjCostParEOP[s,tech]*0.5*(sqr(rDeprEOP[s,tech]+g_LR)-sqr((qIEOP[t,s,tech]+qKmin[t,s,tech]*(rDeprEOP[s,tech]+g_LR))/(qKEOP[t,s,tech]+qKmin[t,s,tech])))-(1-rDeprEOP[s,tech])*(1+adjCostParEOP[s,tech]*((qIEOP[t,s,tech]+qKmin[t,s,tech]*(rDeprEOP[s,tech]+g_LR))/(qKEOP[t,s,tech]+qKmin[t,s,tech])-(rDeprEOP[s,tech]+g_LR))); # Tobin's Q for abatement capital, t0
 $ENDBLOCK
 """
@@ -86,52 +110,23 @@ qKmin.l[t,s,tech]$(dtech[s,tech]) = qKminRate*techPot.l[t,s,tech] * techCost.l[t
 """
 
 
-# # 4. Abatement with minimum levels:
-# def EOP_SqrAdjCosts_Kwedge(name):
-# 	return f""" 
-# $BLOCK B_{name}_adjCost
-# 	E_{name}_qKd[t,s,tech]$(dtech[s,tech] and txE[t])..		pKEOP[t,s,tech]*(qKEOP[t,s,tech]+qKEOPwedge[t,s,tech])	=E= sum(n$(dTechTau[s,n,tech]), uCO2[t,s,n]*qS[t,s,n]*uAbateC[t,s,n,tech]); # demand for abatement capital
-# 	E_{name}_techCost[t,s,tech]$(dtech[s,tech] and txE[t])..	techCost[t,s,tech]			=E= uKEOP[t,s,tech]*pKEOP[t,s,tech]; # technology cost index
-# 	E_{name}_LOM[t,s,tech]$(dtech[s,tech] and txE[t])..			qKEOP[t+1,s,tech]			=E= (qKEOP[t,s,tech]*(1-rDeprEOP[s,tech])+qIEOP[t,s,tech])/(1+g_LR); # Law of motion for abatement capital
-# 	E_{name}_pK[t,s,tech]$(dtech[s,tech] and tx02E[t])..		pKEOP[t,s,tech]				=E= sqrt(sqr(Rrate[t]*(1+adjCostParEOP[s,tech]*( (qIEOP[t-1,s,tech]+qKmin[t-1,s,tech]*(rDeprEOP[s,tech]+g_LR))/(qKEOP[t-1,s,tech]+qKmin[t-1,s,tech])-(rDeprEOP[s,tech]+g_LR)))/(1+infl_LR)+adjCostParEOP[s,tech]*0.5*(sqr(rDeprEOP[s,tech]+g_LR)-sqr((qIEOP[t,s,tech]+qKmin[t,s,tech]*(rDeprEOP[s,tech]+g_LR))/(qKEOP[t,s,tech]+qKmin[t,s,tech])))-(1-rDeprEOP[s,tech])*(1+adjCostParEOP[s,tech]*((qIEOP[t,s,tech]+qKmin[t,s,tech]*(rDeprEOP[s,tech]+g_LR))/(qKEOP[t,s,tech]+qKmin[t,s,tech])-(rDeprEOP[s,tech]+g_LR))))); # Tobin's Q for abatement capital
-# 	E_{name}_pKT[t,s,tech]$(dtech[s,tech] and t2E[t])..			pKEOP[t,s,tech]				=E= sqrt(sqr(Rrate[t]*(1+adjCostParEOP[s,tech]*( (qIEOP[t-1,s,tech]+qKmin[t-1,s,tech]*(rDeprEOP[s,tech]+g_LR))/(qKEOP[t-1,s,tech]+qKmin[t-1,s,tech])-(rDeprEOP[s,tech]+g_LR)))/(1+infl_LR)+rDeprEOP[s,tech]-1)); # steady state approximation of Tobin's Q
-# 	E_{name}_Ktvc[t,s,tech]$(dtech[s,tech] and tE[t])..			qKEOP[t,s,tech]	 			=E= (1+KtvcEOP[s,tech])*qKEOP[t-1,s,tech]/(1+g_LR); # TVC condition for abatement capital
-# 	E_{name}_divd[t,s,tech]$(dtech[s,tech] and txE[t])..		divdEOP[t,s,tech]			=E= pKEOP[t,s,tech]*qKEOP[t,s,tech]-qIEOP[t,s,tech]-(qKEOP[t,s,tech]+qKmin[t,s,tech])*adjCostParEOP[s,tech]*0.5*sqr((qIEOP[t,s,tech]+qKmin[t,s,tech]*(rDeprEOP[s,tech]+g_LR))/(qKEOP[t,s,tech]+qKmin[t,s,tech])-(rDeprEOP[s,tech]+g_LR));
-# $ENDBLOCK
 
-# $BLOCK B_{name}_calibK0
-# 	E_{name}_qKEOPt0[t,s,tech]$(dtech[s,tech] and t0[t])..	pKEOP[t,s,tech]	=E= sqrt(sqr(Rrate[t]+adjCostParEOP[s,tech]*0.5*(sqr(rDeprEOP[s,tech]+g_LR)-sqr((qIEOP[t,s,tech]+qKmin[t,s,tech]*(rDeprEOP[s,tech]+g_LR))/(qKEOP[t,s,tech]+qKmin[t,s,tech])))-(1-rDeprEOP[s,tech])*(1+adjCostParEOP[s,tech]*((qIEOP[t,s,tech]+qKmin[t,s,tech]*(rDeprEOP[s,tech]+g_LR))/(qKEOP[t,s,tech]+qKmin[t,s,tech])-(rDeprEOP[s,tech]+g_LR))))); # Tobin's Q for abatement capital, t0
-# $ENDBLOCK
-# """
+# 4. Abatement with square adjustment costs and technologies that may be applied in more than one sector
+def EOP_SqrAdjCosts(name):
+	return f""" 
+$BLOCK B_{name}_adjCost
+	E_{name}_qKd[t,tech]$(dTechActive[t, tech] and tx0E[t])..		pKEOP[t,tech] * qKEOP[t,tech] =E= sum([s,n]$(dTechTau[s,n,tech]), uCO2[t,s,n]*qS[t,s,n]*uAbate[t,s,n,tech]); # demand for abatement capital
+	E_{name}_techCost[t,tech]$(dTechActive[t,tech] and txE[t])..	techCost[t,tech]=E= uKEOP[t,tech] * pKEOP[t,tech]; # technology cost index
+	E_{name}_LOM[t,tech]$(dTechActive[t,tech] and txE[t])..			qKEOP[t+1,tech]	=E= (qKEOP[t,tech]*(1-rDeprEOP[tech])+qIEOP[t,tech])/(1+g_LR); # Law of motion for abatement capital
+	E_{name}_pK[t,tech]$(dTechActive[t,tech] and tx02E[t])..		pKEOP[t,tech]	=E= sqrt(sqr(Rrate[t]*(1+adjCostParEOP[tech]*( (qIEOP[t-1,tech]+qKmin[t-1,tech]*(rDeprEOP[tech]+g_LR))/(qKEOP[t-1,tech]+qKmin[t-1,tech])-(rDeprEOP[tech]+g_LR)))/(1+infl_LR)+adjCostParEOP[tech]*0.5*(sqr(rDeprEOP[tech]+g_LR)-sqr((qIEOP[t,tech]+qKmin[t,tech]*(rDeprEOP[tech]+g_LR))/(qKEOP[t,tech]+qKmin[t,tech])))-(1-rDeprEOP[tech])*(1+adjCostParEOP[tech]*((qIEOP[t,tech]+qKmin[t,tech]*(rDeprEOP[tech]+g_LR))/(qKEOP[t,tech]+qKmin[t,tech])-(rDeprEOP[tech]+g_LR))))); # Tobin's Q for abatement capital
+	E_{name}_pKT[t,tech]$(dTechActive[t,tech] and t2E[t])..			pKEOP[t,tech]	=E= sqrt(sqr(Rrate[t]*(1+adjCostParEOP[tech]*( (qIEOP[t-1,tech]+qKmin[t-1,tech]*(rDeprEOP[tech]+g_LR))/(qKEOP[t-1,tech]+qKmin[t-1,tech])-(rDeprEOP[tech]+g_LR)))/(1+infl_LR)+rDeprEOP[tech]-1)); # steady state approximation of Tobin's Q
+	E_{name}_Ktvc[t,tech]$(dTechActive[t,tech] and tE[t])..			qKEOP[t,tech]	=E= (1+KtvcEOP[tech])*qKEOP[t-1,tech]/(1+g_LR); # TVC condition for abatement capital
+	E_{name}_divdTech[t,tech]$(dTechActive[t,tech] and txE[t])..	divdEOPtech[t,tech] =E= pKEOP[t,tech]*qKEOP[t,tech]-qIEOP[t,tech]-(qKEOP[t,tech]+qKmin[t,tech])*adjCostParEOP[tech]*0.5*sqr((qIEOP[t,tech]+qKmin[t,tech]*(rDeprEOP[tech]+g_LR))/(qKEOP[t,tech]+qKmin[t,tech])-(rDeprEOP[tech]+g_LR));
+	E_{name}_divd[t,s,tech]$(dtech[s,tech] and dTechActive[t,tech] and txE[t])..	divdEOP[t,s,tech] * pKEOP[t,tech] * qKEOP[t,tech] =E= divdEOPtech * sum(n$(dTechTau[s,n,tech]), uCO2[t,s,n]*qS[t,s,n]*uAbateC[t,s,n,tech]) 
+$ENDBLOCK
 
-# init_SqrAdjCosts_Kwedge = f"""
-# uAbateC.l[t,s,n,tech]$(dTechTau[s,n,tech]) = techPot.l[t,s,tech] * @EOP_Cost(tauCO2.l[t,s,n], techCost.l[t,s,tech], techSmooth.l[t,s,tech]);
-# qKEOPwedge.l[t,s,tech]$(dtech[s,tech]) = techPot.l[t,s,tech] * @EOP_Cost(0, techCost.l[t,s,tech], techSmooth.l[t,s,tech]);
-# pKEOP.l[t,s,tech]$(dtech[s,tech]) = Rrate.l[t]+rDeprEOP.l[s,tech]-1;
-# qKEOP.l[t,s,tech]$(dtech[s,tech]) = sum(n$(dTechTau[s,n,tech]), uCO2.l[t,s,n]*qS.l[t,s,n]*uAbateC.l[t,s,n,tech])/pKEOP.l[t,s,tech]-qKEOPwedge.l[t,s,tech];
-# qIEOP.l[t,s,tech]$(dtech[s,tech] and txE[t]) = (1+g_LR)*qKEOP.l[t+1,s,tech]+(rDeprEOP.l[s,tech]-1)*qKEOP.l[t,s,tech];
-# qKmin.l[t,s,tech]$(dtech[s,tech]) = qKminRate*techPot.l[t,s,tech] * techCost.l[t,s,tech] * sum(n$(dTechTau[s,n,tech]), uCO2.l[t,s,n] * qS.l[t,s,n]) / pKEOP.l[t,s,tech];
-# {EOPIte_PriceCalib}
-# """
-#
-#
-# # Mixing distributions:
-# def EOP_MixedDistr(name, cost = 'techCost[t,s,tech]', addCosts = ''):
-# 	return f"""
-# $BLOCK B_{name}
-# 	E_{name}_uAbate[t,s,n]$(dqCO2[s,n] and txE[t])..				uAbate[t,s,n]		=E= sum(tech$(dtech[s,tech]), techPot[t, s, tech] * (uTechUni * tauCO2[t,s,n]/(techCost[t,s,tech]*uniTechMax[t,s,tech]) +(1-uTechUni) * @EOP_Tech(tauCO2[t,s,n], {cost}, techSmooth[t,s,tech])));
-# 	E_{name}_uAbateC[t,s,n,tech]$(dTechTau[s,n,tech] and txE[t])..	uAbateC[t,s,n,tech] =E= techPot[t,s,tech] * (uTechUni*sqr(tauCO2[t,s,n]/techCost[t,s,tech])/(2*uniTechMax[t,s,tech]) + (1-uTechUni)*@EOP_Cost(tauCO2[t,s,n], {cost}, techSmooth[t,s,tech]));
-# 	E_{name}_avgAbateCost[t,s,n]$(dtauCO2[s,n] and txE[t]).. 		avgAbateCosts[t,s,n]=E= sum(tech$(dtech[s,tech]), uAbateC[t,s,n,tech]);
-# 	E_{name}_abateCosts[t,s,n]$(dtauCO2[s,n] and txE[t]).. 		abateCosts[t,s,n]	=E= avgAbateCosts[t,s,n]*uCO2[t,s,n]*qS[t,s,n]{addCosts};
-# 	E_{name}_tauCO2Eff[t,s,n]$(dtauCO2[s,n] and txE[t])..			tauEffCO2[t,s,n]	=E= tauCO2[t,s,n]*(1-uAbate[t,s,n])+avgAbateCosts[t,s,n];
-# 	E_{name}_tauCO2[t,s,n]$(dtauCO2[s,n] and txE[t])..				tauCO2[t,s,n]		=E= tauCO2agg[t] * tauDist[t,s,n];
-# 	E_{name}_qCO2[t,s,n]$(dqCO2[s,n] and txE[t])..					qCO2[t,s,n]			=E= uCO2[t,s,n] * (1-uAbate[t,s,n]) * qS[t,s,n];
-# 	E_{name}_qCO2agg[t]$(txE[t])..									qCO2agg[t]			=E= sum([s,n]$(dqCO2[s,n]), qCO2[t,s,n])-qCO2Base * @EOP_Tech(tauCO2agg[t], DACCost[t], DACSmooth[t]);
-# $ENDBLOCK
-
-# $BLOCK B_{name}_calib
-# 	E_{name}_qCO2calib[t,s,n]$(dqCO2[s,n] and txE[t])..	uCO2[t,s,n]	=E= uCO20[t,s,n] * (1+uCO2calib[s,n]);
-# $ENDBLOCK
-# """
-
-
+$BLOCK B_{name}_calibS
+	E_{name}_pKEOPt0[t,s,tech]$(dtech[s,tech] and t0[t])..	pKEOP[t,s,tech]*qKEOP[t,s,tech]	=E= sum(n$(dTechTau[s,n,tech]), uCO2[t,s,n]*qS[t,s,n]*uAbateC[t,s,n,tech]);
+	E_{name}_qKEOPt0[t,s,tech]$(dtech[s,tech] and t0[t])..	pKEOP[t,s,tech]	=E= Rrate[t]+adjCostParEOP[s,tech]*0.5*(sqr(rDeprEOP[s,tech]+g_LR)-sqr((qIEOP[t,s,tech]+qKmin[t,s,tech]*(rDeprEOP[s,tech]+g_LR))/(qKEOP[t,s,tech]+qKmin[t,s,tech])))-(1-rDeprEOP[s,tech])*(1+adjCostParEOP[s,tech]*((qIEOP[t,s,tech]+qKmin[t,s,tech]*(rDeprEOP[s,tech]+g_LR))/(qKEOP[t,s,tech]+qKmin[t,s,tech])-(rDeprEOP[s,tech]+g_LR))); # Tobin's Q for abatement capital, t0
+$ENDBLOCK
+"""

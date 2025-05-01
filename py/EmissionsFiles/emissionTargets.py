@@ -75,7 +75,7 @@ class EmissionTargets(GModel):
 		self.db = self.CGE.db
 
 	def initData(self):
-		self.db.aom(pd.Series(1e-4, index = self.db('t')), name = 'tauCO2agg0', priority = 'first')
+		self.db.aom(pd.Series(1e-3, index = self.db('t')), name = 'tauCO2agg0', priority = 'first')
 
 	# Initialize
 	def initStuff(self, gdx=True):

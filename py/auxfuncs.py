@@ -27,32 +27,32 @@ def extrapolateUpper(symbol, globalMax, rule = 'nearestNeighbor', level = 't'):
 		else:
 			return symbol
 
+def extrapolateLower(symbol, globalMin, rule = 'nearestNeighbor', level = 't'):
+	if isinstance(symbol.index, pd.MultiIndex):
+		df = symbol.unstack([k for k in symbol.index.names if k != level])
+		minLevel = df.index.min()
+		if minLevel>globalMin:
+			with warnings.catch_warnings():
+				warnings.filterwarnings("ignore", category = FutureWarning)
+				df = pd.concat([pd.DataFrame(None, index = pd.Index(range(globalMin, minLevel), name = level), columns = df.columns), df], axis = 0).bfill()
+				return df.stack([k for k in symbol.index.names if k != level]).reorder_levels(symbol.index.names)
+		else:
+			return symbol
+	else:
+		minLevel = symbol.index.min()
+		if minLevel>globalMin:
+			return pd.concat([pd.Series(symbol.xs(minLevel), index = pd.Index(range(globalMin,minLevel), name = level), name = symbol.name), symbol], axis = 0)
+		else:
+			return symbol
 
-# def extrapolateLower(symbol, globalMin, rule = 'nearestNeighbor', t = 't'):
-# 	""" Extrapolate symbol to years from minimum in symbol to globalMin """
-# 	_min = symbol.index.get_level_values(t).min()
-# 	if _min == globalMin:
-# 		return symbol
-# 	else:
-# 		if rule == 'nearestNeighbor':
-# 			applyToRange = pd.Index(range(globalMin, _min), name = t)
-# 			extrapolatedVals = adjMultiIndex.bc(symbol.xs(_min, level=t), applyToRange).reorder_levels(symbol.index.names) if isinstance(symbol.index, pd.MultiIndex) else pd.Series(symbol.xs(_min), index = applyToRange)
-# 			return pd.concat([extrapolatedVals, symbol], axis = 0)
-# 		else:
-# 			raise TypeError(f"Extrapolation rule '{rule}' is invalid. Choose 'nearestNeighbor' for now. ")
-
-# def extrapolateUpper(symbol, globalMax, rule = 'nearestNeighbor', t='t'):
-# 	""" Extrapolate symbol to years from max in symbol to globalMax """
-# 	_max = symbol.index.get_level_values(t).max()
-# 	if _max == globalMax:
-# 		return symbol
-# 	else:
-# 		if rule == 'nearestNeighbor':
-# 			applyToRange = pd.Index(range(_max+1, globalMax+1), name = t)
-# 			extrapolatedVals = adjMultiIndex.bc(symbol.xs(_max, level=t), applyToRange).reorder_levels(symbol.index.names) if isinstance(symbol.index, pd.MultiIndex) else pd.Series(symbol.xs(_max), index = applyToRange)
-# 			return pd.concat([symbol, extrapolatedVals], axis = 0)
-# 		else:
-# 			raise TypeError(f"Extrapolation rule '{rule}' is invalid. Choose 'nearestNeighbor' for now. ")
+def interpolateYears(s, t = 't', method = 'linear', limit_area = 'inside', **kwargs):
+	if isinstance(s.index, pd.MultiIndex):
+		domsxt = [n for n in s.index.names if n != t]
+		x = s.unstack(domsxt).astype(float)
+		xf = x.combine_first(pd.DataFrame(None, index = pd.Index(range(x.index.min(), x.index.max()), name = t), columns = x.columns))
+		return xf.interpolate(method = method, limit_area=limit_area, **kwargs).stack(level = domsxt, future_stack = True)
+	elif isinstance(s.index, pd.Index):
+		return s.astype(float).combine_first(pd.Series(None, index = pd.Index(range(s.index.min(), s.index.max()), name = t))).interpolate(method = method, limit_area=limit_area, **kwargs)
 
 # def interpolateBetweenTwoYears(symbol, t0, t1, rule = 'linear', t = 't', **kwargs):
 # 	fullDomain = symbol.xs(t0,level=t).index.union(symbol.xs(t1,level=t).index)

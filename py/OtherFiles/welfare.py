@@ -1,5 +1,6 @@
 from auxfuncs import *
 from gmsPython import Group, GModel
+from gmsPython.gmsWrite import Syms
 
 class HouseholdWelfare(GModel):
 	""" Define welfare measure as convex sum of households utility in baseline year."""
@@ -8,7 +9,7 @@ class HouseholdWelfare(GModel):
 		self.CGE = CGE
 		self.CGE.opt = active # If True --> use NLP solver to maximize welfare.
 		self.db = self.CGE.db
-		self.policy = policy 
+		self.policy = noneInit(policy, [])
 
 	def initStuff(self, gdx = True):
 		self.initData()
@@ -33,7 +34,7 @@ $ENDBLOCK
 		return Group(f'{self.name}_endo', v = ['Welfare'])
 	@property
 	def group_endoWhenActive(self):
-		return Group(f'{self.name}_endoWhenActive', v = noneInit(self.policy, []))
+		return Group(f'{self.name}_endoWhenActive', v = self.policy.copy())
 	@property
 	def group_exo(self):
 		return Group(f'{self.name}_exo',  v = [('welWeights', self.g('s_HH'))])
@@ -51,6 +52,93 @@ $ENDBLOCK
 	def unfixText(self, **kwargs):
 		text = self.groups[f'{self.name}_endo'].unfix(db = self.db)
 		return text if not self.CGE.opt else text+self.groups[f'{self.name}_endoWhenActive'].unfix(db=self.db)
+
+
+class HW_propPolicy(HouseholdWelfare):
+	def __init__(self, *args, policy = None, sumOuts = None, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.resetPolicies(policy = policy, sumOuts = sumOuts)
+
+	def resetPolicies(self, policy = None, sumOuts = None):
+		""" Add policies as list of tuples (as it would be added to the group definition)"""
+		self.policy, self.policy0, self.sumOuts = [], [], []
+		if policy:
+			sumOuts = noneInit(sumOuts, [None]*len(policy))
+			[self.addPolIte(policy[i][0], condition = policy[i][1], sumOut = sumOuts[i]) for i in range(len(policy))];
+
+	def addPolIte(self, pol, ite = None, condition = None, sumOut = None):
+		""" If ite = None, add new condition. If sumOut = None, set policy0[ite] to None (don't use) """
+		if ite is None:
+			self.policy.insert(len(self.policy), (pol, condition))
+			self.policy0.insert(len(self.policy0), self.addPol0Ite(pol, ite = len(self.policy0), condition = condition, sumOut = sumOut))
+		else:
+			self.policy[ite] = (pol, condition)
+			self.policy0[ite] = self.addPol0Ite(pol, ite = ite, condition = condition, sumOut = sumOut)
+
+	def addPol0Ite(self, pol, ite = None, condition = None, sumOut = None):
+		if (pyDatabases.getIndex(self.g(pol)) is None) or (sumOut is None):
+			return None
+		else:
+			subset = self.pol0subset(pol, condition = condition, sumOut = sumOut)
+			if subset is None:
+				self.db.aom(adj.rc_pd(self.get(pol), condition).mean(), name = f'{pol}_{ite}', priority = 'first')
+				return (f'{pol}_{ite}', None)
+			else:
+				self.db[f'd{pol}_{ite}'] = subset # add relevant subset to database
+				self.db.aom(adj.rc_pd(self.get(pol), condition).groupby(subset.names).mean(), name = f'{pol}_{ite}', priority='first')
+				return (f'{pol}_{ite}', self.g(f'd{pol}_{ite}'))
+
+	def pol0subset(self, pol, condition = None, sumOut = None):
+		idx = adj.rc_pd(self.get(pol), condition).index
+		if sumOut is None:
+			return idx
+		else:
+			if set(idx.names)-set(sumOut):
+				return idx.droplevel(sumOut).unique()
+			else:
+				return None
+
+	@property
+	def model_B(self):
+		if (any(self.policy0)) and (self.CGE.opt):
+			return OrdSet([f"B_{self.name}", f"B_{self.name}_propPolicy"])
+		else:
+			return OrdSet([f"B_{self.name}"])
+
+	def addPolEq(self, i):
+		if self.policy0[i] is None:
+			return ""
+		else:
+			pol, cond = self.g(self.policy[i][0]), self.policy[i][1]
+			pol0 = self.g(self.policy0[i][0])
+			return f"""E_{self.name}_{i}{Syms.gpyDomains(pol)}{Syms.gpyCondition(cond)}..	{Syms.gpy(pol0)} =E= {Syms.gpy(pol)};"""
+
+	@property
+	def addPolEqs(self):
+		eqText = "\n\t".join([self.addPolEq(i) for i in range(len(self.policy))])
+		if eqText:
+			return f"""
+$BLOCK B_{self.name}_propPolicy
+	{eqText}
+$ENDBLOCK
+"""
+		else:
+			return f""
+
+	@property
+	def equationText(self):
+		return f"""
+$BLOCK B_{self.name}
+	E_{self.name}_obj..	Welfare =E= sum([t,s]$(t0[t] and s_HH[s]), welWeights[s]*vU[t,s]);
+$ENDBLOCK
+{self.addPolEqs}
+"""
+
+	@property
+	def group_endoWhenActive(self):
+		g = super().group_endoWhenActive
+		g.v += [tup for tup in self.policy0 if tup is not None];
+		return g
 
 
 class ReportEV:

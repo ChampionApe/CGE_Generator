@@ -15,7 +15,7 @@ class AbateSimple(EmissionAccounts):
 		super().initData()
 		self.db.aom(pd.Series(0, index= cpi([self.db('txE'), self.get('dtauCO2')])), name = 'avgAbateCosts', priority='first')
 		self.db.aom(pd.Series(0, index= cpi([self.db('txE'), self.get('dtauCO2')])), name = 'abateCosts', priority='first')
-		self.db.aom(pd.Series(0, index= cpi([self.db('txE'), self.get('dTechTau')])), name = 'uAbateC', priority = 'first')
+		self.db.aom(pd.Series(0, index= self.get('dTechSN')), name = 'uAbateC', priority = 'first')
 		self.db.aom(pd.Series(0, index=self.db('uCO2').index), name='uAbate', priority='first')
 		self.db.aom(pd.Series(self.db('tauCO2agg').xs(self.db('t0')[0])/ 2, index = self.db('t')), name='DACSmooth', priority='first')
 		self.db.aom(pd.Series(.5, index = self.db('techPot').index), name='techSmooth', priority='first') # this for lognormal
@@ -31,12 +31,12 @@ class AbateSimple(EmissionAccounts):
 	@property
 	def group_alwaysExo(self):
 		g = super().group_alwaysExo
-		g.v += [('techPot', self.g('dtech')), ('techCost', self.g('dtech')), ('techSmooth', self.g('dtech')), 'DACCost', 'DACSmooth', 'qCO2Base', 'tauCO2agg']
+		g.v += [('techPot', self.g('dTechS')), ('techCost', self.g('dTechS')), ('techSmooth', self.g('dTechS')), 'DACCost', 'DACSmooth', 'qCO2Base', 'tauCO2agg']
 		return g
 	@property
 	def group_alwaysEndo(self):
 		g = super().group_alwaysEndo
-		g.v += [('uAbate', self.g('dqCO2')), ('uAbateC', self.g('dTechTau')), ('avgAbateCosts', self.g('dtauCO2')), ('abateCosts', self.g('dtauCO2'))]
+		g.v += [('uAbate', self.g('dqCO2')), ('uAbateC', self.g('dTechSN')), ('avgAbateCosts', self.g('dtauCO2')), ('abateCosts', self.g('dtauCO2'))]
 		return g
 
 class AbateCapital(AbateSimple):
@@ -52,21 +52,21 @@ class AbateCapital(AbateSimple):
 
 	def addCtype(self, ctype):
 		self.addProperty('ctype', ctype) # add specification of adjustment costs
-		self.addProperty('addCosts', """-sum(tech$(dtech[s,tech]), divdEOP[t,s,tech])""")
+		self.addProperty('addCosts', """-sum(tech$(dTechS[t,s,tech]), divdEOP[t,tech]*uEOP[t,s,tech])""")
 
 	def initData(self):
 		super().initData()
-		techIdx = cpi([self.get('t'), self.get('dtech')])
-		self.db.aom(pd.Series(.05, index = self.get('dtech')), name='rDeprEOP', priority='first')
-		self.db.aom(pd.Series(1, index = self.get('dtech')), name = 'adjCostParEOP', priority='first')
-		self.db.aom(pd.Series(self.get('g_LR'), index = self.get('dtech')), name = 'KtvcEOP', priority='first')
-		self.db.aom(pd.Series(0, index = techIdx), name = 'pKEOP', priority='first')
-		self.db.aom(pd.Series(1, index = techIdx), name = 'qKEOP', priority='first')
-		self.db.aom(pd.Series(0, index = techIdx), name = 'qIEOP', priority='first')
-		self.db.aom(pd.Series(0, index = techIdx), name = 'divdEOP', priority = 'first')
-		self.db.aom(self.get('techCost')/(stdSort(adjMultiIndex.applyMult(self.get('rDeprEOP'), techIdx))+self.get('Rrate')-1), name = 'uKEOP', priority='first')
-		self.db.aom(pd.Series(0, index = techIdx), name = 'qKmin', priority='first')
-		self.db.aom(.05, name = 'qKminRate', type = 'par', priority='first')
+		self.db.aom(pd.Series(.05, index = self.get('tech')), name='rDeprEOP', priority='first')
+		self.db.aom(pd.Series(1, index = self.get('tech')), name = 'adjCostParEOP', priority='first')
+		self.db.aom(pd.Series(self.get('g_LR'), index = self.get('tech')), name = 'KtvcEOP', priority='first')
+		self.db.aom(pd.Series(0, index = self.get('dTech')), name = 'qKmin', priority='first')
+		self.db.aom(.1, name = 'qKminRate', type = 'par', priority='first')
+		self.db.aom(pd.Series(0, index = self.get('dTech')), name = 'pKEOP', priority='first')
+		self.db.aom(pd.Series(1, index = self.get('dTech')), name = 'qKEOP', priority='first')
+		self.db.aom(pd.Series(0, index = self.get('dTech')), name = 'qIEOP', priority='first')
+		self.db.aom(pd.Series(0, index = self.get('dTech')), name = 'divdEOP', priority = 'first')
+		self.db.aom(pd.Series(1, index = self.get('dTechS')), name = 'uEOP', priority='first')
+		self.db.aom(stdSort((self.get('techCostEst')/(adjMultiIndex.bc(self.get('rDeprEOP'), self.get('t'))+self.get('Rrate')-1))), name = 'uKEOP')
 
 	@property
 	def model_B(self):
@@ -87,55 +87,20 @@ class AbateCapital(AbateSimple):
 	@property
 	def group_alwaysExo(self):
 		g = super().group_alwaysExo
-		g.v += [('rDeprEOP', self.g('dtech')), ('adjCostParEOP', self.g('dtech')), 'Rrate', ('KtvcEOP', self.g('dtech')), ('uKEOP', self.g('dtech')), ('qKmin', self.g('dtech'))]
-		g.sub_v += [('techCost', self.g('dtech'))]
+		g.v += ['rDeprEOP', 'adjCostParEOP', 'Rrate', 'KtvcEOP', ('uKEOP', self.g('dTech')), ('qKmin', self.g('dTech')), ('techCostEst', self.g('dTech'))]
+		g.sub_v += [('techCost', self.g('dTechS'))]
 		return g
 
 	@property
 	def group_alwaysEndo(self):
 		g = EmissionAccounts.group_alwaysEndo.__get__(self)
-		g.v += [('qKEOP', ('and', [self.g('dtech'), self.g('tx0')])), ('pKEOP', ('and', [self.g('dtech'), self.g('tx0')])), ('uAbate', ('and', [self.g('dqCO2'), self.g('tx0')])), ('uAbateC', ('and', [self.g('dTechTau'), self.g('tx0')])),
-				('qIEOP', self.g('dtech')), ('techCost', self.g('dtech')), ('divdEOP', self.g('dtech')),('avgAbateCosts', self.g('dtauCO2')), ('abateCosts', self.g('dtauCO2'))]
+		g.v += [('qKEOP', ('and', [self.g('dTech'), self.g('tx0')])), ('pKEOP', ('and', [self.g('dTech'), self.g('tx0')])), ('uAbate', ('and', [self.g('dqCO2'), self.g('tx0')])), ('uAbateC', ('and', [self.g('dTechSN'), self.g('tx0')])),
+				('qIEOP', self.g('dTech')), ('techCost', self.g('dTechS')), ('divdEOP', self.g('dTech')), ('uEOP',self.g('dTechS')), ('avgAbateCosts', self.g('dtauCO2')), ('abateCosts', self.g('dtauCO2'))]
 		return g
 
 	@property
 	def group_endoInCalib(self):
 		g = super().group_endoInCalib
-		g.v += [('qKEOP', ('and', [self.g('dtech'), self.g('t0')])), ('pKEOP', ('and', [self.g('dtech'), self.g('t0')])), ('uAbate', ('and', [self.g('dqCO2'), self.g('t0')])), ('uAbateC', ('and', [self.g('dTechTau'), self.g('t0')]))]
+		g.v += [('qKEOP', ('and', [self.g('dTech'), self.g('t0')])), ('pKEOP', ('and', [self.g('dTech'), self.g('t0')])), ('uAbate', ('and', [self.g('dqCO2'), self.g('t0')])), ('uAbateC', ('and', [self.g('dTechSN'), self.g('t0')]))]
 		return g
 
-
-class AbateCapital_KWedge(AbateCapital):
-	def __init__(self, name, ctype = 'SqrAdjCosts_Kwedge', **kwargs):
-		super().__init__(name, ctype = ctype, **kwargs)
-
-	def initData(self):
-		super().initData()
-		self.db.aom(pd.Series(0, index = cpi([self.get('t'), self.get('dtech')])), name = 'qKEOPwedge', priority='first')
-
-	@property
-	def group_alwaysExo(self):
-		g = super().group_alwaysExo
-		g.v += [('qKEOPwedge', self.g('dtech'))]
-		return g
-
-
-# class AbateCapitalMix(AbateCapital):
-# 	def __init__(self, name, **kwargs):
-# 		super().__init__(name, **kwargs)
-
-# 	def initData(self):
-# 		super().initData()
-# 		self.db.aom(.05, name = 'uTechUni', priority='first')
-# 		self.db.aom(200/self.get('techCost'), name = 'uniTechMax', priority='first')
-
-# 	@property
-# 	def textBlocks(self):
-# 		return {'emissions': gamsAbatement.EOP_MixedDistr(self.name, addCosts = self.addCosts),
-# 				'abateCapital': getattr(gamsAbatement, f'EOP_{self.ctype}')(self.name)}
-
-# 	@property
-# 	def group_alwaysExo(self):
-# 		g = super().group_alwaysExo
-# 		g.v += ['uTechUni', ('uniTechMax', self.g('dtech'))]
-# 		return g
