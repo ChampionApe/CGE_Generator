@@ -1,1 +1,1 @@
-from TradeFiles.smallOpen import Armington
+from TradeFiles.smallOpen import Armington, Armington_waste

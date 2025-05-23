@@ -1,6 +1,7 @@
 import pyDatabases, pandas as pd, numpy as np
 import warnings
 from pyDatabases import OrdSet, noneInit, adj, adjMultiIndex
+from functools import reduce
 
 _stdOrder = OrdSet(['t','s','ss','n','nn','taxTypes','gc'])
 def stdSort(symbol, order = None):

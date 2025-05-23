@@ -1,7 +1,7 @@
 import os
 
 # 1. Define household extensions:
-mHousehold = f"""from HouseholdFiles.ramsey import StaticNCES, StaticGHH, Ramsey, RamseyGHH"""
+mHousehold = f"""from HouseholdFiles.ramsey import StaticNCES, StaticGHH, StaticGHH_waste, Ramsey, RamseyGHH, RamseyGHH_waste"""
 
 from HouseholdFiles._writeClassExtensions import writeMain
 for k,v in writeMain.items():

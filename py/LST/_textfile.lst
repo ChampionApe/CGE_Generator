@@ -1,4 +1,0 @@
-ERROR!
-gamY could not process the file due to the following error:
-Failed to evaluate IF-condition: ¤percent¤techType¤percent¤ == 'normal'
-invalid character '¤' (U+00A4) (<string>, line 1)

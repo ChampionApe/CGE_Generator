@@ -4,7 +4,7 @@ from gmsPython import Group, GModel
 import TradeFiles.gamsTrade as gamsTrade
 
 class Armington(GModel):
-	def __init__(self, name, database, partial = False, dExport = None, **kwargs):
+	def __init__(self, name, database, partial = False, dExport = None, initFromGms = None, **kwargs):
 		super().__init__(name = name, database = database, **kwargs)
 		self.partial = partial # use module in partial or general equilibrium; this affects compilation of groups 
 		self.ns.update({k: f'{self.name}_{k}' for k in ('sm','dExport','nF','nD')})
@@ -13,6 +13,7 @@ class Armington(GModel):
 		self.db[self.n('nF')] = dom2for_subset.get_level_values('nn').rename('n') # foreign good types covered in the module
 		self.db[self.n('nD')] = dom2for_subset.get_level_values('n') # domestic good types included in the module
 		self.db[self.n('sm')] = self.get('dExport').get_level_values('s').unique() # relevant foreign sectors covered in this module
+		self.initFromGms = initFromGms
 
 	def initStuff(self, db = None, gdx = True):
 		if db is not None:
@@ -70,3 +71,38 @@ class Armington(GModel):
 	@property
 	def group_endoInCalib(self):
 		return Group(f'{self.name}_endoInCalib', v = [('Fscale', self.g('dExport')), ('tauLump', ('and', [self.g('sm'), self.g('t0')]))])
+
+	@property
+	def textInit(self):
+		return "" if self.initFromGms is None else getattr(gamsTrade, f'{self.initFromGms}')(self.name)
+
+class Armington_waste(Armington):
+	def initData(self):
+		super().initData()
+		self.db.aom(pd.Series(1, index = adj.rc_pd(self.get('dWS'), self.get('sm'))), name = 'Fscale_WI', priority='first')
+
+	@property
+	def textBlocks(self):
+		return super().textBlocks | {'wasteImports': gamsTrade.wasteImports(f'{self.name}_WI', self.name)}
+
+	@property
+	def model_B(self):
+		return super().model_B + OrdSet([f"B_{self.name}_WI"])
+
+	@property
+	def group_alwaysEndo(self):
+		g = super().group_alwaysEndo
+		g.v += [('qWS', ('and', [self.g('sm'), self.g('dWS'), self.g('tx0E')]))]
+		return g
+
+	@property
+	def group_endoInCalib(self):
+		g = super().group_endoInCalib
+		g.v += [('Fscale_WI', ('and', [self.g('dWS'), self.g('sm')]))]
+		return g
+
+	@property
+	def group_exoInCalib(self):
+		g = super().group_exoInCalib
+		g.v += [('qWS', ('and', [self.g('sm'), self.g('dWS'), self.g('t0')]))]
+		return g
