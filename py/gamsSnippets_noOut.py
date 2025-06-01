@@ -35,7 +35,7 @@ def CES_scaled(name, **kwargs):
 	return f"""
 $BLOCK B_{name}
 	{zp_input(name)}
-	E_{name}_q[t,s,n]$({name}_branch[s,n] and txE[t])..	qD[t,s,n] * qDnorm[t,s,n] =E= qDnorm[t,s,n] * sum(nn$({name}_map[s,nn,n]), mu[s,nn,n] * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn]);
+	E_{name}_q[t,s,n]$({name}_branch[s,n] and txE[t])..	qD[t,s,n] * sum(nn$({name}_map[s,nn,n]), qNorm[s,nn,n]) =E= sum(nn$({name}_map[s,nn,n]), qNorm[s,nn,n] * mu[s,nn,n] * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn]);
 $ENDBLOCK
 """
 

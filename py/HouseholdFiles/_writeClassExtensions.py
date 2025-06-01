@@ -45,7 +45,7 @@ class IdxFund:
 """
 
 # Update idxFundExt.py: Defines class extensions for a number of parent classes
-idxFundExt_parents = {k: f'{k}IdxFund' for k in ('StaticNCES','StaticGHH','StaticGHH_waste','Ramsey','RamseyGHH', 'RamseyGHH_waste')}
+idxFundExt_parents = {k: f'{k}IdxFund' for k in ('StaticNCES','StaticGHH','Ramsey','RamseyGHH')}
 idxFundExt_base = """from HouseholdFiles.ramsey import *"""
 IdxFundExt = f"""
 {idxFundExt_base}
