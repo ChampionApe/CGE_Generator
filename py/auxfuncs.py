@@ -10,23 +10,54 @@ def stdSort(symbol, order = None):
 	else:
 		return symbol
 
-def extrapolateUpper(symbol, globalMax, rule = 'nearestNeighbor', level = 't'):
-	if isinstance(symbol.index, pd.MultiIndex):
-		df = symbol.unstack([k for k in symbol.index.names if k != level])
-		maxLevel = df.index.max()
-		if maxLevel<globalMax:
-			with warnings.catch_warnings():
-				warnings.filterwarnings("ignore", category = FutureWarning)
-				df = pd.concat([df, pd.DataFrame(None, index = pd.Index(range(maxLevel+1, globalMax+1), name = level), columns = df.columns)], axis = 0).ffill()
-				return df.stack([k for k in symbol.index.names if k != level]).reorder_levels(symbol.index.names)
+def extrapolateUpper(symbol, globalMax, rule = 'nearestNeighbor', level = 't', gExp = None):
+	if rule == 'nearestNeighbor':
+		if isinstance(symbol.index, pd.MultiIndex):
+			df = symbol.unstack([k for k in symbol.index.names if k != level])
+			maxLevel = df.index.max()
+			if maxLevel<globalMax:
+				with warnings.catch_warnings():
+					warnings.filterwarnings("ignore", category = FutureWarning)
+					df = pd.concat([df, pd.DataFrame(None, index = pd.Index(range(maxLevel+1, globalMax+1), name = level), columns = df.columns)], axis = 0).ffill()
+					return df.stack([k for k in symbol.index.names if k != level]).reorder_levels(symbol.index.names)
+			else:
+				return symbol
 		else:
-			return symbol
-	else:
-		maxLevel = symbol.index.max()
-		if maxLevel<globalMax:
-			return pd.concat([symbol, pd.Series(symbol.xs(maxLevel), index = pd.Index(range(maxLevel+1,globalMax+1), name = level), name = symbol.name)], axis = 0)
+			maxLevel = symbol.index.max()
+			if maxLevel<globalMax:
+				return pd.concat([symbol, pd.Series(symbol.xs(maxLevel), index = pd.Index(range(maxLevel+1,globalMax+1), name = level), name = symbol.name)], axis = 0)
+			else:
+				return symbol
+	elif rule == 'exponential':
+		if isinstance(symbol.index, pd.MultiIndex):
+			df = symbol.unstack([k for k in symbol.index.names if k != level])
+			maxLevel = df.index.max()
+			if maxLevel<globalMax:
+				with warnings.catch_warnings():
+					warnings.filterwarnings("ignore", category = FutureWarning)
+					df = pd.concat([df, pd.DataFrame(None, index = pd.Index(range(maxLevel+1, globalMax+1), name = level), columns = df.columns)], axis = 0).ffill()
+					# last active year for relevant combinations:
+					maxLevel_i = symbol.reset_index().groupby([k for k in symbol.index.names if k != level]).max()[level]
+					# Adjust by growth factor:
+					minMax = maxLevel_i.min()
+					gf = pd.Series(1+gExp, index = pd.Index(range(minMax, globalMax+1), name = level))
+					gf = gf.pow(gf.index.to_series()-minMax)
+					df = pd.concat([adj.rc_pd(df, ('not', gf)), adj.rc_pd(df, gf).mul(gf,axis=0)], axis = 0)
+					# Compute difference between minMax and maxLevel_i and adjust accordingly:
+					adjustmentGF = pd.Series(1+gExp, index = maxLevel_i.index).pow(minMax-maxLevel_i)
+					df = pd.concat([adj.rc_pd(df, ('not', gf)), adj.rc_pd(df, gf).mul(adjustmentGF, axis = 1)], axis = 0)
+					return df.stack([k for k in symbol.index.names if k != level]).reorder_levels(symbol.index.names)
+			else:
+				return symbol
 		else:
-			return symbol
+			maxLevel = symbol.index.max()
+			if maxLevel<globalMax:
+				gf = pd.Series(1+gExp, index = pd.Index(range(maxLevel+1, globalMax+1), name = level))
+				gf = gf.pow(gf.index.to_series()-maxLevel)
+				return pd.concat([symbol, pd.Series(symbol.xs(maxLevel), index = pd.Index(range(maxLevel+1,globalMax+1), name = level) * gf, name = symbol.name)], axis = 0)
+			else:
+				return symbol
+
 
 def extrapolateLower(symbol, globalMin, rule = 'nearestNeighbor', level = 't'):
 	if isinstance(symbol.index, pd.MultiIndex):

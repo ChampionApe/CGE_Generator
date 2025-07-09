@@ -48,12 +48,12 @@ class StaticNCES(GModel):
 		self.db.aom(pd.Series(1, index = cpi([self.db('txE'), self.get('output').union(self.get('int'))])), name = 'pD', priority='first')
 		self.db.aom(pd.Series(2, index = self.get('sm')), name = 'crra', priority='second')
 		self.db.aom(pd.Series(1, index = cpi([self.db('txE'), self.get('sm')])), name = 'vU', priority = 'first')
-		self.db.aom(pd.Series(0,  index = self.get('sm')), name = 'vU_tvc', priority='first')
 		self.db.aom(pd.Series(0, index = cpi([self.db('t'), self.get('sm')])), name = 'vA', priority='first')
 		self.db.aom(pd.Series((1+self.get('g_LR'))**(self.get('crra'))/self.db('R_LR'), index = self.get('sm')), name = 'discF', priority='first')
 		self.db.aom(pd.Series(0, index = self.get('sm')), name = 'jTerm', priority='first')
 		self.db.aom(pd.Series(0,  index = self.get('sm')), name = 'taxRevPar')
 		self.db.aom((1+self.get('g_LR'))**(1-self.get('crra'))-1, name = 'gadj', priority = 'first')
+		self.db.aom((1+self.get('g_LR'))**(1-self.get('crra'))-1, name = 'vU_tvc', priority='first')
 		self.db.aom(self.get(self.taxInstr).copy(), name = f'{self.taxInstr}0')
 
 	@staticmethod

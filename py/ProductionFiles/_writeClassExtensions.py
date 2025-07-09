@@ -74,7 +74,7 @@ class MultOut:
 """
 
 # Update MultOutExt.py: Defines class extensions for a number of parent classes
-multOutExt_parents = {k: f'{k}_multOut' for k in ('StaticNCES','StaticNCES_emission', 'StaticNCES_emission','DynamicNCES','DynamicNCES_emission','DynamicNCES_emission')}
+multOutExt_parents = {k: f'{k}_multOut' for k in ('StaticNCES','StaticNCES_emission', 'StaticNCES_emission','DynamicNCES','DynamicNCES_emission','DynamicNCES_emission', 'DynamicNCES_emission_TP')}
 multOutExt_base = """from ProductionFiles.dynamicNCES import *"""
 MultOutExt = f"""
 {multOutExt_base}

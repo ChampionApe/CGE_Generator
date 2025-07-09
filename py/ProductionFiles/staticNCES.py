@@ -72,7 +72,7 @@ class StaticNCES(GModel):
 		return self.nestingBlocks | {'price': self.priceBlocks, 'firmValue': self.firmValueBlocks, 'taxCalib': self.taxCalibBlocks}
 	@property
 	def nestingBlocks(self):
-		return {name: getattr(gamsProduction, m.f)(name) for name, m in self.m.items()}
+		return {name: getattr(gamsProduction, m.f)(name, m = self.name) for name, m in self.m.items()}
 	@property
 	def priceBlocks(self):
 		return gamsProduction.priceBlock(f'{self.name}_price', self.name, addMarginal = self.addMarginal, addTax = self.addTax, addMargCostInp = self.addMargCostInp)

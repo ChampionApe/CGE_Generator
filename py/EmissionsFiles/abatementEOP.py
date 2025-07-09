@@ -57,7 +57,7 @@ class AbateCapital(AbateSimple):
 	def initData(self):
 		super().initData()
 		self.db.aom(pd.Series(.05, index = self.get('tech')), name='rDeprEOP', priority='first')
-		self.db.aom(pd.Series(1, index = self.get('tech')), name = 'adjCostParEOP', priority='first')
+		self.db.aom(pd.Series(5, index = self.get('tech')), name = 'adjCostParEOP', priority='first')
 		self.db.aom(pd.Series(self.get('g_LR'), index = self.get('tech')), name = 'KtvcEOP', priority='first')
 		self.db.aom(pd.Series(0, index = self.get('dTech')), name = 'qKmin', priority='first')
 		self.db.aom(.1, name = 'qKminRate', type = 'par', priority='first')

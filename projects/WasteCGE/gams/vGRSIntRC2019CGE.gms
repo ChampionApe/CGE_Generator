@@ -337,9 +337,9 @@ variables
 	WTD_gd0[t,m]
 	tauD0[t,s,n]
 	vU[t,s]
-	vU_tvc[s]
 	jTerm[s]
 	gadj[s]
+	vU_tvc[s]
 	tauS0[t,s,n]
 	Lscale[s]
 	qC[t,s]
@@ -645,9 +645,9 @@ $load WTD_ge0
 $load WTD_gd0
 $load tauD0
 $load vU
-$load vU_tvc
 $load jTerm
 $load gadj
+$load vU_tvc
 $load tauS0
 $load Lscale
 $load qC
@@ -795,7 +795,7 @@ E_P_adjCost_lom, E_P_adjCost_pk, E_P_adjCost_pkT, E_P_adjCost_K_tvc, E_P_adjCost
 EQUATION E_P_WS_pWext[t,s,m];
 E_P_WS_pWext[t,s,m]$(p_sm[s] and dws[s,m] and txe[t]).. 		pWext[t,s,m]	 =E=  (uWS_D[t,s,m] * (sum(n$(n2m_D[n,m]), pD[t,s,n])+sum(n$(dWTy[s,n]), uWTy[s,n] * pD[t,s,n])) + (1-uWS_D[t,s,m])* (sum(n$(n2m_F[n,m]), pD[t,s,n])+sum(n$(dWTyF[s,n]), uWTyF[s,n]*pD[t,s,n])));
 EQUATION E_P_WS_pW[t,s,n];
-E_P_WS_pW[t,s,n]$(p_sm[s] and dwsn[s,n] and txe[t]).. 		pW[t,s,n]		 =E=  sum(m$(dWSnm[s,n,m]), uWS[t,s,n,m] * ((1-(uWS_int[t,s,m]*intRcEff[t,s,m])$(dWS_int[s,m])) * pWext[t,s,m])-(uWS_int[t,s,m]*intRcEff[t,s,m])$(dWS_int[s,m])*sum(nn$(nr2m_D[nn,m]), p[t,n]));
+E_P_WS_pW[t,s,n]$(p_sm[s] and dwsn[s,n] and txe[t]).. 		pW[t,s,n]		 =E=  sum(m$(dWSnm[s,n,m]), uWS[t,s,n,m] * (((1-(uWS_int[t,s,m]*intRcEff[t,s,m])$(dWS_int[s,m])) * pWext[t,s,m])-(uWS_int[t,s,m]*intRcEff[t,s,m])$(dWS_int[s,m])*sum(nn$(nr2m_D[nn,m]), p[t,n])));
 EQUATION E_P_WS_qSR[t,s,n];
 E_P_WS_qSR[t,s,n]$(p_sm[s] and dqsr[s,n] and txe[t]).. 		qS[t,s,n]		 =E=  sum(m$(nr2m_D[n,m]), uWS_int[t,s,m]*intRcEff[t,s,m] * qWS[t,s,m] / (1-uWS_int[t,s,m]*intRcEff[t,s,m]));
 EQUATION E_P_WS_qWS[t,s,m];

@@ -1,2 +1,2 @@
 from ProductionFiles.dynamicNCES import InvestNCES
-from ProductionFiles.multOutExt import StaticNCES, StaticNCES_emission, DynamicNCES, DynamicNCES_emission, StaticNCES_multOut, StaticNCES_emission_multOut, DynamicNCES_multOut, DynamicNCES_emission_multOut, getStaticNCES, getDynamicNCES
+from ProductionFiles.multOutExt import StaticNCES, StaticNCES_emission, DynamicNCES, DynamicNCES_emission, DynamicNCES_emission_TP, StaticNCES_multOut, StaticNCES_emission_multOut, DynamicNCES_multOut, DynamicNCES_emission_multOut, DynamicNCES_emission_TP_multOut, getStaticNCES, getDynamicNCES

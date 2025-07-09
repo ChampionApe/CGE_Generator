@@ -339,9 +339,9 @@ variables
 	WTD_gd0[t,m]
 	tauD0[t,s,n]
 	vU[t,s]
-	vU_tvc[s]
 	jTerm[s]
 	gadj[s]
+	vU_tvc[s]
 	tauS0[t,s,n]
 	Lscale[s]
 	qC[t,s]
@@ -649,9 +649,9 @@ $load WTD_ge0
 $load WTD_gd0
 $load tauD0
 $load vU
-$load vU_tvc
 $load jTerm
 $load gadj
+$load vU_tvc
 $load tauS0
 $load Lscale
 $load qC
@@ -715,7 +715,7 @@ $ENDBLOCK
 
 $BLOCK B_P_WS
 	E_P_WS_pWext[t,s,m]$(P_sm[s] and dWS[s,m] and txE[t])..		pWext[t,s,m]	=E= (uWS_D[t,s,m] * (sum(n$(n2m_D[n,m]), pD[t,s,n])+sum(n$(dWTy[s,n]), uWTy[s,n] * pD[t,s,n])) + (1-uWS_D[t,s,m])* (sum(n$(n2m_F[n,m]), pD[t,s,n])+sum(n$(dWTyF[s,n]), uWTyF[s,n]*pD[t,s,n])));
-	E_P_WS_pW[t,s,n]$(P_sm[s] and dWSn[s,n] and txE[t])..		pW[t,s,n]		=E= sum(m$(dWSnm[s,n,m]), uWS[t,s,n,m] * ((1-(uWS_int[t,s,m]*intRcEff[t,s,m])$(dWS_int[s,m])) * pWext[t,s,m])-(uWS_int[t,s,m]*intRcEff[t,s,m])$(dWS_int[s,m])*sum(nn$(nr2m_D[nn,m]), p[t,n]));
+	E_P_WS_pW[t,s,n]$(P_sm[s] and dWSn[s,n] and txE[t])..		pW[t,s,n]		=E= sum(m$(dWSnm[s,n,m]), uWS[t,s,n,m] * (((1-(uWS_int[t,s,m]*intRcEff[t,s,m])$(dWS_int[s,m])) * pWext[t,s,m])-(uWS_int[t,s,m]*intRcEff[t,s,m])$(dWS_int[s,m])*sum(nn$(nr2m_D[nn,m]), p[t,n])));
 	E_P_WS_qSR[t,s,n]$(P_sm[s] and dqSR[s,n] and txE[t])..		qS[t,s,n]		=E= sum(m$(nr2m_D[n,m]), uWS_int[t,s,m]*intRcEff[t,s,m] * qWS[t,s,m] / (1-uWS_int[t,s,m]*intRcEff[t,s,m]));
 	E_P_WS_qWS[t,s,m]$(P_sm[s] and dWS[s,m] and txE[t])..						qWS[t,s,m]	=E= sum(n$(dWSnm[s,n,m]), uWS[t,s,n,m] * qD[t,s,n]); # Total waste generation, domestic firms
 	E_P_WS_qDWTD[t,s,n]$(P_sm[s] and dWTn[s,n] and nw_D[n] and txE[t])..		qD[t,s,n]	=E= sum(m$(n2m[n,m]), uWS_D[t,s,m] * qWS[t,s,m]); # waste management demand, domestic treatment
@@ -843,7 +843,7 @@ $BLOCK B_C_price
 $ENDBLOCK
 
 $BLOCK B_C_vU
-	E_C_vU_qC[t,s]$(C_sm[s] and txE[t])..	qC[t,s]		=E= sum([n,nn]$(C_L2C[s,n,nn]), qD[t,s,nn]-frisch[s]*Lscale[s]*(qS[t,s,n]/Lscale[s])**((1+frisch[s])/frisch[s])/(1+frisch[s]));	
+	E_C_vU_qC[t,s]$(C_sm[s] and txE[t])..	qC[t,s]		=E= sum([n,nn]$(C_L2C[s,n,nn]), qD[t,s,nn]-frisch[s]*Lscale[s]*(qS[t,s,n]/Lscale[s])**((1+frisch[s])/frisch[s])/(1+frisch[s]));
 	E_C_vU_vU[t,s]$(C_sm[s] and txE[t])..	vU[t,s]		=E= (qC[t,s]**(1-crra[s]))/(1-crra[s])+(1+gadj[s])*discF[s]*vU[t+1,s];
 	E_C_vU_vUT[t,s]$(C_sm[s] and tE[t])..	vU[t,s]		=E= vU[t-1,s]*(1+vU_tvc[s])/(1+gadj[s]);
 	E_C_vU_qL[t,s,n]$(C_L[s,n] and txE[t]).. qS[t,s,n]	=E= Lscale[s] * sum(nn$(C_L2C[s,n,nn]), pS[t,s,n]/pD[t,s,nn])**(frisch[s]);

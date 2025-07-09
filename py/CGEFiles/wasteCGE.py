@@ -13,10 +13,10 @@ class WasteCGE(CGE_base):
 	def stdInvestment(self, tree, cl = 'getStaticNCES', taxInstr = 'tauD', partial = True, initFromGms = 'initFirmValueBlock', **kwargs):
 		return self.addProduction(cl, tree, taxInstr = taxInstr, partial = partial, initFromGms = initFromGms, **kwargs)
 
-	def stdHousehold(self, tree, L2C, cl = 'StaticNCES', taxInstr = 'tauS', incInstr = 'vA0', partial = True, initFromGms = 'init_vU', **kwargs):
+	def stdHousehold(self, tree, L2C, cl = 'StaticNCES', taxInstr = 'tauS', incInstr = 'jTerm', partial = True, initFromGms = 'init_vU', **kwargs):
 		return self.addHousehold(cl, tree, L2C = L2C, properties = {'taxInstr': taxInstr, 'incInstr': incInstr}, partial = partial, initFromGms = initFromGms, **kwargs)
 
-	def stdGovernment(self, tree, cl = 'SimplePolicy_tx0', taxInstr = 'tauLump', incInstr = 'vA0', partial = True, **kwargs):
+	def stdGovernment(self, tree, cl = 'SimplePolicy_tx0', taxInstr = 'tauLump', incInstr = 'jTerm', partial = True, **kwargs):
 		return self.addGovernment(cl, tree, partial = partial, properties = {'taxInstr': taxInstr, 'incInstr': incInstr}, polInstr = 'tauLump', polCond = self.g('s_HH'), **kwargs)
 
 	def stdTrade(self, name, cl = 'Armington', **kwargs):
@@ -64,7 +64,7 @@ class WasteManagementCGE(CGE_base):
 	def stdHousehold(self, tree, L2C, cl = 'RamseyGHH_WG', taxInstr='tauS', incInstr = 'jTerm', partial = True, initFromGms = 'init_GHH_vU', **kwargs):
 		return self.addFromNest(mWaste, cl, tree, L2C = L2C, properties = {'taxInstr': taxInstr, 'incInstr': incInstr}, partial = partial, initFromGms = initFromGms, **kwargs)
 
-	def stdGovernment(self, tree, cl = 'SimplePolicy_tx0', taxInstr = 'tauLump', incInstr = 'vA0', partial = True, **kwargs):
+	def stdGovernment(self, tree, cl = 'SimplePolicy_tx0', taxInstr = 'tauLump', incInstr = 'jTerm', partial = True, **kwargs):
 		return self.addGovernment(cl, tree, partial = partial, properties = {'taxInstr': taxInstr, 'incInstr': incInstr}, polInstr = 'tauLump', polCond = self.g('s_HH'), **kwargs)
 
 	def stdTrade(self, name, cl = 'Armington_waste', initFromGms = 'initArmingtonWasteParams', **kwargs):

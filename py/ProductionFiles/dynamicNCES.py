@@ -1,9 +1,5 @@
 from ProductionFiles.staticNCES import *
 
-# def DynamicNCES(tree, extension = 'base', **kwargs):
-# 	""" Convenience function to initialize classes based on 'extension' """
-# 	return globals()[f'DynamicNCES_{extension}'](tree, **kwargs)
-
 class DynamicNCES(StaticNCES):
 	def __init__(self, tree, adjCosts = True, **kwargs):
 		super().__init__(tree, **kwargs)
@@ -96,10 +92,11 @@ class DynamicNCES_emission(StaticNCES_emission):
 		self.db[self.n('input')] = self.get('input').difference(self.get('dur')).union(self.get('inv'))
 		self.db[self.n('input_n')] = self.get('input').levels[-1]
 
-	def initStuff(self, db = None, gdx = True):
+	def initStuff(self, db = None, gdx = True, addDurables = True):
 		if db is not None:
 			MergeDbs.merge(self.db, db)
-		self.addDurables()
+		if addDurables:
+			self.addDurables()
 		self.initData()
 		self.initGroups()
 		if gdx:
@@ -109,7 +106,7 @@ class DynamicNCES_emission(StaticNCES_emission):
 		super().initData()
 		self.db.aom(pd.Series(self.get('g_LR'),  index = self.get('dur')), name = 'K_tvc', priority='first') # tvc condition for durables
 		if self.adjCosts:
-			self.db.aom(pd.Series(1,  index = self.get('dur')), name = 'adjCostPar', priority = 'first') # parameter in investment cost function
+			self.db.aom(pd.Series(5,  index = self.get('dur')), name = 'adjCostPar', priority = 'first') # parameter in investment cost function
 			self.db.aom(pd.Series(0,  index = cpi([self.db('txE'), self.get('sm')]), name = 'adjCost'), priority='first') # adjustment costs
 	
 	def addAdjCosts(self, adjCosts):
@@ -141,5 +138,44 @@ class DynamicNCES_emission(StaticNCES_emission):
 		g.v += [('qD', ('and', [self.g('dur'), self.g('tx0')])), ('pD', ('and', [self.g('dur'), self.g('txE')]))]
 		if self.adjCosts:
 			g.v += [('adjCost', ('and', [self.g('sm'), self.g('txE')]))]
+		return g
+
+
+
+class DynamicNCES_emission_TP(DynamicNCES_emission):
+	""" Target Profits (TP) by modeling share parameters on durables as an AR(1) series."""
+	def __init__(self, tree, sAdjMu = None, **kwargs):
+		super().__init__(tree, **kwargs)
+		self.ns['sAdjMu'] = f'{self.name}_sAdjMu'
+		self.db[self.n('sAdjMu')] = noneInit(sAdjMu, self.get('sm'))
+
+	def initData(self):
+		super().initData()
+		self.db.aom(pd.Series(0, index = cpi([self.db('txE'), self.get('sm')])), name = 'adjMu', priority='first')
+		self.db.aom(pd.Series(0.5, index = self.get('sm')), name = 'productionAR', priority='first')
+
+	@property
+	def model_C(self):
+		return super().model_C+OrdSet([f"B_{self.name}_TPCalib"])
+
+	@property
+	def textBlocks(self):
+		return super().textBlocks | {'TPCalib': self.targetProfitsCalib}
+	@property
+	def targetProfitsCalib(self):
+		return gamsProduction.targetProfitsCalib(f'{self.name}_TPCalib', self.name)
+
+	@property
+	def group_alwaysExo(self):
+		g = super().group_alwaysExo
+		g.v += [('productionAR', self.g('sm')), ('markup', self.g('sAdjMu')), ('adjMu', self.g('sm'))]
+		g.sub_v += [('adjMu', self.g('sAdjMu'))]
+		return g
+	
+	@property
+	def group_endoInCalib(self):
+		g = super().group_endoInCalib
+		g.sub_v += [('markup', self.g('sAdjMu'))]
+		g.v += [('adjMu', self.g('sAdjMu'))]
 		return g
 

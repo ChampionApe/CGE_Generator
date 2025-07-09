@@ -46,7 +46,7 @@ vU.l[t,s]$({m}_sm[s] and tE[t])  = vU.l[t-1,s];
 def CRRA_GHH_vU(name, m):
 	return f"""
 $BLOCK B_{name}
-	E_{name}_qC[t,s]$({m}_sm[s] and txE[t])..	qC[t,s]		=E= sum([n,nn]$({m}_L2C[s,n,nn]), qD[t,s,nn]-frisch[s]*Lscale[s]*(qS[t,s,n]/Lscale[s])**((1+frisch[s])/frisch[s])/(1+frisch[s]));	
+	E_{name}_qC[t,s]$({m}_sm[s] and txE[t])..	qC[t,s]		=E= sum([n,nn]$({m}_L2C[s,n,nn]), qD[t,s,nn]-frisch[s]*Lscale[s]*(qS[t,s,n]/Lscale[s])**((1+frisch[s])/frisch[s])/(1+frisch[s]));
 	E_{name}_vU[t,s]$({m}_sm[s] and txE[t])..	vU[t,s]		=E= (qC[t,s]**(1-crra[s]))/(1-crra[s])+(1+gadj[s])*discF[s]*vU[t+1,s];
 	E_{name}_vUT[t,s]$({m}_sm[s] and tE[t])..	vU[t,s]		=E= vU[t-1,s]*(1+vU_tvc[s])/(1+gadj[s]);
 	E_{name}_qL[t,s,n]$({m}_L[s,n] and txE[t]).. qS[t,s,n]	=E= Lscale[s] * sum(nn$({m}_L2C[s,n,nn]), pS[t,s,n]/pD[t,s,nn])**(frisch[s]);

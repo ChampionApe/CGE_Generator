@@ -53,3 +53,15 @@ $BLOCK B_{name}
 	E_{name}_taxCal[t,s,n]$({m}_input[s,n] and txE[t])..	tauD[t,s,n]	=E= tauD0[t,s,n]+taxRevPar[s];
 $ENDBLOCK
 """
+
+############################################################
+################	3. GovPolicy_xGovNCES	################
+############################################################
+
+# Balance budget without provision of government services:
+def BBxGovNCS(name):
+	return f"""
+$BLOCK B_{name}_BB
+	E_{name}_bb[t]$(txE[t])..	jTermGov =E= sum(ss$(d_TotalTax[ss]), TotalTax[t,ss]);
+$ENDBLOCK
+"""

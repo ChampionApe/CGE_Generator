@@ -27,7 +27,7 @@ class Ramsey(StaticNCES):
 		return super().textBlocks | {'Euler': self.EulerBlocks}
 	@property
 	def EulerBlocks(self):
-		return gamsHouseholds.CRRA_Euler(f'{self.name}_Euler', self.name)	
+		return gamsHouseholds.CRRA_Euler(f'{self.name}_Euler', self.name)
 
 	# Groups
 	@property

@@ -2,6 +2,137 @@ from auxfuncs import *
 from gmsPython import Group, GModel
 from gmsPython.gmsWrite import Syms
 
+class HWPolicyRules(GModel):
+	""" HouseholWelfare with some standard structures on policy. Currently two types of policy rules: Proportional and trends."""
+	def __init__(self, name, CGE, active = True, **kwargs):
+		super().__init__(name = name, database = CGE.db, **kwargs)
+		self.CGE = CGE
+		self.CGE.opt = active # If True --> use NLP solver to maximize welfare.
+		self.db = self.CGE.db
+		self.policy = {}
+		self.instr = {}
+
+	def initStuff(self, gdx = True):
+		self.initData()
+		self.initGroups()
+		if gdx:
+			self.db.mergeInternal()
+
+	def initData(self):
+		self.db.aom(0, name = 'Welfare', priority='first') # welfare objective
+		self.db.aom(pd.Series(1, index = self.db('s_HH')), name = 'welWeights', priority='first')
+
+	@property
+	def equationText(self):
+		return self.equationWelfare+self.equationPolicyRules
+
+	@property
+	def equationWelfare(self):
+		return f"""
+$BLOCK B_{self.name}
+	E_{self.name}_obj..	Welfare =E= sum([t,s]$(t0[t] and s_HH[s]), welWeights[s]*vU[t,s]);
+$ENDBLOCK
+"""
+
+	@property
+	def equationPolicyRules(self):
+		eqText = "\n\t".join([polDict['text'] for polDict in self.policy.values()])
+		if eqText:
+			return f"""
+$BLOCK B_{self.name}_PolicyRules
+	{eqText}
+$ENDBLOCK
+"""
+		else:
+			return f""
+
+	@property
+	def model_B(self):
+		if self.policy and (self.CGE.opt):
+			return OrdSet([f"B_{self.name}", f"B_{self.name}_PolicyRules"])
+		else:
+			return OrdSet([f"B_{self.name}"])
+	@property
+	def textBlocks(self):
+		return {'main': self.equationText}
+
+	@property
+	def group_alwaysEndo(self):
+		return Group(f'{self.name}_endo', v = ['Welfare'])
+	@property
+	def group_endoWhenActive(self):
+		return Group(f'{self.name}_endoWhenActive', v = [(d['name'], d['cond']) for d in self.policy.values()]+[(d['name'], d['cond']) for d in self.instr.values()])
+	@property
+	def group_exo(self):
+		return Group(f'{self.name}_exo',  v = [('welWeights', self.g('s_HH'))])
+	def modelName(self, state = 'B'):
+		return '_'.join(['M',self.name])
+
+
+	def fixText(self, **kwargs):
+		text = self.groups[f'{self.name}_exo'].fix(db = self.db)
+		return text if self.CGE.opt else text+self.groups[f'{self.name}_endoWhenActive'].fix(db=self.db)
+	def unfixText(self, **kwargs):
+		text = self.groups[f'{self.name}_endo'].unfix(db = self.db)
+		return text if not self.CGE.opt else text+self.groups[f'{self.name}_endoWhenActive'].unfix(db=self.db)
+
+	def addRule_free(self, eqId, pol, cond = None, **kwargs):
+		self.policy[eqId] = {'name': pol, 'cond': cond, 'type': 'free', 'text': ""}
+
+	def addRule_addProp(self, eqId, pol, cond = None, instrDomains = None, **kwargs):
+		self.policy[eqId] = {'name': pol, 'cond': cond, 'instr': [None]*len(instrDomains), 'type': 'addProp'}
+		fInstrName = lambda instrDom: f"""{eqId}_flat""" if instrDom is None else f"""{eqId}_{''.join(instrDom)}"""
+		for i in range(len(instrDomains)):
+			instrId = fInstrName(instrDomains[i])
+			self.addInstrFromDomains(instrId, pol, instrDomains[i], cond = cond)
+			self.initLoadFactors(instrId, pol, instrDomains[i], cond = cond)
+			self.policy[eqId]['instr'][i] = instrId
+		self.policy[eqId]['text'] = self.eq_addProp(eqId)
+
+	def addRule_AR1(self, eqId, pol, cond = None, **kwargs):
+		self.policy[eqId] = {'name': pol, 'cond': cond, 'type': 'AR1'}
+		self.initLoadFactors(eqId, pol, None, cond = cond)
+		self.policy[eqId]['text'] = self.eq_AR1(eqId)
+
+	def addInstrFromDomains(self, instrId, pol, domains, cond = None):
+		self.instr[instrId] = {'name': instrId}
+		dummy = self.instrIdxFromDomains(pol, domains, cond = cond) # dummy 
+		if dummy is None:
+			self.instr[instrId]['cond'] = None # if None --> the instrument is a scalar, no condition 
+			self.db.aom(adj.rc_pd(self.get(pol), cond).mean(), name = instrId, priority = 'first') # If None --> initialize instrument value as mean over relevant policy
+		else:
+			self.db[f'd{instrId}'] = dummy # relevant domain for instrument
+			self.instr[instrId]['cond'] = self.g(f'd{instrId}') # add as condition
+			self.db.aom(adj.rc_pd(self.get(pol), cond).groupby(domains).mean(), name = instrId, priority = 'first')
+
+	def initLoadFactors(self, instrId, pol, domains, cond = None):
+		idx = adj.rc_pd(self.get(pol), cond).index # full index
+		if domains is None:
+			self.db.aom(pyDatabases.gpy(pd.Series(1, index = idx, name = f'LF{instrId}'), type = 'par'), priority='first')
+		elif set(idx.names)-set(domains):
+			self.db.aom(pyDatabases.gpy(pd.Series(1, index = idx.droplevel(domains).unique(), name = f'LF{instrId}'), type = 'par'), priority='first')
+		else:
+			self.db.aom(pyDatabases.gpy(1, name = f'LF{instrId}', type = 'par'), priority='first')
+
+	def instrIdxFromDomains(self, pol, domains, cond = None):
+		""" If domains is None --> instrument is a scalar policy """
+		if domains is None:
+			return None
+		else:
+			idx = adj.rc_pd(self.get(pol), cond).index
+			return idx.droplevel([n for n in idx.names if n not in domains]).unique()
+
+	def eq_addProp(self, eqId):
+		polGpy, cond = self.g(self.policy[eqId]['name']), self.policy[eqId]['cond']
+		iteInstr = self.policy[eqId]['instr'] # list of instrument ids 
+		instrText = '+'.join([Syms.gpy(self.g(instr))+"*"+Syms.gpy(self.g(f'LF{instr}')) for instr in iteInstr])
+		return f"""E_{self.name}_{eqId}{Syms.gpyDomains(polGpy)}{Syms.gpyCondition(cond)}..	{Syms.gpy(polGpy)} =E= {instrText};"""
+
+	def eq_AR1(self, eqId):
+		polGpy, cond = self.g(self.policy[eqId]['name']), self.policy[eqId]['cond']
+		return f"""E_{self.name}_{eqId}{Syms.gpyDomains(polGpy)}{Syms.gpyCondition(cond)}.. {Syms.gpy(polGpy)} =E= {Syms.gpy(self.g(f'LF{eqId}'))}*{Syms.gpy(polGpy, lag = {'t':-1})};""" 
+
+#### OLD version - kept to keep relevant notebooks intact
 class HouseholdWelfare(GModel):
 	""" Define welfare measure as convex sum of households utility in baseline year."""
 	def __init__(self, name, CGE, policy = None, active = True, **kwargs):
@@ -128,9 +259,7 @@ $ENDBLOCK
 	@property
 	def equationText(self):
 		return f"""
-$BLOCK B_{self.name}
-	E_{self.name}_obj..	Welfare =E= sum([t,s]$(t0[t] and s_HH[s]), welWeights[s]*vU[t,s]);
-$ENDBLOCK
+{super().equationText}
 {self.addPolEqs}
 """
 

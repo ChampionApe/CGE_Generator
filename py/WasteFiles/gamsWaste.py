@@ -38,7 +38,7 @@ def wasteGen_ExoIntRC(name, m):
 	return f"""
 $BLOCK B_{name}
 	E_{name}_pWext[t,s,m]$({m}_sm[s] and dWS[s,m] and txE[t])..		pWext[t,s,m]	=E= (uWS_D[t,s,m] * (sum(n$(n2m_D[n,m]), pD[t,s,n])+sum(n$(dWTy[s,n]), uWTy[s,n] * pD[t,s,n])) + (1-uWS_D[t,s,m])* (sum(n$(n2m_F[n,m]), pD[t,s,n])+sum(n$(dWTyF[s,n]), uWTyF[s,n]*pD[t,s,n])));
-	E_{name}_pW[t,s,n]$({m}_sm[s] and dWSn[s,n] and txE[t])..		pW[t,s,n]		=E= sum(m$(dWSnm[s,n,m]), uWS[t,s,n,m] * ((1-(uWS_int[t,s,m]*intRcEff[t,s,m])$(dWS_int[s,m])) * pWext[t,s,m])-(uWS_int[t,s,m]*intRcEff[t,s,m])$(dWS_int[s,m])*sum(nn$(nr2m_D[nn,m]), p[t,n]));
+	E_{name}_pW[t,s,n]$({m}_sm[s] and dWSn[s,n] and txE[t])..		pW[t,s,n]		=E= sum(m$(dWSnm[s,n,m]), uWS[t,s,n,m] * (((1-(uWS_int[t,s,m]*intRcEff[t,s,m])$(dWS_int[s,m])) * pWext[t,s,m])-(uWS_int[t,s,m]*intRcEff[t,s,m])$(dWS_int[s,m])*sum(nn$(nr2m_D[nn,m]), p[t,n])));
 	E_{name}_qSR[t,s,n]$({m}_sm[s] and dqSR[s,n] and txE[t])..		qS[t,s,n]		=E= sum(m$(nr2m_D[n,m]), uWS_int[t,s,m]*intRcEff[t,s,m] * qWS[t,s,m] / (1-uWS_int[t,s,m]*intRcEff[t,s,m]));
 	E_{name}_qWS[t,s,m]$({m}_sm[s] and dWS[s,m] and txE[t])..						qWS[t,s,m]	=E= sum(n$(dWSnm[s,n,m]), uWS[t,s,n,m] * qD[t,s,n]); # Total waste generation, domestic firms
 	E_{name}_qDWTD[t,s,n]$({m}_sm[s] and dWTn[s,n] and nw_D[n] and txE[t])..		qD[t,s,n]	=E= sum(m$(n2m[n,m]), uWS_D[t,s,m] * qWS[t,s,m]); # waste management demand, domestic treatment
