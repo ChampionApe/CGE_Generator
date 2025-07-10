@@ -61,22 +61,30 @@ $BLOCK B_{name}
 $ENDBLOCK
 """
 
-# 5. Waste generation blocks:
-def wasteGeneration(name, m):
+# 5. AR(1) process in share parameters on durables
+def CES_scaled_adjMuDur(name, m = None):
+	""" Add adjustment to share parameters on durables """
 	return f"""
 $BLOCK B_{name}
-	E_{name}_pW[t,s,n]$({m}_sm[s] and dWSn[s,n] and txE[t])..						pW[t,s,n]	=E= sum(m$(dWSnm[s,n,m]), uWS[t,s,n,m] * (uWS_D[t,s,m] * (sum(nn$(n2m_D[nn,m]), pD[t,s,nn])+sum(nn$(dWTy[s,nn]), uWTy[s,nn] * pD[t,s,nn])) + (1-uWS_D[t,s,m])* (sum(nn$(n2m_F[nn,m]), pD[t,s,nn])+sum(nn$(dWTyF[s,nn]), uWTyF[s,nn]*pD[t,s,nn]))));
-	E_{name}_qWS[t,s,m]$({m}_sm[s] and dWS[s,m] and txE[t])..						qWS[t,s,m]	=E= sum(n$(dWSnm[s,n,m]), uWS[t,s,n,m] * qD[t,s,n]); # Total waste generation, domestic firms
-	E_{name}_qDWTD[t,s,n]$({m}_sm[s] and dWTn[s,n] and nw_D[n] and txE[t])..		qD[t,s,n]	=E= sum(m$(n2m[n,m]), uWS_D[t,s,m] * qWS[t,s,m]); # waste management demand, domestic treatment
-	E_{name}_qDWTyD[t,s,n]$({m}_sm[s] and dWTy[s,n] and txE[t])..					qD[t,s,n]	=E= uWTy[s,n] * sum(m$(dWS[s,m]), uWS_D[t,s,m]*qWS[t,s,m]); # demand for domestic residual waste service
-	E_{name}_qDWTF[t,s,n]$({m}_sm[s] and dWTn[s,n] and nw_F[n] and txE[t])..		qD[t,s,n]	=E= sum(m$(n2m[n,m]), (1-uWS_D[t,s,m]) * qWS[t,s,m])+WTFpar[s,n]; # waste management demand, foreign treatment
-	E_{name}_qDWTyF[t,s,n]$({m}_sm[s] and dWTyF[s,n] and txE[t])..					qD[t,s,n]	=E= uWTyF[s,n] * sum(m$(dWS[s,m]), (1-uWS_D[t,s,m])*qWS[t,s,m]); # demand for foreign residual waste service
+	{zp_input(name)}
+	E_{name}_qOut[t,s,n]$({name}_branch2o[s,n] and txE[t])..	qD[t,s,n] * sum(nn$({name}_map[s,nn,n]), qNorm[s,nn,n]) =E= sum(nn$({name}_map[s,nn,n]), qNorm[s,nn,n] * (adjMu[t,s]$({m}_dur[s,n])+mu[s,nn,n]) * (pS[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qS[t,s,nn]);
+	E_{name}_qNOut[t,s,n]$({name}_branch2no[s,n] and txE[t])..	qD[t,s,n] * sum(nn$({name}_map[s,nn,n]), qNorm[s,nn,n]) =E= sum(nn$({name}_map[s,nn,n]), qNorm[s,nn,n] * (adjMu[t,s]$({m}_dur[s,n])+mu[s,nn,n]) * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn]);
 $ENDBLOCK
 """
 
-def wasteGenerationCalib(name, m):
+def targetProfitsCalib(name, m):
 	return f"""
 $BLOCK B_{name}
-	E_{name}_qDWTD[t,s,n]$({m}_sm[s] and dWTn[s,n] and nw_D[n] and txE[t])..	WTDpar[s,n] =E= sum(m$(n2m[n,m]), uWS_D[t,s,m]-uWS_D0[t,s,m]);
+	E_{name}_adjMu[t,s]$({m}_sAdjMu[s] and tx0E[t])..	adjMu[t,s]	=E= adjMu[t-1,s]*productionAR[s];
+$ENDBLOCK
+"""
+
+def CES_scaled_adjMuAll(name, m = None):
+	""" Add adjustment to share parameters on inputs """
+	return f"""
+$BLOCK B_{name}
+	{zp_input(name)}
+	E_{name}_qOut[t,s,n]$({name}_branch2o[s,n] and txE[t])..	qD[t,s,n] * sum(nn$({name}_map[s,nn,n]), qNorm[s,nn,n]) =E= sum(nn$({name}_map[s,nn,n]), qNorm[s,nn,n] * (adjMu[t,s]$({m}_input[s,n])+mu[s,nn,n]) * (pS[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qS[t,s,nn]);
+	E_{name}_qNOut[t,s,n]$({name}_branch2no[s,n] and txE[t])..	qD[t,s,n] * sum(nn$({name}_map[s,nn,n]), qNorm[s,nn,n]) =E= sum(nn$({name}_map[s,nn,n]), qNorm[s,nn,n] * (adjMu[t,s]$({m}_input[s,n])+mu[s,nn,n]) * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn]);
 $ENDBLOCK
 """

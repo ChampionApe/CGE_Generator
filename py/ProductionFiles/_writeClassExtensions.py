@@ -31,9 +31,22 @@ class MultOut:
 		self.db[self.n('exoQS')] = self.exoQS 
 		self.db[self.n('exoP')] = self.exoP 
 		self.db[self.n('endoP')] = adj.rc_pd(self.get('endoP'), ('not', self.exoP))
-		inputs = adj.rc_pd(self.get('map'), self.get('input').rename({'n':'nn'}))
-		outputs = adj.rc_pd(self.get('map'), ('and', [self.get('output'), ('not', self.get('exoQS'))]))
-		self.db[self.n('endoMu')] = inputs.union(outputs) # share parameters endogenous in calibration
+		self.db[self.n('endoMu')] = self.getEndoMu(tree)
+
+	def getEndoMu(self, tree):
+		# Output part:
+		mOutputs = adj.rc_pd(self.get('map'), ('and', [self.get('output'), ('not', self.get('exoQS'))])) # output part of nesting 
+		mOutFromInpTree = adj.rc_pd(mOutputs, tree.mapInp) # split into outputs that come from CES/input-like trees
+		mOutFromOutTree = adj.rc_pd(mOutputs, tree.mapOut) # ... and outputs that come from CET/output-like trees
+		endoMu_out = mOutFromOutTree.union(pd.MultiIndex.from_frame(mOutFromInpTree.to_frame(index=False).groupby(['s','n']).first().reset_index())) # share parameters to endogenize
+
+		# Input part:		
+		mInputs = adj.rc_pd(self.get('map'), self.get('input').rename({'n':'nn'})) # input part of nesting
+		mInputs = adj.rc_pd(mInputs, ('not', endoMu_out.droplevel('n').unique().rename(['s','n']))) # We cannot endogenize a share parameter that is ultimately controlled in endoMu for outputs
+		mInpFromInpTree = adj.rc_pd(mInputs, tree.mapInp) # split into inputs that are nodes in CES/input-like trees
+		mInpFromOutTree = adj.rc_pd(mInputs, tree.mapOut) # ... and inputs that branch directly into CET/output-like trees
+		endoMu_inp = mInpFromInpTree.union(pd.MultiIndex.from_frame(mInpFromOutTree.to_frame(index=False).groupby(['s','nn']).first().reset_index()[['s','n','nn']])) # share parameters to endogenize
+		return endoMu_out.union(endoMu_inp)
 
 	@property
 	def group_alwaysExo(self):
@@ -61,7 +74,7 @@ class MultOut:
 """
 
 # Update MultOutExt.py: Defines class extensions for a number of parent classes
-multOutExt_parents = {k: f'{k}_multOut' for k in ('StaticNCES','StaticNCES_emission', 'StaticNCES_emission_waste','DynamicNCES','DynamicNCES_emission','DynamicNCES_emission_waste')}
+multOutExt_parents = {k: f'{k}_multOut' for k in ('StaticNCES','StaticNCES_emission', 'StaticNCES_emission','DynamicNCES','DynamicNCES_emission','DynamicNCES_emission', 'DynamicNCES_emission_TP')}
 multOutExt_base = """from ProductionFiles.dynamicNCES import *"""
 MultOutExt = f"""
 {multOutExt_base}

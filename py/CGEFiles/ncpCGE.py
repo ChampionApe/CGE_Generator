@@ -15,7 +15,7 @@ class NCP_CGE(CGE_welfare):
 	def stdHousehold(self, tree, L2C, cl = 'RamseyGHHIdxFund', taxInstr = 'tauS', incInstr = 'jTerm', partial = True, initFromGms = 'init_GHH_vU', **kwargs):
 		return self.addHousehold(cl, tree, L2C = L2C, properties = {'taxInstr': taxInstr, 'incInstr': incInstr}, partial = partial, initFromGms = initFromGms, **kwargs)
 
-	def stdGovernment(self, tree, cl = 'SimplePolicy_tx0', taxInstr = 'tauLump', incInstr = 'vA0', partial = True, **kwargs):
+	def stdGovernment(self, tree, cl = 'SimplePolicy_tx0', taxInstr = 'tauLump', incInstr = 'jTerm', partial = True, **kwargs):
 		return self.addGovernment(cl, tree, partial = partial, properties = {'taxInstr': taxInstr, 'incInstr': incInstr}, polInstr = 'tauLump', polCond = self.g('s_HH'), **kwargs)
 
 	def stdTrade(self, name, cl = 'Armington', **kwargs):
@@ -45,7 +45,7 @@ class NCP_CGE(CGE_welfare):
 		self.m[name].initStuff(gdx = False)
 		return self.m[name]
 
-	def stdEquilibrium(self, name, cl = 'SmallOpenEq', **Kwargs):
+	def stdEquilibrium(self, name, cl = 'SmallOpenEq', **kwargs):
 		return self.addEquilibriumModule(cl, name)
 
 	def stdWelfare(self, name, cl = 'HouseholdWelfare', policy = None, active = True, **kwargs):

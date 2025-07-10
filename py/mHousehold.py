@@ -1,2 +1,2 @@
-from HouseholdFiles.ramsey import StaticNCES, StaticGHH, StaticGHH_waste, Ramsey, RamseyGHH, RamseyGHH_waste
-from HouseholdFiles.idxFundExt import StaticNCESIdxFund, StaticGHHIdxFund, StaticGHH_wasteIdxFund, RamseyIdxFund, RamseyGHHIdxFund, RamseyGHH_wasteIdxFund
+from HouseholdFiles.ramsey import StaticNCES, StaticGHH, Ramsey, RamseyGHH
+from HouseholdFiles.idxFundExt import StaticNCESIdxFund, StaticGHHIdxFund, RamseyIdxFund, RamseyGHHIdxFund

@@ -48,13 +48,14 @@ $ENDBLOCK
 """
 
 def CES_scaled(name, **kwargs):
-	return f"""
+		return f"""
 $BLOCK B_{name}
 	{zp_input(name)}
-	E_{name}_qOut[t,s,n]$({name}_branch2o[s,n] and txE[t])..	qD[t,s,n] * qDnorm[t,s,n] =E= qDnorm[t,s,n] * sum(nn$({name}_map[s,nn,n]), mu[s,nn,n] * (pS[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qS[t,s,nn]);
-	E_{name}_qNOut[t,s,n]$({name}_branch2no[s,n] and txE[t])..	qD[t,s,n] * qDnorm[t,s,n] =E= qDnorm[t,s,n] * sum(nn$({name}_map[s,nn,n]), mu[s,nn,n] * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn]);
+	E_{name}_qOut[t,s,n]$({name}_branch2o[s,n] and txE[t])..	qD[t,s,n] * sum(nn$({name}_map[s,nn,n]), qNorm[s,nn,n]) =E= sum(nn$({name}_map[s,nn,n]), qNorm[s,nn,n] * mu[s,nn,n] * (pS[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qS[t,s,nn]);
+	E_{name}_qNOut[t,s,n]$({name}_branch2no[s,n] and txE[t])..	qD[t,s,n] * sum(nn$({name}_map[s,nn,n]), qNorm[s,nn,n]) =E= sum(nn$({name}_map[s,nn,n]), qNorm[s,nn,n] * mu[s,nn,n] * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn]);
 $ENDBLOCK
 """
+
 
 # 1.2: Scale-preserving nests:
 def Fnorm_input(ftype,name,inclusiveVal = False):
@@ -81,12 +82,13 @@ $BLOCK B_{name}
 	E_{name}_demand_nout[t,s,n]$({name}_branch_no[s,n] and txE[t])..	qD[t,s,n] =E= sum(nn$({name}_map[s,n,nn]), mu[s,n,nn] * (pD[t,s,n]/pD[t,s,nn])**(eta[s,nn]) * qD[t,s,nn]);
 $ENDBLOCK
 """
+
 def CET_scaled(name,**kwargs):
 	return f"""
 $BLOCK B_{name}
 	{zp_output(name)}
-	E_{name}_demand_out[t,s,n]$({name}_branch_o[s,n] and txE[t])..		qS[t,s,n] * qSnorm[t,s,n] =E= sum(nn$({name}_map[s,n,nn]), mu[s,n,nn] * (pS[t,s,n]/pD[t,s,nn])**(eta[s,nn]) * qD[t,s,nn]) * qSnorm[t,s,n];
-	E_{name}_demand_nout[t,s,n]$({name}_branch_no[s,n] and txE[t])..	qD[t,s,n] * qDnorm[t,s,n] =E= sum(nn$({name}_map[s,n,nn]), mu[s,n,nn] * (pD[t,s,n]/pD[t,s,nn])**(eta[s,nn]) * qD[t,s,nn]) * qDnorm[t,s,n];
+	E_{name}_demand_out[t,s,n]$({name}_branch_o[s,n] and txE[t])..		qS[t,s,n] * sum(nn$({name}_map[s,n,nn]), qNorm[s,n,nn]) =E= sum(nn$({name}_map[s,n,nn]), qNorm[s,n,nn] * mu[s,n,nn] * (pS[t,s,n]/pD[t,s,nn])**(eta[s,nn]) * qD[t,s,nn]);
+	E_{name}_demand_nout[t,s,n]$({name}_branch_no[s,n] and txE[t])..	qD[t,s,n] * sum(nn$({name}_map[s,n,nn]), qNorm[s,n,nn]) =E= sum(nn$({name}_map[s,n,nn]), qNorm[s,n,nn] * mu[s,n,nn] * (pD[t,s,n]/pD[t,s,nn])**(eta[s,nn]) * qD[t,s,nn]);
 $ENDBLOCK
 """
 

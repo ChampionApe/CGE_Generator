@@ -102,7 +102,6 @@ class BalanceLS(GovNCES):
 			g.v += [('qD', ('and', [self.g('output'), self.g('t0')]))]
 		return g
 
-
 	@property
 	def model_B(self):
 		return super().model_B+OrdSet([f"B_{self.name}_tauLS"])
@@ -114,3 +113,65 @@ class BalanceLS(GovNCES):
 	@property
 	def textBlocks(self):
 		return super().textBlocks | {'tauLS': gamsGovernment.distrTauLump(f'{self.name}')}
+
+
+class BalanceLSxGS(GModel):
+	""" Balance budget with a lump sum transfer on households - the government does not produce services """
+	def __init__(self, sectors = None, **kwargs):
+		super().__init__(**kwargs)
+		self.ns['sTax'] = f"{self.name}_sTax"
+		self.db[self.n('sTax')]  = noneInit(sectors, pd.Index([], name = 's'))
+
+	# initialize
+	def initStuff(self, gdx = True):
+		self.initData()
+		self.initGroups()
+		if gdx:
+			self.db.mergeInternal()
+
+	def initData(self):
+		self.db.aom(0, name = 'jTermGov', priority='first')
+		self.db.aom(pd.Series(1, index = cpi([self.get('txE'), self.get('sTax')])), name = 'uDistTauLump', priority='first')
+		self.db.aom(pd.Series(0, index = self.get('t')), name = 'diffTauLump', priority='first')
+		self.db.aom(adj.rc_pd(self.get('tauLump'), self.get('sTax')), name = 'tauLump0', priority='first')
+
+	@property
+	def model_B(self):
+		return OrdSet([f"B_{self.name}_tauLS", f"B_{self.name}_BB"])
+
+	# Text blocks
+	@property
+	def textBlocks(self):
+		return {'tauLS': gamsGovernment.distrTauLump(self.name), 'BB': gamsGovernment.BBxGovNCS(self.name)}
+
+	@property
+	def metaGroup_endo_B(self):
+		return Group(f'{self.name}_endo_B', g = [self.groups[f'{self.name}_{k}'] for k in ('alwaysEndo','exoInCalib')])
+	@property
+	def metaGroup_endo_C(self):
+		return Group(f'{self.name}_endo_C', g = [self.groups[f'{self.name}_{k}'] for k in ('alwaysEndo', 'endoInCalib')])
+	@property
+	def metaGroup_exo_B(self):
+		return Group(f'{self.name}_exo_B', g = [self.groups[f'{self.name}_{k}'] for k in ('alwaysExo','endoInCalib')])
+	@property
+	def metaGroup_exo_C(self):
+		return Group(f'{self.name}_exo_C', g = [self.groups[f'{self.name}_{k}'] for k in ('alwaysExo','exoInCalib')])
+
+	@property
+	def group_alwaysExo(self):
+		g = Group(f'{self.name}_alwaysExo', v = [('uDistTauLump', self.g('sTax')), ('tauLump0', self.g('sTax'))])
+		return g
+
+	@property
+	def group_alwaysEndo(self):
+		g = Group(f'{self.name}_alwaysEndo', v = [('diffTauLump', self.g('tx0E')), ('tauLump', ('and', [self.g('sTax'), self.g('txE')]))])
+		return g
+	@property
+	def group_exoInCalib(self):
+		g = Group(f'{self.name}_exoInCalib', v = [('diffTauLump', self.g('t0'))])
+		return g
+
+	@property
+	def group_endoInCalib(self):
+		g = Group(f'{self.name}_endoInCalib', v = ['jTermGov'])
+		return g

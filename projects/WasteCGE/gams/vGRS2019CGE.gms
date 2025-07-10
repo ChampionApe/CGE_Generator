@@ -254,8 +254,7 @@ parameters
 	R_LR
 	infl_LR
 	g_LR
-	qDnorm[t,s,n]
-	qSnorm[t,s,n]
+	qNorm[s,n,nn]
 	uWS_D0[t,s,m]
 	inventoryAR[s,n]
 ;
@@ -297,6 +296,8 @@ variables
 	pW[t,s,n]
 	pD[t,s,n]
 	frisch[s]
+	crra[s]
+	discF[s]
 	uCO2[t,s,n]
 	tauCO2agg[t]
 	tauDist[t,s,n]
@@ -311,11 +312,11 @@ variables
 	divd[t,s]
 	taxRevPar[s]
 	tauLump0[t,s]
-	WTDpar[s,n]
-	WTFpar[s,n]
 	K_tvc[s,n]
 	adjCostPar[s,n]
 	adjCost[t,s]
+	WTDpar[s,n]
+	WTFpar[s,n]
 	alphauCal[m]
 	gammarCal[m]
 	WTD_qSnwCal[n]
@@ -327,10 +328,8 @@ variables
 	WTD_ge0[t,m]
 	WTD_gd0[t,m]
 	tauD0[t,s,n]
-	crra[s]
 	vU[t,s]
 	vU_tvc[s]
-	discF[s]
 	jTerm[s]
 	gadj[s]
 	tauS0[t,s,n]
@@ -554,8 +553,7 @@ $onMulti
 $load R_LR
 $load infl_LR
 $load g_LR
-$load qDnorm
-$load qSnorm
+$load qNorm
 $load uWS_D0
 $load inventoryAR
 $GDXIN
@@ -598,6 +596,8 @@ $load tauD
 $load pW
 $load pD
 $load frisch
+$load crra
+$load discF
 $load uCO2
 $load tauCO2agg
 $load tauDist
@@ -612,11 +612,11 @@ $load vA_tvc
 $load divd
 $load taxRevPar
 $load tauLump0
-$load WTDpar
-$load WTFpar
 $load K_tvc
 $load adjCostPar
 $load adjCost
+$load WTDpar
+$load WTFpar
 $load alphauCal
 $load gammarCal
 $load WTD_qSnwCal
@@ -628,10 +628,8 @@ $load WTD_gr0
 $load WTD_ge0
 $load WTD_gd0
 $load tauD0
-$load crra
 $load vU
 $load vU_tvc
-$load discF
 $load jTerm
 $load gadj
 $load tauS0
@@ -667,9 +665,9 @@ E_PInp_zpOut[t,s,n]$(pinp_knot_o[s,n] and txe[t]).. 	pS[t,s,n]*qS[t,s,n]  =E=  s
 EQUATION E_PInp_zpNOut[t,s,n];
 E_PInp_zpNOut[t,s,n]$(pinp_knot_no[s,n] and txe[t]).. 	pD[t,s,n]*qD[t,s,n]  =E=  sum(nn$(PInp_map[s,n,nn]), qD[t,s,nn]*pD[t,s,nn]);
 EQUATION E_PInp_qOut[t,s,n];
-E_PInp_qOut[t,s,n]$(pinp_branch2o[s,n] and txe[t]).. 	qD[t,s,n] * qDnorm[t,s,n]  =E=  qDnorm[t,s,n] * sum(nn$(PInp_map[s,nn,n]), mu[s,nn,n] * (pS[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qS[t,s,nn]);
+E_PInp_qOut[t,s,n]$(pinp_branch2o[s,n] and txe[t]).. 	qD[t,s,n] * sum(nn$(PInp_map[s,nn,n]), qNorm[s,nn,n])  =E=  sum(nn$(PInp_map[s,nn,n]), qNorm[s,nn,n] * mu[s,nn,n] * (pS[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qS[t,s,nn]);
 EQUATION E_PInp_qNOut[t,s,n];
-E_PInp_qNOut[t,s,n]$(pinp_branch2no[s,n] and txe[t]).. 	qD[t,s,n] * qDnorm[t,s,n]  =E=  qDnorm[t,s,n] * sum(nn$(PInp_map[s,nn,n]), mu[s,nn,n] * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn]);
+E_PInp_qNOut[t,s,n]$(pinp_branch2no[s,n] and txe[t]).. 	qD[t,s,n] * sum(nn$(PInp_map[s,nn,n]), qNorm[s,nn,n])  =E=  sum(nn$(PInp_map[s,nn,n]), qNorm[s,nn,n] * mu[s,nn,n] * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn]);
 
 # ----------------------------------------------------------------------------------------------------
 #  Define B_PInp model
@@ -686,9 +684,9 @@ E_PInp_zpOut, E_PInp_zpNOut, E_PInp_qOut, E_PInp_qNOut
 EQUATION E_POut_zp[t,s,n];
 E_POut_zp[t,s,n]$(pout_knot[s,n] and txe[t]).. 	pD[t,s,n]*qD[t,s,n]  =E=  sum(nn$(POut_map[s,nn,n] and POut_branch_o[s,nn]), qS[t,s,nn]*pS[t,s,nn])+sum(nn$(POut_map[s,nn,n] and POut_branch_no[s,nn]), qD[t,s,nn]*pD[t,s,nn]);
 EQUATION E_POut_demand_out[t,s,n];
-E_POut_demand_out[t,s,n]$(pout_branch_o[s,n] and txe[t]).. 		qS[t,s,n] * qSnorm[t,s,n]  =E=  sum(nn$(POut_map[s,n,nn]), mu[s,n,nn] * (pS[t,s,n]/pD[t,s,nn])**(eta[s,nn]) * qD[t,s,nn]) * qSnorm[t,s,n];
+E_POut_demand_out[t,s,n]$(pout_branch_o[s,n] and txe[t]).. 		qS[t,s,n] * sum(nn$(POut_map[s,n,nn]), qNorm[s,n,nn])  =E=  sum(nn$(POut_map[s,n,nn]), qNorm[s,n,nn] * mu[s,n,nn] * (pS[t,s,n]/pD[t,s,nn])**(eta[s,nn]) * qD[t,s,nn]);
 EQUATION E_POut_demand_nout[t,s,n];
-E_POut_demand_nout[t,s,n]$(pout_branch_no[s,n] and txe[t]).. 	qD[t,s,n] * qDnorm[t,s,n]  =E=  sum(nn$(POut_map[s,n,nn]), mu[s,n,nn] * (pD[t,s,n]/pD[t,s,nn])**(eta[s,nn]) * qD[t,s,nn]) * qDnorm[t,s,n];
+E_POut_demand_nout[t,s,n]$(pout_branch_no[s,n] and txe[t]).. 	qD[t,s,n] * sum(nn$(POut_map[s,n,nn]), qNorm[s,n,nn])  =E=  sum(nn$(POut_map[s,n,nn]), qNorm[s,n,nn] * mu[s,n,nn] * (pD[t,s,n]/pD[t,s,nn])**(eta[s,nn]) * qD[t,s,nn]);
 
 # ----------------------------------------------------------------------------------------------------
 #  Define B_POut model
@@ -752,6 +750,29 @@ E_P_taxCalib_taxRevPar
 
 
 
+# ---------------------------------------------B_P_adjCost--------------------------------------------
+#  Initialize B_P_adjCost equation block
+# ----------------------------------------------------------------------------------------------------
+EQUATION E_P_adjCost_lom[t,s,n];
+E_P_adjCost_lom[t,s,n]$(p_dur[s,n] and txe[t]).. 		qD[t+1,s,n]	 =E=  (qD[t,s,n]*(1-rDepr[t,s,n])+sum(nn$(P_dur2inv[s,n,nn]), qD[t,s,nn]))/(1+g_LR);
+EQUATION E_P_adjCost_pk[t,s,n];
+E_P_adjCost_pk[t,s,n]$(p_dur[s,n] and tx02e[t]).. 	pD[t,s,n]	 =E=  sum(nn$(P_dur2inv[s,n,nn]), Rrate[t]*(pD[t-1,s,nn]+adjCostPar[s,n]*(qD[t-1,s,nn]/qD[t-1,s,n]-(rDepr[t-1,s,n]+g_LR)))/(1+infl_LR)+(adjCostPar[s,n]*0.5*(sqr(rDepr[t,s,n]+g_LR)-sqr(qD[t,s,nn]/qD[t,s,n]))-(1-rDepr[t,s,n])*(pD[t,s,nn]+adjCostPar[s,n]*(qD[t,s,nn]/qD[t,s,n]-(rDepr[t,s,n]+g_LR)))));
+EQUATION E_P_adjCost_pkT[t,s,n];
+E_P_adjCost_pkT[t,s,n]$(p_dur[s,n] and t2e[t]).. 		pD[t,s,n]	 =E=  sum(nn$(P_dur2inv[s,n,nn]), Rrate[t]*(pD[t-1,s,nn]+adjCostPar[s,n]*(qD[t-1,s,nn]/qD[t-1,s,n]-(rDepr[t-1,s,n]+g_LR)))/(1+infl_LR)+(rDepr[t,s,n]-1)*pD[t,s,nn]);
+EQUATION E_P_adjCost_K_tvc[t,s,n];
+E_P_adjCost_K_tvc[t,s,n]$(p_dur[s,n] and te[t]).. 	qD[t,s,n]	 =E=  (1+K_tvc[s,n])*qD[t-1,s,n]/(1+g_LR);
+EQUATION E_P_adjCost_adjCost[t,s];
+E_P_adjCost_adjCost[t,s]$(p_sm[s] and txe[t]).. 		adjCost[t,s] 	 =E=  sum([n,nn]$(P_dur2inv[s,n,nn]), adjCostPar[s,n]*0.5*qD[t,s,n]*sqr(qD[t,s,nn]/qD[t,s,n]-(rDepr[t,s,n]+g_LR)));
+
+# ----------------------------------------------------------------------------------------------------
+#  Define B_P_adjCost model
+# ----------------------------------------------------------------------------------------------------
+Model B_P_adjCost /
+E_P_adjCost_lom, E_P_adjCost_pk, E_P_adjCost_pkT, E_P_adjCost_K_tvc, E_P_adjCost_adjCost
+/;
+
+
+
 # -----------------------------------------------B_P_WS-----------------------------------------------
 #  Initialize B_P_WS equation block
 # ----------------------------------------------------------------------------------------------------
@@ -792,29 +813,6 @@ E_P_WSCal_qDWTD
 
 
 
-# ---------------------------------------------B_P_adjCost--------------------------------------------
-#  Initialize B_P_adjCost equation block
-# ----------------------------------------------------------------------------------------------------
-EQUATION E_P_adjCost_lom[t,s,n];
-E_P_adjCost_lom[t,s,n]$(p_dur[s,n] and txe[t]).. 		qD[t+1,s,n]	 =E=  (qD[t,s,n]*(1-rDepr[t,s,n])+sum(nn$(P_dur2inv[s,n,nn]), qD[t,s,nn]))/(1+g_LR);
-EQUATION E_P_adjCost_pk[t,s,n];
-E_P_adjCost_pk[t,s,n]$(p_dur[s,n] and tx02e[t]).. 	pD[t,s,n]	 =E=  sum(nn$(P_dur2inv[s,n,nn]), Rrate[t]*(pD[t-1,s,nn]+adjCostPar[s,n]*(qD[t-1,s,nn]/qD[t-1,s,n]-(rDepr[t-1,s,n]+g_LR)))/(1+infl_LR)+(adjCostPar[s,n]*0.5*(sqr(rDepr[t,s,n]+g_LR)-sqr(qD[t,s,nn]/qD[t,s,n]))-(1-rDepr[t,s,n])*(pD[t,s,nn]+adjCostPar[s,n]*(qD[t,s,nn]/qD[t,s,n]-(rDepr[t,s,n]+g_LR)))));
-EQUATION E_P_adjCost_pkT[t,s,n];
-E_P_adjCost_pkT[t,s,n]$(p_dur[s,n] and t2e[t]).. 		pD[t,s,n]	 =E=  sum(nn$(P_dur2inv[s,n,nn]), Rrate[t]*(pD[t-1,s,nn]+adjCostPar[s,n]*(qD[t-1,s,nn]/qD[t-1,s,n]-(rDepr[t-1,s,n]+g_LR)))/(1+infl_LR)+(rDepr[t,s,n]-1)*pD[t,s,nn]);
-EQUATION E_P_adjCost_K_tvc[t,s,n];
-E_P_adjCost_K_tvc[t,s,n]$(p_dur[s,n] and te[t]).. 	qD[t,s,n]	 =E=  (1+K_tvc[s,n])*qD[t-1,s,n]/(1+g_LR);
-EQUATION E_P_adjCost_adjCost[t,s];
-E_P_adjCost_adjCost[t,s]$(p_sm[s] and txe[t]).. 		adjCost[t,s] 	 =E=  sum([n,nn]$(P_dur2inv[s,n,nn]), adjCostPar[s,n]*0.5*qD[t,s,n]*sqr(qD[t,s,nn]/qD[t,s,n]-(rDepr[t,s,n]+g_LR)));
-
-# ----------------------------------------------------------------------------------------------------
-#  Define B_P_adjCost model
-# ----------------------------------------------------------------------------------------------------
-Model B_P_adjCost /
-E_P_adjCost_lom, E_P_adjCost_pk, E_P_adjCost_pkT, E_P_adjCost_K_tvc, E_P_adjCost_adjCost
-/;
-
-
-
 
 # -----------------------------------------------B_WInp-----------------------------------------------
 #  Initialize B_WInp equation block
@@ -824,9 +822,9 @@ E_WInp_zpOut[t,s,n]$(winp_knot_o[s,n] and txe[t]).. 	pS[t,s,n]*qS[t,s,n]  =E=  s
 EQUATION E_WInp_zpNOut[t,s,n];
 E_WInp_zpNOut[t,s,n]$(winp_knot_no[s,n] and txe[t]).. 	pD[t,s,n]*qD[t,s,n]  =E=  sum(nn$(WInp_map[s,n,nn]), qD[t,s,nn]*pD[t,s,nn]);
 EQUATION E_WInp_qOut[t,s,n];
-E_WInp_qOut[t,s,n]$(winp_branch2o[s,n] and txe[t]).. 	qD[t,s,n] * qDnorm[t,s,n]  =E=  qDnorm[t,s,n] * sum(nn$(WInp_map[s,nn,n]), mu[s,nn,n] * (pS[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qS[t,s,nn]);
+E_WInp_qOut[t,s,n]$(winp_branch2o[s,n] and txe[t]).. 	qD[t,s,n] * sum(nn$(WInp_map[s,nn,n]), qNorm[s,nn,n])  =E=  sum(nn$(WInp_map[s,nn,n]), qNorm[s,nn,n] * mu[s,nn,n] * (pS[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qS[t,s,nn]);
 EQUATION E_WInp_qNOut[t,s,n];
-E_WInp_qNOut[t,s,n]$(winp_branch2no[s,n] and txe[t]).. 	qD[t,s,n] * qDnorm[t,s,n]  =E=  qDnorm[t,s,n] * sum(nn$(WInp_map[s,nn,n]), mu[s,nn,n] * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn]);
+E_WInp_qNOut[t,s,n]$(winp_branch2no[s,n] and txe[t]).. 	qD[t,s,n] * sum(nn$(WInp_map[s,nn,n]), qNorm[s,nn,n])  =E=  sum(nn$(WInp_map[s,nn,n]), qNorm[s,nn,n] * mu[s,nn,n] * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn]);
 
 # ----------------------------------------------------------------------------------------------------
 #  Define B_WInp model
@@ -843,9 +841,9 @@ E_WInp_zpOut, E_WInp_zpNOut, E_WInp_qOut, E_WInp_qNOut
 EQUATION E_WOut_zp[t,s,n];
 E_WOut_zp[t,s,n]$(wout_knot[s,n] and txe[t]).. 	pD[t,s,n]*qD[t,s,n]  =E=  sum(nn$(WOut_map[s,nn,n] and WOut_branch_o[s,nn]), qS[t,s,nn]*pS[t,s,nn])+sum(nn$(WOut_map[s,nn,n] and WOut_branch_no[s,nn]), qD[t,s,nn]*pD[t,s,nn]);
 EQUATION E_WOut_demand_out[t,s,n];
-E_WOut_demand_out[t,s,n]$(wout_branch_o[s,n] and txe[t]).. 		qS[t,s,n] * qSnorm[t,s,n]  =E=  sum(nn$(WOut_map[s,n,nn]), mu[s,n,nn] * (pS[t,s,n]/pD[t,s,nn])**(eta[s,nn]) * qD[t,s,nn]) * qSnorm[t,s,n];
+E_WOut_demand_out[t,s,n]$(wout_branch_o[s,n] and txe[t]).. 		qS[t,s,n] * sum(nn$(WOut_map[s,n,nn]), qNorm[s,n,nn])  =E=  sum(nn$(WOut_map[s,n,nn]), qNorm[s,n,nn] * mu[s,n,nn] * (pS[t,s,n]/pD[t,s,nn])**(eta[s,nn]) * qD[t,s,nn]);
 EQUATION E_WOut_demand_nout[t,s,n];
-E_WOut_demand_nout[t,s,n]$(wout_branch_no[s,n] and txe[t]).. 	qD[t,s,n] * qDnorm[t,s,n]  =E=  sum(nn$(WOut_map[s,n,nn]), mu[s,n,nn] * (pD[t,s,n]/pD[t,s,nn])**(eta[s,nn]) * qD[t,s,nn]) * qDnorm[t,s,n];
+E_WOut_demand_nout[t,s,n]$(wout_branch_no[s,n] and txe[t]).. 	qD[t,s,n] * sum(nn$(WOut_map[s,n,nn]), qNorm[s,n,nn])  =E=  sum(nn$(WOut_map[s,n,nn]), qNorm[s,n,nn] * mu[s,n,nn] * (pD[t,s,n]/pD[t,s,nn])**(eta[s,nn]) * qD[t,s,nn]);
 
 # ----------------------------------------------------------------------------------------------------
 #  Define B_WOut model
@@ -909,6 +907,29 @@ E_W_taxCalib_taxRevPar
 
 
 
+# ---------------------------------------------B_W_adjCost--------------------------------------------
+#  Initialize B_W_adjCost equation block
+# ----------------------------------------------------------------------------------------------------
+EQUATION E_W_adjCost_lom[t,s,n];
+E_W_adjCost_lom[t,s,n]$(w_dur[s,n] and txe[t]).. 		qD[t+1,s,n]	 =E=  (qD[t,s,n]*(1-rDepr[t,s,n])+sum(nn$(W_dur2inv[s,n,nn]), qD[t,s,nn]))/(1+g_LR);
+EQUATION E_W_adjCost_pk[t,s,n];
+E_W_adjCost_pk[t,s,n]$(w_dur[s,n] and tx02e[t]).. 	pD[t,s,n]	 =E=  sum(nn$(W_dur2inv[s,n,nn]), Rrate[t]*(pD[t-1,s,nn]+adjCostPar[s,n]*(qD[t-1,s,nn]/qD[t-1,s,n]-(rDepr[t-1,s,n]+g_LR)))/(1+infl_LR)+(adjCostPar[s,n]*0.5*(sqr(rDepr[t,s,n]+g_LR)-sqr(qD[t,s,nn]/qD[t,s,n]))-(1-rDepr[t,s,n])*(pD[t,s,nn]+adjCostPar[s,n]*(qD[t,s,nn]/qD[t,s,n]-(rDepr[t,s,n]+g_LR)))));
+EQUATION E_W_adjCost_pkT[t,s,n];
+E_W_adjCost_pkT[t,s,n]$(w_dur[s,n] and t2e[t]).. 		pD[t,s,n]	 =E=  sum(nn$(W_dur2inv[s,n,nn]), Rrate[t]*(pD[t-1,s,nn]+adjCostPar[s,n]*(qD[t-1,s,nn]/qD[t-1,s,n]-(rDepr[t-1,s,n]+g_LR)))/(1+infl_LR)+(rDepr[t,s,n]-1)*pD[t,s,nn]);
+EQUATION E_W_adjCost_K_tvc[t,s,n];
+E_W_adjCost_K_tvc[t,s,n]$(w_dur[s,n] and te[t]).. 	qD[t,s,n]	 =E=  (1+K_tvc[s,n])*qD[t-1,s,n]/(1+g_LR);
+EQUATION E_W_adjCost_adjCost[t,s];
+E_W_adjCost_adjCost[t,s]$(w_sm[s] and txe[t]).. 		adjCost[t,s] 	 =E=  sum([n,nn]$(W_dur2inv[s,n,nn]), adjCostPar[s,n]*0.5*qD[t,s,n]*sqr(qD[t,s,nn]/qD[t,s,n]-(rDepr[t,s,n]+g_LR)));
+
+# ----------------------------------------------------------------------------------------------------
+#  Define B_W_adjCost model
+# ----------------------------------------------------------------------------------------------------
+Model B_W_adjCost /
+E_W_adjCost_lom, E_W_adjCost_pk, E_W_adjCost_pkT, E_W_adjCost_K_tvc, E_W_adjCost_adjCost
+/;
+
+
+
 # -----------------------------------------------B_W_WS-----------------------------------------------
 #  Initialize B_W_WS equation block
 # ----------------------------------------------------------------------------------------------------
@@ -945,29 +966,6 @@ E_W_WSCal_qDWTD[t,s,n]$(w_sm[s] and dwtn[s,n] and nw_d[n] and txe[t]).. 	WTDpar[
 # ----------------------------------------------------------------------------------------------------
 Model B_W_WSCal /
 E_W_WSCal_qDWTD
-/;
-
-
-
-# ---------------------------------------------B_W_adjCost--------------------------------------------
-#  Initialize B_W_adjCost equation block
-# ----------------------------------------------------------------------------------------------------
-EQUATION E_W_adjCost_lom[t,s,n];
-E_W_adjCost_lom[t,s,n]$(w_dur[s,n] and txe[t]).. 		qD[t+1,s,n]	 =E=  (qD[t,s,n]*(1-rDepr[t,s,n])+sum(nn$(W_dur2inv[s,n,nn]), qD[t,s,nn]))/(1+g_LR);
-EQUATION E_W_adjCost_pk[t,s,n];
-E_W_adjCost_pk[t,s,n]$(w_dur[s,n] and tx02e[t]).. 	pD[t,s,n]	 =E=  sum(nn$(W_dur2inv[s,n,nn]), Rrate[t]*(pD[t-1,s,nn]+adjCostPar[s,n]*(qD[t-1,s,nn]/qD[t-1,s,n]-(rDepr[t-1,s,n]+g_LR)))/(1+infl_LR)+(adjCostPar[s,n]*0.5*(sqr(rDepr[t,s,n]+g_LR)-sqr(qD[t,s,nn]/qD[t,s,n]))-(1-rDepr[t,s,n])*(pD[t,s,nn]+adjCostPar[s,n]*(qD[t,s,nn]/qD[t,s,n]-(rDepr[t,s,n]+g_LR)))));
-EQUATION E_W_adjCost_pkT[t,s,n];
-E_W_adjCost_pkT[t,s,n]$(w_dur[s,n] and t2e[t]).. 		pD[t,s,n]	 =E=  sum(nn$(W_dur2inv[s,n,nn]), Rrate[t]*(pD[t-1,s,nn]+adjCostPar[s,n]*(qD[t-1,s,nn]/qD[t-1,s,n]-(rDepr[t-1,s,n]+g_LR)))/(1+infl_LR)+(rDepr[t,s,n]-1)*pD[t,s,nn]);
-EQUATION E_W_adjCost_K_tvc[t,s,n];
-E_W_adjCost_K_tvc[t,s,n]$(w_dur[s,n] and te[t]).. 	qD[t,s,n]	 =E=  (1+K_tvc[s,n])*qD[t-1,s,n]/(1+g_LR);
-EQUATION E_W_adjCost_adjCost[t,s];
-E_W_adjCost_adjCost[t,s]$(w_sm[s] and txe[t]).. 		adjCost[t,s] 	 =E=  sum([n,nn]$(W_dur2inv[s,n,nn]), adjCostPar[s,n]*0.5*qD[t,s,n]*sqr(qD[t,s,nn]/qD[t,s,n]-(rDepr[t,s,n]+g_LR)));
-
-# ----------------------------------------------------------------------------------------------------
-#  Define B_W_adjCost model
-# ----------------------------------------------------------------------------------------------------
-Model B_W_adjCost /
-E_W_adjCost_lom, E_W_adjCost_pk, E_W_adjCost_pkT, E_W_adjCost_K_tvc, E_W_adjCost_adjCost
 /;
 
 
@@ -1068,9 +1066,9 @@ E_I_zpOut[t,s,n]$(i_knot_o[s,n] and txe[t]).. 	pS[t,s,n]*qS[t,s,n]  =E=  sum(nn$
 EQUATION E_I_zpNOut[t,s,n];
 E_I_zpNOut[t,s,n]$(i_knot_no[s,n] and txe[t]).. 	pD[t,s,n]*qD[t,s,n]  =E=  sum(nn$(I_map[s,n,nn]), qD[t,s,nn]*pD[t,s,nn]);
 EQUATION E_I_qOut[t,s,n];
-E_I_qOut[t,s,n]$(i_branch2o[s,n] and txe[t]).. 	qD[t,s,n] * qDnorm[t,s,n]  =E=  qDnorm[t,s,n] * sum(nn$(I_map[s,nn,n]), mu[s,nn,n] * (pS[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qS[t,s,nn]);
+E_I_qOut[t,s,n]$(i_branch2o[s,n] and txe[t]).. 	qD[t,s,n] * sum(nn$(I_map[s,nn,n]), qNorm[s,nn,n])  =E=  sum(nn$(I_map[s,nn,n]), qNorm[s,nn,n] * mu[s,nn,n] * (pS[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qS[t,s,nn]);
 EQUATION E_I_qNOut[t,s,n];
-E_I_qNOut[t,s,n]$(i_branch2no[s,n] and txe[t]).. 	qD[t,s,n] * qDnorm[t,s,n]  =E=  qDnorm[t,s,n] * sum(nn$(I_map[s,nn,n]), mu[s,nn,n] * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn]);
+E_I_qNOut[t,s,n]$(i_branch2no[s,n] and txe[t]).. 	qD[t,s,n] * sum(nn$(I_map[s,nn,n]), qNorm[s,nn,n])  =E=  sum(nn$(I_map[s,nn,n]), qNorm[s,nn,n] * mu[s,nn,n] * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn]);
 
 # ----------------------------------------------------------------------------------------------------
 #  Define B_I model
@@ -1141,7 +1139,7 @@ E_I_taxCalib_taxRevPar
 EQUATION E_C_zp[t,s,n];
 E_C_zp[t,s,n]$(c_knot[s,n] and txe[t]).. 	pD[t,s,n]*qD[t,s,n]  =E=  sum(nn$(C_map[s,n,nn]), qD[t,s,nn]*pD[t,s,nn]);
 EQUATION E_C_q[t,s,n];
-E_C_q[t,s,n]$(c_branch[s,n] and txe[t]).. 	qD[t,s,n] * qDnorm[t,s,n]  =E=  qDnorm[t,s,n] * sum(nn$(C_map[s,nn,n]), mu[s,nn,n] * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn]);
+E_C_q[t,s,n]$(c_branch[s,n] and txe[t]).. 	qD[t,s,n] * sum(nn$(C_map[s,nn,n]), qNorm[s,nn,n])  =E=  sum(nn$(C_map[s,nn,n]), qNorm[s,nn,n] * mu[s,nn,n] * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn]);
 
 # ----------------------------------------------------------------------------------------------------
 #  Define B_C model
@@ -1162,9 +1160,9 @@ E_C_price_w[t,s,n]$(c_l[s,n] and txe[t]).. 			pS[t,s,n]		 =E=  p[t,n]*(1-tauS[t,
 EQUATION E_C_price_TotalTax[t,s];
 E_C_price_TotalTax[t,s]$(c_sm[s] and txe[t]).. 		TotalTax[t,s]	 =E=  tauLump[t,s]+sum(n$(C_input[s,n]), tauD[t,s,n] * p[t,n] * qD[t,s,n])+sum(n$(C_L[s,n]), tauS[t,s,n]*p[t,n]*qS[t,s,n]);
 EQUATION E_C_price_vA0[t,s];
-E_C_price_vA0[t,s]$(c_sm[s] and t0[t]).. 			vA[t+1,s]		 =E=  (vA[t,s] * Rrate[t] + sum(n$(C_L[s,n]), p[t,n]*qS[t,s,n])-sum(n$(C_input[s,n]), p[t,n]*qD[t,s,n])-TotalTax[t,s])/(1+g_LR);
+E_C_price_vA0[t,s]$(c_sm[s] and t0[t]).. 			vA[t+1,s]		 =E=  (vA[t,s] * Rrate[t] + sum(n$(C_L[s,n]), p[t,n]*qS[t,s,n])-sum(n$(C_input[s,n]), p[t,n]*qD[t,s,n])-TotalTax[t,s]+jTerm[s])/(1+g_LR);
 EQUATION E_C_price_vA[t,s];
-E_C_price_vA[t,s]$(c_sm[s] and tx0e[t]).. 			vA[t+1,s]		 =E=  (vA[t,s] * Rrate[t] + sum(n$(C_L[s,n]), p[t,n]*qS[t,s,n])-sum(n$(C_input[s,n]), p[t,n]*qD[t,s,n])-TotalTax[t,s])/(1+g_LR);
+E_C_price_vA[t,s]$(c_sm[s] and tx0e[t]).. 			vA[t+1,s]		 =E=  (vA[t,s] * Rrate[t] + sum(n$(C_L[s,n]), p[t,n]*qS[t,s,n])-sum(n$(C_input[s,n]), p[t,n]*qD[t,s,n])-TotalTax[t,s]+jTerm[s])/(1+g_LR);
 
 # ----------------------------------------------------------------------------------------------------
 #  Define B_C_price model
@@ -1207,6 +1205,23 @@ E_C_taxCalib_taxRevPar[t,s,n]$((c_l[s,n] and txe[t])).. 	tauS[t,s,n]  =E=  tauS0
 # ----------------------------------------------------------------------------------------------------
 Model B_C_taxCalib /
 E_C_taxCalib_taxRevPar
+/;
+
+
+
+# ----------------------------------------------B_C_Euler---------------------------------------------
+#  Initialize B_C_Euler equation block
+# ----------------------------------------------------------------------------------------------------
+EQUATION E_C_Euler_Euler[t,s,n];
+E_C_Euler_Euler[t,s,n]$(c_c[s,n] and tx0e[t]).. 	qD[t,s,n]	 =E=  qD[t-1,s,n]*(discF[s]*Rrate[t]*(pD[t-1,s,n]/pD[t,s,n]))**(1/crra[s])/(1+g_LR);
+EQUATION E_C_Euler_TVC[t,s];
+E_C_Euler_TVC[t,s]$(c_sm[s] and te[t]).. 			vA[t,s]		 =E=  vA[t-1,s]*(1+vA_tvc[s])/(1+g_LR);
+
+# ----------------------------------------------------------------------------------------------------
+#  Define B_C_Euler model
+# ----------------------------------------------------------------------------------------------------
+Model B_C_Euler /
+E_C_Euler_Euler, E_C_Euler_TVC
 /;
 
 
@@ -1258,7 +1273,7 @@ E_C_WSCal_qDWTD
 EQUATION E_G_zp[t,s,n];
 E_G_zp[t,s,n]$(g_knot[s,n] and txe[t]).. 	pD[t,s,n]*qD[t,s,n]  =E=  sum(nn$(G_map[s,n,nn]), qD[t,s,nn]*pD[t,s,nn]);
 EQUATION E_G_q[t,s,n];
-E_G_q[t,s,n]$(g_branch[s,n] and txe[t]).. 	qD[t,s,n] * qDnorm[t,s,n]  =E=  qDnorm[t,s,n] * sum(nn$(G_map[s,nn,n]), mu[s,nn,n] * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn]);
+E_G_q[t,s,n]$(g_branch[s,n] and txe[t]).. 	qD[t,s,n] * sum(nn$(G_map[s,nn,n]), qNorm[s,nn,n])  =E=  sum(nn$(G_map[s,nn,n]), qNorm[s,nn,n] * mu[s,nn,n] * (pD[t,s,nn]/pD[t,s,n])**(sigma[s,nn]) * qD[t,s,nn]);
 
 # ----------------------------------------------------------------------------------------------------
 #  Define B_G model
@@ -1430,7 +1445,7 @@ E_Equi_equi_tx0E
 #  Define M_vGRS2019CGE_B model
 # ----------------------------------------------------------------------------------------------------
 Model M_vGRS2019CGE_B /
-E_PInp_zpOut, E_PInp_zpNOut, E_PInp_qOut, E_PInp_qNOut, E_POut_zp, E_POut_demand_out, E_POut_demand_nout, E_P_price_pD, E_P_price_pS, E_P_price_TotalTax, E_P_firmValue_vA, E_P_firmValue_divd, E_P_firmValue_vAT, E_P_WS_pW, E_P_WS_qWS, E_P_WS_qDWTD, E_P_WS_qDWTyD, E_P_WS_qDWTF, E_P_WS_qDWTyF, E_P_adjCost_lom, E_P_adjCost_pk, E_P_adjCost_pkT, E_P_adjCost_K_tvc, E_P_adjCost_adjCost, E_WInp_zpOut, E_WInp_zpNOut, E_WInp_qOut, E_WInp_qNOut, E_WOut_zp, E_WOut_demand_out, E_WOut_demand_nout, E_W_price_pD, E_W_price_pS, E_W_price_TotalTax, E_W_firmValue_vA, E_W_firmValue_divd, E_W_firmValue_vAT, E_W_WS_pW, E_W_WS_qWS, E_W_WS_qDWTD, E_W_WS_qDWTyD, E_W_WS_qDWTF, E_W_WS_qDWTyF, E_W_adjCost_lom, E_W_adjCost_pk, E_W_adjCost_pkT, E_W_adjCost_K_tvc, E_W_adjCost_adjCost, E_W_Treat_W, E_W_Treat_d, E_W_Treat_zeta, E_W_Treat_r, E_W_Treat_a, E_W_Treat_e, E_W_Treat_pWTD, E_W_Prod_ZW, E_W_Prod_qSnm, E_W_Prod_qSnw, E_W_Prod_qSWE, E_I_zpOut, E_I_zpNOut, E_I_qOut, E_I_qNOut, E_I_price_pD, E_I_price_pS, E_I_price_TotalTax, E_I_firmValue_vA, E_I_firmValue_divd, E_I_firmValue_vAT, E_C_zp, E_C_q, E_C_price_pD, E_C_price_w, E_C_price_TotalTax, E_C_price_vA0, E_C_price_vA, E_C_vU_qC, E_C_vU_vU, E_C_vU_vUT, E_C_vU_qL, E_C_WS_pW, E_C_WS_qWS, E_C_WS_qDWTD, E_C_WS_qDWTyD, E_C_WS_qDWTF, E_C_WS_qDWTyF, E_G_zp, E_G_q, E_G_price_pD, E_G_price_TotalTax, E_G_price_vA0, E_G_price_vA, E_T_qD, E_T_pD, E_T_TotalTax, E_T_WI_qWS, E_IVT, E_M_tauCO2, E_M_tauCO2Eff, E_M_qCO2, E_M_qCO2agg, E_Equi_equi
+E_PInp_zpOut, E_PInp_zpNOut, E_PInp_qOut, E_PInp_qNOut, E_POut_zp, E_POut_demand_out, E_POut_demand_nout, E_P_price_pD, E_P_price_pS, E_P_price_TotalTax, E_P_firmValue_vA, E_P_firmValue_divd, E_P_firmValue_vAT, E_P_adjCost_lom, E_P_adjCost_pk, E_P_adjCost_pkT, E_P_adjCost_K_tvc, E_P_adjCost_adjCost, E_P_WS_pW, E_P_WS_qWS, E_P_WS_qDWTD, E_P_WS_qDWTyD, E_P_WS_qDWTF, E_P_WS_qDWTyF, E_WInp_zpOut, E_WInp_zpNOut, E_WInp_qOut, E_WInp_qNOut, E_WOut_zp, E_WOut_demand_out, E_WOut_demand_nout, E_W_price_pD, E_W_price_pS, E_W_price_TotalTax, E_W_firmValue_vA, E_W_firmValue_divd, E_W_firmValue_vAT, E_W_adjCost_lom, E_W_adjCost_pk, E_W_adjCost_pkT, E_W_adjCost_K_tvc, E_W_adjCost_adjCost, E_W_WS_pW, E_W_WS_qWS, E_W_WS_qDWTD, E_W_WS_qDWTyD, E_W_WS_qDWTF, E_W_WS_qDWTyF, E_W_Treat_W, E_W_Treat_d, E_W_Treat_zeta, E_W_Treat_r, E_W_Treat_a, E_W_Treat_e, E_W_Treat_pWTD, E_W_Prod_ZW, E_W_Prod_qSnm, E_W_Prod_qSnw, E_W_Prod_qSWE, E_I_zpOut, E_I_zpNOut, E_I_qOut, E_I_qNOut, E_I_price_pD, E_I_price_pS, E_I_price_TotalTax, E_I_firmValue_vA, E_I_firmValue_divd, E_I_firmValue_vAT, E_C_zp, E_C_q, E_C_price_pD, E_C_price_w, E_C_price_TotalTax, E_C_price_vA0, E_C_price_vA, E_C_vU_qC, E_C_vU_vU, E_C_vU_vUT, E_C_vU_qL, E_C_Euler_Euler, E_C_Euler_TVC, E_C_WS_pW, E_C_WS_qWS, E_C_WS_qDWTD, E_C_WS_qDWTyD, E_C_WS_qDWTF, E_C_WS_qDWTyF, E_G_zp, E_G_q, E_G_price_pD, E_G_price_TotalTax, E_G_price_vA0, E_G_price_vA, E_T_qD, E_T_pD, E_T_TotalTax, E_T_WI_qWS, E_IVT, E_M_tauCO2, E_M_tauCO2Eff, E_M_qCO2, E_M_qCO2agg, E_Equi_equi
 /;
 
 
@@ -1438,7 +1453,7 @@ E_PInp_zpOut, E_PInp_zpNOut, E_PInp_qOut, E_PInp_qNOut, E_POut_zp, E_POut_demand
 #  Define M_vGRS2019CGE_C model
 # ----------------------------------------------------------------------------------------------------
 Model M_vGRS2019CGE_C /
-E_PInp_zpOut, E_PInp_zpNOut, E_PInp_qOut, E_PInp_qNOut, E_POut_zp, E_POut_demand_out, E_POut_demand_nout, E_P_price_pD, E_P_price_pS, E_P_price_TotalTax, E_P_firmValue_vA, E_P_firmValue_divd, E_P_firmValue_vAT, E_P_WS_pW, E_P_WS_qWS, E_P_WS_qDWTD, E_P_WS_qDWTyD, E_P_WS_qDWTF, E_P_WS_qDWTyF, E_P_adjCost_lom, E_P_adjCost_pk, E_P_adjCost_pkT, E_P_adjCost_K_tvc, E_P_adjCost_adjCost, E_P_taxCalib_taxRevPar, E_P_WSCal_qDWTD, E_WInp_zpOut, E_WInp_zpNOut, E_WInp_qOut, E_WInp_qNOut, E_WOut_zp, E_WOut_demand_out, E_WOut_demand_nout, E_W_price_pD, E_W_price_pS, E_W_price_TotalTax, E_W_firmValue_vA, E_W_firmValue_divd, E_W_firmValue_vAT, E_W_WS_pW, E_W_WS_qWS, E_W_WS_qDWTD, E_W_WS_qDWTyD, E_W_WS_qDWTF, E_W_WS_qDWTyF, E_W_adjCost_lom, E_W_adjCost_pk, E_W_adjCost_pkT, E_W_adjCost_K_tvc, E_W_adjCost_adjCost, E_W_Treat_W, E_W_Treat_d, E_W_Treat_zeta, E_W_Treat_r, E_W_Treat_a, E_W_Treat_e, E_W_Treat_pWTD, E_W_Prod_ZW, E_W_Prod_qSnm, E_W_Prod_qSnw, E_W_Prod_qSWE, E_W_taxCalib_taxRevPar, E_W_WSCal_qDWTD, E_W_Calib_alphau, E_W_Calib_gammar, E_W_Calib_gammae, E_W_Calib_gammad, E_I_zpOut, E_I_zpNOut, E_I_qOut, E_I_qNOut, E_I_price_pD, E_I_price_pS, E_I_price_TotalTax, E_I_firmValue_vA, E_I_firmValue_divd, E_I_firmValue_vAT, E_I_taxCalib_taxRevPar, E_C_zp, E_C_q, E_C_price_pD, E_C_price_w, E_C_price_TotalTax, E_C_price_vA0, E_C_price_vA, E_C_vU_qC, E_C_vU_vU, E_C_vU_vUT, E_C_vU_qL, E_C_WS_pW, E_C_WS_qWS, E_C_WS_qDWTD, E_C_WS_qDWTyD, E_C_WS_qDWTF, E_C_WS_qDWTyF, E_C_taxCalib_taxRevPar, E_C_WSCal_qDWTD, E_G_zp, E_G_q, E_G_price_pD, E_G_price_TotalTax, E_G_price_vA0, E_G_price_vA, E_G_taxCalib_taxRevPar, E_T_qD, E_T_pD, E_T_TotalTax, E_T_WI_qWS, E_IVT, E_M_tauCO2, E_M_tauCO2Eff, E_M_qCO2, E_M_qCO2agg, E_M_qCO2calib, E_Equi_equi_tx0E
+E_PInp_zpOut, E_PInp_zpNOut, E_PInp_qOut, E_PInp_qNOut, E_POut_zp, E_POut_demand_out, E_POut_demand_nout, E_P_price_pD, E_P_price_pS, E_P_price_TotalTax, E_P_firmValue_vA, E_P_firmValue_divd, E_P_firmValue_vAT, E_P_adjCost_lom, E_P_adjCost_pk, E_P_adjCost_pkT, E_P_adjCost_K_tvc, E_P_adjCost_adjCost, E_P_WS_pW, E_P_WS_qWS, E_P_WS_qDWTD, E_P_WS_qDWTyD, E_P_WS_qDWTF, E_P_WS_qDWTyF, E_P_taxCalib_taxRevPar, E_P_WSCal_qDWTD, E_WInp_zpOut, E_WInp_zpNOut, E_WInp_qOut, E_WInp_qNOut, E_WOut_zp, E_WOut_demand_out, E_WOut_demand_nout, E_W_price_pD, E_W_price_pS, E_W_price_TotalTax, E_W_firmValue_vA, E_W_firmValue_divd, E_W_firmValue_vAT, E_W_adjCost_lom, E_W_adjCost_pk, E_W_adjCost_pkT, E_W_adjCost_K_tvc, E_W_adjCost_adjCost, E_W_WS_pW, E_W_WS_qWS, E_W_WS_qDWTD, E_W_WS_qDWTyD, E_W_WS_qDWTF, E_W_WS_qDWTyF, E_W_Treat_W, E_W_Treat_d, E_W_Treat_zeta, E_W_Treat_r, E_W_Treat_a, E_W_Treat_e, E_W_Treat_pWTD, E_W_Prod_ZW, E_W_Prod_qSnm, E_W_Prod_qSnw, E_W_Prod_qSWE, E_W_taxCalib_taxRevPar, E_W_WSCal_qDWTD, E_W_Calib_alphau, E_W_Calib_gammar, E_W_Calib_gammae, E_W_Calib_gammad, E_I_zpOut, E_I_zpNOut, E_I_qOut, E_I_qNOut, E_I_price_pD, E_I_price_pS, E_I_price_TotalTax, E_I_firmValue_vA, E_I_firmValue_divd, E_I_firmValue_vAT, E_I_taxCalib_taxRevPar, E_C_zp, E_C_q, E_C_price_pD, E_C_price_w, E_C_price_TotalTax, E_C_price_vA0, E_C_price_vA, E_C_vU_qC, E_C_vU_vU, E_C_vU_vUT, E_C_vU_qL, E_C_Euler_Euler, E_C_Euler_TVC, E_C_WS_pW, E_C_WS_qWS, E_C_WS_qDWTD, E_C_WS_qDWTyD, E_C_WS_qDWTF, E_C_WS_qDWTyF, E_C_taxCalib_taxRevPar, E_C_WSCal_qDWTD, E_G_zp, E_G_q, E_G_price_pD, E_G_price_TotalTax, E_G_price_vA0, E_G_price_vA, E_G_taxCalib_taxRevPar, E_T_qD, E_T_pD, E_T_TotalTax, E_T_WI_qWS, E_IVT, E_M_tauCO2, E_M_tauCO2Eff, E_M_qCO2, E_M_qCO2agg, E_M_qCO2calib, E_Equi_equi_tx0E
 /;
 ;
 
@@ -1456,12 +1471,12 @@ tauCO2.fx[t,s,n]$((P_output[s,n] and dqCO2[s,n])) = tauCO2.l[t,s,n]$((P_output[s
 qCO2.fx[t,s,n]$((P_output[s,n] and dqCO2[s,n])) = qCO2.l[t,s,n]$((P_output[s,n] and dqCO2[s,n]));
 uCO2.fx[t,s,n]$((P_output[s,n] and dqCO2[s,n])) = uCO2.l[t,s,n]$((P_output[s,n] and dqCO2[s,n]));
 tauEffCO2.fx[t,s,n]$((P_output[s,n] and dqCO2[s,n])) = tauEffCO2.l[t,s,n]$((P_output[s,n] and dqCO2[s,n]));
-uWS.fx[t,s,n,m]$((dWSnm[s,n,m] and P_sm[s])) = uWS.l[t,s,n,m]$((dWSnm[s,n,m] and P_sm[s]));
 rDepr.fx[t,s,n]$(P_dur[s,n]) = rDepr.l[t,s,n]$(P_dur[s,n]);
 K_tvc.fx[s,n]$(P_dur[s,n]) = K_tvc.l[s,n]$(P_dur[s,n]);
 qD.fx[t,s,n]$((P_dur[s,n] and t0[t])) = qD.l[t,s,n]$((P_dur[s,n] and t0[t]));
 adjCostPar.fx[s,n]$(P_dur[s,n]) = adjCostPar.l[s,n]$(P_dur[s,n]);
 eta.fx[s,n]$(P_knout[s,n]) = eta.l[s,n]$(P_knout[s,n]);
+uWS.fx[t,s,n,m]$((dWSnm[s,n,m] and P_sm[s])) = uWS.l[t,s,n,m]$((dWSnm[s,n,m] and P_sm[s]));
 markup.fx[s]$(P_sm[s]) = markup.l[s]$(P_sm[s]);
 taxRevPar.fx[s]$(P_sm[s]) = taxRevPar.l[s]$(P_sm[s]);
 tauLump.fx[t,s]$(P_sm[s]) = tauLump.l[t,s]$(P_sm[s]);
@@ -1483,12 +1498,12 @@ tauCO2.fx[t,s,n]$((W_output[s,n] and dqCO2[s,n])) = tauCO2.l[t,s,n]$((W_output[s
 qCO2.fx[t,s,n]$((W_output[s,n] and dqCO2[s,n])) = qCO2.l[t,s,n]$((W_output[s,n] and dqCO2[s,n]));
 uCO2.fx[t,s,n]$((W_output[s,n] and dqCO2[s,n])) = uCO2.l[t,s,n]$((W_output[s,n] and dqCO2[s,n]));
 tauEffCO2.fx[t,s,n]$((W_output[s,n] and dqCO2[s,n])) = tauEffCO2.l[t,s,n]$((W_output[s,n] and dqCO2[s,n]));
-uWS.fx[t,s,n,m]$((dWSnm[s,n,m] and W_sm[s])) = uWS.l[t,s,n,m]$((dWSnm[s,n,m] and W_sm[s]));
 rDepr.fx[t,s,n]$(W_dur[s,n]) = rDepr.l[t,s,n]$(W_dur[s,n]);
 K_tvc.fx[s,n]$(W_dur[s,n]) = K_tvc.l[s,n]$(W_dur[s,n]);
 qD.fx[t,s,n]$((W_dur[s,n] and t0[t])) = qD.l[t,s,n]$((W_dur[s,n] and t0[t]));
 adjCostPar.fx[s,n]$(W_dur[s,n]) = adjCostPar.l[s,n]$(W_dur[s,n]);
 eta.fx[s,n]$(W_knout[s,n]) = eta.l[s,n]$(W_knout[s,n]);
+uWS.fx[t,s,n,m]$((dWSnm[s,n,m] and W_sm[s])) = uWS.l[t,s,n,m]$((dWSnm[s,n,m] and W_sm[s]));
 WTD_dmin.fx[t,m]$((mw_D[m] and txE[t])) = WTD_dmin.l[t,m]$((mw_D[m] and txE[t]));
 WTD_alphal.fx[t,m]$((mw_D[m] and txE[t])) = WTD_alphal.l[t,m]$((mw_D[m] and txE[t]));
 WTD_beta.fx[t,m]$(mw_D[m]) = WTD_beta.l[t,m]$(mw_D[m]);
@@ -1539,12 +1554,14 @@ tauD.fx[t,s,n]$(C_input[s,n]) = tauD.l[t,s,n]$(C_input[s,n]);
 tauS.fx[t,s,n]$(((C_L[s,n] and ( not ((C_L[s,n] and txE[t])))) or (C_L[s,n] and txE[t]))) = tauS.l[t,s,n]$(((C_L[s,n] and ( not ((C_L[s,n] and txE[t])))) or (C_L[s,n] and txE[t])));
 tauLump.fx[t,s]$(C_sm[s]) = tauLump.l[t,s]$(C_sm[s]);
 tauS0.fx[t,s,n]$((C_L[s,n] and txE[t])) = tauS0.l[t,s,n]$((C_L[s,n] and txE[t]));
-vA.fx[t,s]$((C_sm[s] or (t0[t] and C_sm[s]))) = vA.l[t,s]$((C_sm[s] or (t0[t] and C_sm[s])));
 p.fx[t,n]$((C_output_n[n] or C_input_n[n])) = p.l[t,n]$((C_output_n[n] or C_input_n[n]));
 Rrate.fx[t] = Rrate.l[t];
+vA.fx[t,s]$((C_sm[s] and t0[t])) = vA.l[t,s]$((C_sm[s] and t0[t]));
+vA_tvc.fx[s]$(C_sm[s]) = vA_tvc.l[s]$(C_sm[s]);
 frisch.fx[s]$(C_sm[s]) = frisch.l[s]$(C_sm[s]);
 uWS.fx[t,s,n,m]$((dWSnm[s,n,m] and C_sm[s])) = uWS.l[t,s,n,m]$((dWSnm[s,n,m] and C_sm[s]));
 taxRevPar.fx[s]$(C_sm[s]) = taxRevPar.l[s]$(C_sm[s]);
+jTerm.fx[s]$(C_sm[s]) = jTerm.l[s]$(C_sm[s]);
 Lscale.fx[s]$(C_sm[s]) = Lscale.l[s]$(C_sm[s]);
 uWS_D.fx[t,s,m]$((dWS[s,m] and C_sm[s])) = uWS_D.l[t,s,m]$((dWS[s,m] and C_sm[s]));
 uWTy.fx[s,n]$((dWTy[s,n] and C_sm[s])) = uWTy.l[s,n]$((dWTy[s,n] and C_sm[s]));
@@ -1590,14 +1607,14 @@ vA.lo[t,s]$(P_sm[s]) = -inf;
 vA.up[t,s]$(P_sm[s]) = inf;
 divd.lo[t,s]$(P_sm[s]) = -inf;
 divd.up[t,s]$(P_sm[s]) = inf;
-pW.lo[t,s,n]$((dWSn[s,n] and P_sm[s])) = -inf;
-pW.up[t,s,n]$((dWSn[s,n] and P_sm[s])) = inf;
-qWS.lo[t,s,m]$((dWS[s,m] and P_sm[s])) = -inf;
-qWS.up[t,s,m]$((dWS[s,m] and P_sm[s])) = inf;
 adjCost.lo[t,s]$((P_sm[s] and txE[t])) = -inf;
 adjCost.up[t,s]$((P_sm[s] and txE[t])) = inf;
 qS.lo[t,s,n]$(((P_output[s,n] and ( not (P_exoQS[s,n])) and tx0[t]) or (P_output[s,n] and ( not (P_exoQS[s,n])) and t0[t]))) = -inf;
 qS.up[t,s,n]$(((P_output[s,n] and ( not (P_exoQS[s,n])) and tx0[t]) or (P_output[s,n] and ( not (P_exoQS[s,n])) and t0[t]))) = inf;
+pW.lo[t,s,n]$((dWSn[s,n] and P_sm[s])) = -inf;
+pW.up[t,s,n]$((dWSn[s,n] and P_sm[s])) = inf;
+qWS.lo[t,s,m]$((dWS[s,m] and P_sm[s])) = -inf;
+qWS.up[t,s,m]$((dWS[s,m] and P_sm[s])) = inf;
 pD.lo[t,s,n]$((((W_int[s,n] or W_input[s,n]) or (W_dur[s,n] and txE[t]) or (W_sm[s] and n_ZW[n] and tx0E[t])) or (W_sm[s] and n_ZW[n] and t0[t]))) = -inf;
 pD.up[t,s,n]$((((W_int[s,n] or W_input[s,n]) or (W_dur[s,n] and txE[t]) or (W_sm[s] and n_ZW[n] and tx0E[t])) or (W_sm[s] and n_ZW[n] and t0[t]))) = inf;
 pS.lo[t,s,n]$(W_output[s,n]) = -inf;
@@ -1612,14 +1629,14 @@ vA.lo[t,s]$(W_sm[s]) = -inf;
 vA.up[t,s]$(W_sm[s]) = inf;
 divd.lo[t,s]$(W_sm[s]) = -inf;
 divd.up[t,s]$(W_sm[s]) = inf;
-pW.lo[t,s,n]$((dWSn[s,n] and W_sm[s])) = -inf;
-pW.up[t,s,n]$((dWSn[s,n] and W_sm[s])) = inf;
-qWS.lo[t,s,m]$((dWS[s,m] and W_sm[s])) = -inf;
-qWS.up[t,s,m]$((dWS[s,m] and W_sm[s])) = inf;
 adjCost.lo[t,s]$((W_sm[s] and txE[t])) = -inf;
 adjCost.up[t,s]$((W_sm[s] and txE[t])) = inf;
 qS.lo[t,s,n]$(((W_output[s,n] and ( not (W_exoQS[s,n])) and tx0[t]) or (W_output[s,n] and ( not (W_exoQS[s,n])) and t0[t]))) = -inf;
 qS.up[t,s,n]$(((W_output[s,n] and ( not (W_exoQS[s,n])) and tx0[t]) or (W_output[s,n] and ( not (W_exoQS[s,n])) and t0[t]))) = inf;
+pW.lo[t,s,n]$((dWSn[s,n] and W_sm[s])) = -inf;
+pW.up[t,s,n]$((dWSn[s,n] and W_sm[s])) = inf;
+qWS.lo[t,s,m]$((dWS[s,m] and W_sm[s])) = -inf;
+qWS.up[t,s,m]$((dWS[s,m] and W_sm[s])) = inf;
 WTD_W.lo[t,m]$((mw_D[m] and txE[t])) = -inf;
 WTD_W.up[t,m]$((mw_D[m] and txE[t])) = inf;
 WTD_d.lo[t,m]$((mw_D[m] and txE[t])) = -inf;
@@ -1656,6 +1673,8 @@ vU.lo[t,s]$(C_sm[s]) = -inf;
 vU.up[t,s]$(C_sm[s]) = inf;
 TotalTax.lo[t,s]$(((C_sm[s] and tx0E[t]) or (C_sm[s] and t0[t]))) = -inf;
 TotalTax.up[t,s]$(((C_sm[s] and tx0E[t]) or (C_sm[s] and t0[t]))) = inf;
+vA.lo[t,s]$((C_sm[s] and tx0[t])) = -inf;
+vA.up[t,s]$((C_sm[s] and tx0[t])) = inf;
 qS.lo[t,s,n]$(((C_L[s,n] and tx0E[t]) or (C_L[s,n] and t0[t]))) = -inf;
 qS.up[t,s,n]$(((C_L[s,n] and tx0E[t]) or (C_L[s,n] and t0[t]))) = inf;
 qC.lo[t,s]$((C_sm[s] and txE[t])) = -inf;

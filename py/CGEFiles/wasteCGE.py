@@ -13,10 +13,10 @@ class WasteCGE(CGE_base):
 	def stdInvestment(self, tree, cl = 'getStaticNCES', taxInstr = 'tauD', partial = True, initFromGms = 'initFirmValueBlock', **kwargs):
 		return self.addProduction(cl, tree, taxInstr = taxInstr, partial = partial, initFromGms = initFromGms, **kwargs)
 
-	def stdHousehold(self, tree, L2C, cl = 'StaticNCES', taxInstr = 'tauS', incInstr = 'vA0', partial = True, initFromGms = 'init_vU', **kwargs):
+	def stdHousehold(self, tree, L2C, cl = 'StaticNCES', taxInstr = 'tauS', incInstr = 'jTerm', partial = True, initFromGms = 'init_vU', **kwargs):
 		return self.addHousehold(cl, tree, L2C = L2C, properties = {'taxInstr': taxInstr, 'incInstr': incInstr}, partial = partial, initFromGms = initFromGms, **kwargs)
 
-	def stdGovernment(self, tree, cl = 'SimplePolicy_tx0', taxInstr = 'tauLump', incInstr = 'vA0', partial = True, **kwargs):
+	def stdGovernment(self, tree, cl = 'SimplePolicy_tx0', taxInstr = 'tauLump', incInstr = 'jTerm', partial = True, **kwargs):
 		return self.addGovernment(cl, tree, partial = partial, properties = {'taxInstr': taxInstr, 'incInstr': incInstr}, polInstr = 'tauLump', polCond = self.g('s_HH'), **kwargs)
 
 	def stdTrade(self, name, cl = 'Armington', **kwargs):
@@ -41,19 +41,11 @@ class WasteManagementCGE(CGE_base):
 		s = adj.rc_pd(adj.rc_pd(self.db('qD'), self.db('inv_p')), alias = {'n':'nn'})
 		return adjMultiIndex.applyMult(s, self.db('dur2inv')).droplevel('nn')/adj.rc_pd(self.db('qD'), self.db('dur_p'))-self.db('g_LR')
 
-	def stdProduction(self, tree, 
-							cl = 'getDynamicNCES', extension = ['emission','waste','multOut'].copy(), 
-							exoP = None,
-							exoQS = None,
-							abateCosts = False,
-							taxInstr = 'tauLump', 
-							partial = True, 
-							initFromGms = 'initFirmValueBlock', 
-							adjCosts = True, **kwargs):
-		return self.addProduction(cl, tree, extension = extension, exoP = exoP, exoQS = exoQS, abateCosts = abateCosts, taxInstr = taxInstr, partial = partial, initFromGms = initFromGms, adjCosts = adjCosts, **kwargs)
+	def stdProduction(self, tree, cl = 'DynamicNCES_emission_ExoIntRC', exoP = None, exoQS = None, abateCosts = False, taxInstr = 'tauLump', partial = True, initFromGms = 'initFirmValueBlock', adjCosts = True, **kwargs):
+		return self.addFromNest(mWaste, cl, tree, exoP = exoP, exoQS = exoQS, abateCosts = abateCosts, taxInstr = taxInstr, partial = partial, initFromGms = initFromGms, adjCosts = adjCosts, **kwargs)
 
 	def stdWasteManagement(self, tree, 
-							cl = 'DynamicNCES_emission',
+							cl = 'DynamicNCES_emission_WT',
 							exoP = None,
 							exoQS = None,
 							RCTech = "'power'",
@@ -69,10 +61,10 @@ class WasteManagementCGE(CGE_base):
 	def stdInvestment(self, tree, cl = 'getStaticNCES', taxInstr = 'tauD', partial = True, initFromGms = 'initFirmValueBlock', **kwargs):
 		return self.addProduction(cl, tree, taxInstr = taxInstr, partial = partial, initFromGms = initFromGms, **kwargs)
 
-	def stdHousehold(self, tree, L2C, cl = 'StaticGHH_waste', taxInstr = 'tauS', incInstr = 'vA0', partial = True, initFromGms = 'init_GHH_vU', **kwargs):
-		return self.addHousehold(cl, tree, L2C = L2C, properties = {'taxInstr': taxInstr, 'incInstr': incInstr}, partial = partial, initFromGms = initFromGms, **kwargs)
+	def stdHousehold(self, tree, L2C, cl = 'RamseyGHH_WG', taxInstr='tauS', incInstr = 'jTerm', partial = True, initFromGms = 'init_GHH_vU', **kwargs):
+		return self.addFromNest(mWaste, cl, tree, L2C = L2C, properties = {'taxInstr': taxInstr, 'incInstr': incInstr}, partial = partial, initFromGms = initFromGms, **kwargs)
 
-	def stdGovernment(self, tree, cl = 'SimplePolicy_tx0', taxInstr = 'tauLump', incInstr = 'vA0', partial = True, **kwargs):
+	def stdGovernment(self, tree, cl = 'SimplePolicy_tx0', taxInstr = 'tauLump', incInstr = 'jTerm', partial = True, **kwargs):
 		return self.addGovernment(cl, tree, partial = partial, properties = {'taxInstr': taxInstr, 'incInstr': incInstr}, polInstr = 'tauLump', polCond = self.g('s_HH'), **kwargs)
 
 	def stdTrade(self, name, cl = 'Armington_waste', initFromGms = 'initArmingtonWasteParams', **kwargs):
