@@ -60,8 +60,8 @@ class Standard:
 	def getRealGDP(self, dbi, sGDP = None, **kwargs):
 		return self.getRealGDPi(dbi, sGDP = sGDP).groupby('t').sum()
 
-	def getMaterialPrices(self, dbi, vmi = None, **kwargs):
-		return adjMultiIndex.applyMult(adj.rc_pd(dbi('p'), noneInit(vmi, self.vm)), dbi('n2m2k2o')).droplevel('n') / self.getCpi(dbi)
+	def getMaterialPrices(self, dbi, vmi = None, rmi = None, **kwargs):
+		return adjMultiIndex.applyMult(adj.rc_pd(dbi('p'), noneInit(vmi, self.vm).union(noneInit(rmi, self.rm))), dbi('n2m2k2o')).droplevel('n') / self.getCpi(dbi)
 
 	def getMaterialIntensityi(self, dbi, sGDP = None, **kwargs):
 		sGDP = noneInit(sGDP, dbi('s_p').union(dbi('s_i')))

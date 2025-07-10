@@ -1314,9 +1314,9 @@ E_G_price_pD[t,s,n]$(g_input[s,n] and txe[t]).. 	pD[t,s,n]		 =E=  p[t,n]*(1+tauD
 EQUATION E_G_price_TotalTax[t,s];
 E_G_price_TotalTax[t,s]$(g_sm[s] and txe[t]).. 		TotalTax[t,s]	 =E=  tauLump[t,s]+sum(n$(G_input[s,n]), tauD[t,s,n] * p[t,n] * qD[t,s,n]);
 EQUATION E_G_price_vA0[t,s];
-E_G_price_vA0[t,s]$(g_sm[s] and t0[t]).. 			vA[t+1,s]		 =E=  (vA[t,s] * Rrate[t]+sum(ss$(d_TotalTax[ss]), TotalTax[t,ss])-sum(n$(G_input[s,n]), p[t,n]*qD[t,s,n])-TotalTax[t,s])/(1+g_LR);
+E_G_price_vA0[t,s]$(g_sm[s] and t0[t]).. 			vA[t+1,s]		 =E=  (vA[t,s] * Rrate[t]+sum(ss$(d_TotalTax[ss]), TotalTax[t,ss])-sum(n$(G_input[s,n]), p[t,n]*qD[t,s,n])-TotalTax[t,s]+jTerm[s])/(1+g_LR);
 EQUATION E_G_price_vA[t,s];
-E_G_price_vA[t,s]$(g_sm[s] and tx0e[t]).. 			vA[t+1,s]		 =E=  (vA[t,s] * Rrate[t]+sum(ss$(d_TotalTax[ss]), TotalTax[t,ss])-sum(n$(G_input[s,n]), p[t,n]*qD[t,s,n])-TotalTax[t,s])/(1+g_LR);
+E_G_price_vA[t,s]$(g_sm[s] and tx0e[t]).. 			vA[t+1,s]		 =E=  (vA[t,s] * Rrate[t]+sum(ss$(d_TotalTax[ss]), TotalTax[t,ss])-sum(n$(G_input[s,n]), p[t,n]*qD[t,s,n])-TotalTax[t,s]+jTerm[s])/(1+g_LR);
 
 # ----------------------------------------------------------------------------------------------------
 #  Define B_G_price model
@@ -1598,11 +1598,12 @@ mu.fx[s,n,nn]$(((G_map[s,n,nn] and ( not (G_endoMu[s,n,nn]))) or G_endoMu[s,n,nn
 tauD.fx[t,s,n]$(G_input[s,n]) = tauD.l[t,s,n]$(G_input[s,n]);
 tauLump.fx[t,s]$(((G_sm[s] and ( not ((G_sm[s] and txE[t])))) or (G_sm[s] and txE[t]))) = tauLump.l[t,s]$(((G_sm[s] and ( not ((G_sm[s] and txE[t])))) or (G_sm[s] and txE[t])));
 tauLump0.fx[t,s]$((G_sm[s] and txE[t])) = tauLump0.l[t,s]$((G_sm[s] and txE[t]));
-vA.fx[t,s]$((G_sm[s] or (t0[t] and G_sm[s]))) = vA.l[t,s]$((G_sm[s] or (t0[t] and G_sm[s])));
+vA.fx[t,s]$(G_sm[s]) = vA.l[t,s]$(G_sm[s]);
 p.fx[t,n]$(G_input_n[n]) = p.l[t,n]$(G_input_n[n]);
 Rrate.fx[t] = Rrate.l[t];
 qD.fx[t,s,n]$(((G_output[s,n] and tx0E[t]) or (G_output[s,n] and t0[t]))) = qD.l[t,s,n]$(((G_output[s,n] and tx0E[t]) or (G_output[s,n] and t0[t])));
 taxRevPar.fx[s]$(G_sm[s]) = taxRevPar.l[s]$(G_sm[s]);
+jTerm.fx[s]$(G_sm[s]) = jTerm.l[s]$(G_sm[s]);
 p.fx[t,n]$((T_nF[n] or T_nD[n])) = p.l[t,n]$((T_nF[n] or T_nD[n]));
 sigma.fx[s,n]$(T_dExport[s,n]) = sigma.l[s,n]$(T_dExport[s,n]);
 tauD.fx[t,s,n]$(T_dExport[s,n]) = tauD.l[t,s,n]$(T_dExport[s,n]);
