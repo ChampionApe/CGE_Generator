@@ -1,2 +1,6 @@
 projects/NCPConfidential
 work_folder/
+*.ipynb
+*.pyc
+projects/IOdata/data/MAC_agriculture_GR.gdx
+projects/IOdata/data/MAC_agriculture_GR.gsp

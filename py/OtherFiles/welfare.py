@@ -305,6 +305,7 @@ class ReportEV:
 	@property
 	def initText(self):
 		return f"""
+$onMultiR
 Set {self.sn} /{', '.join(self.states)}/;
 alias({self.sn}, {self.sa});
 
@@ -314,7 +315,7 @@ EV_pV[t,s,{self.sn}], EV_vA[t,s,{self.sn}], EV_HInc[t,s,{self.sn}], EV_WInc[t,s,
 """
 
 	def StaticNCES_Inc(self, m, state, GHH):
-		qC = 'qC.l[t,s]' if GHH else """sum(n$({m}_C[s,n]), qD.l[t,s,n])"""
+		qC = 'qC.l[t,s]' if GHH else f"""sum(n$({m}_C[s,n]), qD.l[t,s,n])"""
 		text = f"""
 yInc.l[t,s,{self.sn}]$({m}_sm[s] and txE[t] and sameAs({self.sn}, '{state}')) = vA.l[t+1,s]*(1+g_LR)-vA.l[t,s]*Rrate.l[t]+{qC};
 HInc.l[t,s,{self.sn}]$({m}_sm[s] and tE[t] and sameAs({self.sn}, '{state}'))  = yInc.l[t-1,s,{self.sn}]/(1-(1+g_LR)/R_LR);
@@ -386,4 +387,103 @@ EV.l[t,s,{self.sn}]$({m}_sm[s] and sameAs({self.sn}, '{state}')) = EV_pV.l[t,s,{
 """
 		if GHH:
 			text += f"""EV_ZInc.l[t,s,{self.sn}]$({m}_sm[s] and sameAs({self.sn}, '{state}')) = sum({self.sa}$(sameAs({self.sa}, '{self.base}')), ZInc.l[t,s,{self.sa}])-ZInc.l[t,s,{self.sn}];"""
+		return text
+
+
+class ReportCV(ReportEV):
+	def Ramsey(self, m, state, GHH):
+		return self.writeInit + self.Ramsey_CV(m, state, GHH)
+	def StaticNCES(self, m, state, GHH):
+		return self.writeInit + self.StaticNCES_CV(m, state, GHH)
+
+	@property
+	def initText(self):
+		return f"""
+$onMultiR
+Set {self.sn} /{', '.join(self.states)}/;
+alias({self.sn}, {self.sa});
+
+Variables
+yInc[t,s,{self.sn}], HInc[t,s,{self.sn}], WInc[t,s,{self.sn}], ZInc[t,s,{self.sn}], TInc[t,s,{self.sn}], vAInc[t,s,{self.sn}], pV[t,s,{self.sn}]
+CV_pV[t,s,{self.sn}], CV_vA[t,s,{self.sn}], CV_HInc[t,s,{self.sn}], CV[t,s,{self.sn}];
+"""
+
+
+	def StaticNCES_CV(self, m, state, GHH):
+		relPrices = f"""(pV.l[t,s,{self.sn}]/pV.l[t,s,{self.sa}]-1)"""
+		text = f"""
+{self.StaticNCES_Inc(m,state,GHH)}
+
+CV_pV.l[t,s,{self.sn}]$({m}_sm[s] and tE[t] and sameAs({self.sn}, '{state}')) = sum({self.sa}$(sameAs({self.sa}, '{self.base}')), {relPrices}*yInc.l[t-1,s,{self.sa}])/(1-(1+g_LR)/R_LR);
+
+tempSclr = card(t)-1;
+While(tempSclr >= 1,
+	CV_pV.l[t,s,{self.sn}]$({m}_sm[s] and (ord(t) = tempSclr) and sameAs({self.sn}, '{state}')) = CV_pV.l[t+1,s,{self.sn}]*(1+g_LR)/Rrate.l[t]+sum({self.sa}$(sameAs({self.sa}, '{self.base}')), {relPrices}*yInc.l[t,s,{self.sa}]);
+	tempSclr = tempSclr-1;
+);
+
+CV_vA.l[t,s,{self.sn}]$({m}_sm[s] and sameAs({self.sn}, '{state}')) = sum({self.sa}$(sameAs({self.sa}, '{self.base}')), vAInc.l[t,s,{self.sa}]-vAInc.l[t,s,{self.sn}]);
+CV_HInc.l[t,s,{self.sn}]$({m}_sm[s] and sameAs({self.sn}, '{state}')) = sum({self.sa}$(sameAs({self.sa}, '{self.base}')), HInc.l[t,s,{self.sa}]-HInc.l[t,s,{self.sn}]);
+CV.l[t,s,{self.sn}]$({m}_sm[s] and sameAs({self.sn}, '{state}')) = CV_pV.l[t,s,{self.sn}]+CV_vA.l[t,s,{self.sn}]+CV_HInc.l[t,s,{self.sn}];
+"""
+		return text
+
+	def Ramsey_CV(self, m, state, GHH):
+		text = f"""
+{self.Ramsey_Inc(m,state,GHH)}
+
+CV_pV.l[t,s,{self.sn}]$({m}_sm[s] and sameAs({self.sn}, '{state}')) = sum({self.sa}$(sameAs({self.sa}, '{self.base}')), (pV.l[t,s,{self.sn}]/pV.l[t,s,{self.sa}]-1) * (vAInc.l[t,s,{self.sa}]+HInc.l[t,s,{self.sa}]));
+CV_vA.l[t,s,{self.sn}]$({m}_sm[s] and sameAs({self.sn}, '{state}')) = sum({self.sa}$(sameAs({self.sa}, '{self.base}')), vAInc.l[t,s,{self.sa}]-vAInc.l[t,s,{self.sn}]);
+CV_HInc.l[t,s,{self.sn}]$({m}_sm[s] and sameAs({self.sn}, '{state}')) = sum({self.sa}$(sameAs({self.sa}, '{self.base}')), HInc.l[t,s,{self.sa}]-HInc.l[t,s,{self.sn}]);
+CV.l[t,s,{self.sn}]$({m}_sm[s] and sameAs({self.sn}, '{state}')) = CV_pV.l[t,s,{self.sn}]+CV_vA.l[t,s,{self.sn}]+CV_HInc.l[t,s,{self.sn}];
+"""
+		return text
+
+
+class ReportCVcostMin(ReportCV):
+
+	def Ramsey(self, m, state, GHH):
+		return self.writeInit + self.getCV(m, state, GHH)
+	def StaticNCES(self, m, state, GHH):
+		return self.writeInit + self.getCV(m, state, GHH)
+
+	@property
+	def initText(self):
+		return f"""
+$onMultiR
+Set {self.sn} /{', '.join(self.states)}/;
+alias({self.sn}, {self.sa});
+
+Variables
+yInc[t,s,{self.sn}], HInc[t,s,{self.sn}], WInc[t,s,{self.sn}], ZInc[t,s,{self.sn}], TInc[t,s,{self.sn}], vAInc[t,s,{self.sn}], pV[t,s,{self.sn}],
+CV[t,s,{self.sn}], CV_shadowVal[s,{self.sn}], CV_vU[s,{self.sn}], CV_Delta[t,s,{self.sn}];
+"""
+
+	def getCV(self, m, state, GHH):
+		qC = 'qC.l[t,s]' if GHH else f"""sum(n$({m}_C[s,n]), qD.l[t,s,n])"""
+		qC_ = 'qC.l[t-1,s]' if GHH else f"""sum(n$({m}_C[s,n]), qD.l[t-1,s,n])"""
+		pC = f"sum(n$({m}_C[s,n]), pD.l[t,s,n])"
+		pC_ = f"sum(n$({m}_C[s,n]), pD.l[t-1,s,n])"
+		text = f"""
+{self.Ramsey_Inc(m,state,GHH)}
+
+# Store lifetime utility across states to access and compare
+CV_vU.l[s,{self.sn}]$({m}_sm[s] and sameAs({self.sn}, '{state}')) = sum(t$(t0[t]), vU.l[t,s]);
+
+# Compute lambda the shadow value on the constraint that lifetime utility equals baseline levels
+CV_shadowVal.l[s,{self.sn}]$({m}_sm[s] and sameAs({self.sn}, '{state}')) = sum({self.sa}$(sameAs({self.sa}, '{self.base}')), ((1-crra.l[s])*CV_vU.l[s,{self.sa}])**(crra.l[s]/(1-crra.l[s])) * sum(t$(t0[t]), pV.l[t,s,{self.sn}]));
+
+# Compute Delta:
+CV_Delta.l[t,s,{self.sn}]$({m}_sm[s] and sameAs({self.sn}, '{state}') and txE[t]) = (CV_shadowVal.l[s,{self.sn}]/{pC})**(1/crra.l[s])-{qC};
+CV_Delta.l[t,s,{self.sn}]$({m}_sm[s] and sameAs({self.sn}, '{state}') and tE[t]) = CV_Delta.l[t-1,s,{self.sn}];
+
+# Compute CV recursively:
+CV.l[t,s,{self.sn}]$({m}_sm[s] and sameAs({self.sn}, '{state}') and tE[t]) = {pC_}*CV_Delta.l[t,s,{self.sn}]/(1-(1+g_LR)/R_LR);
+
+tempSclr = card(t)-1;
+While(tempSclr >= 1,
+	CV.l[t,s,{self.sn}]$({m}_sm[s] and (ord(t) = tempSclr) and sameAs({self.sn}, '{state}')) = 	CV.l[t+1,s,{self.sn}] * (1+g_LR)/Rrate.l[t]+{pC}*CV_Delta.l[t,s,{self.sn}];
+	tempSclr = tempSclr-1;
+);
+"""
 		return text

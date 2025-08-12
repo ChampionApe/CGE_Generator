@@ -54,6 +54,10 @@ class RamseyGHH(Ramsey):
 		return gamsHouseholds.CRRA_GHH_vU(f'{self.name}_vU', self.name)
 
 	@property
+	def EulerBlocks(self):
+		return gamsHouseholds.CRRA_GHH_Euler(f'{self.name}_Euler', self.name)
+
+	@property
 	def group_alwaysExo(self):
 		g = super().group_alwaysExo
 		g.v += [('frisch', self.g('sm'))]

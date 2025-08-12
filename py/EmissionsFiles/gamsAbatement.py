@@ -4,8 +4,8 @@ $MACRO stdNormPdf(x) exp(-sqr(x)/2)/(sqrt(2*Pi))
 $MACRO EOP_Logit(p, c, e) (1/(1+exp((c-p)/e)))
 $MACRO EOP_Normal(p, c, e) errorf((p-c)/e)
 $MACRO EOP_NormalMult(p, c, e) errorf((p/c-1)/e)
-$MACRO EOP_LogNorm(p, c, e) errorf(log(p/c+1e-6)/e+e/2)
-$MACRO EOP_LogNormCost(p, c, e) c * errorf(log(p/c+1e-6)/e-e/2)
+$MACRO EOP_LogNorm(p, c, e) errorf(log(sqrt(sqr(p/c)))/e+e/2)
+$MACRO EOP_LogNormCost(p, c, e) c * errorf(log(sqrt(sqr(p/c)))/e-e/2)
 
 $MACRO EOP_NormalCost(p, c, e) EOP_Normal(p, c, e)*c-e*stdNormPdf((p-c)/e)
 $MACRO EOP_NormalMultCost(p, c, e) c*(EOP_NormalMult(p, c, e)-e*stdNormPdf((p/c-1)/e))
@@ -76,7 +76,8 @@ $BLOCK B_{name}_adjCost
 	E_{name}_techCost[t,s,tech]$(dTechS[t,s,tech] and txE[t])..	techCost[t,s,tech]	=E= uKEOP[t,tech] * pKEOP[t,tech]; # technology cost idx
 	E_{name}_LOM[t,tech]$(dTech[t,tech] and txE[t])..			qKEOP[t+1,tech]		=E= (qKEOP[t,tech]*(1-rDeprEOP[tech])+qIEOP[t,tech])/(1+g_LR); # Law of motion for abatement capital
 	E_{name}_pK[t,tech]$(dTech[t,tech] and tx02E[t])..			pKEOP[t,tech]		=E= Rrate[t]*(1+adjCostParEOP[tech]*( (qIEOP[t-1,tech]+qKmin[t-1,tech]*(rDeprEOP[tech]+g_LR))/(qKEOP[t-1,tech]+qKmin[t-1,tech])-(rDeprEOP[tech]+g_LR)))/(1+infl_LR)+adjCostParEOP[tech]*0.5*(sqr(rDeprEOP[tech]+g_LR)-sqr((qIEOP[t,tech]+qKmin[t,tech]*(rDeprEOP[tech]+g_LR))/(qKEOP[t,tech]+qKmin[t,tech])))-(1-rDeprEOP[tech])*(1+adjCostParEOP[tech]*((qIEOP[t,tech]+qKmin[t,tech]*(rDeprEOP[tech]+g_LR))/(qKEOP[t,tech]+qKmin[t,tech])-(rDeprEOP[tech]+g_LR))); # Tobin's Q for abatement capital
-	E_{name}_pKT[t,tech]$(dTech[t,tech] and t2E[t])..			pKEOP[t,tech]		=E= Rrate[t]*(1+adjCostParEOP[tech]*( (qIEOP[t-1,tech]+qKmin[t-1,tech]*(rDeprEOP[tech]+g_LR))/(qKEOP[t-1,tech]+qKmin[t-1,tech])-(rDeprEOP[tech]+g_LR)))/(1+infl_LR)+rDeprEOP[tech]-1; # steady state approximation of Tobin's Q
+	E_{name}_pKT[t,tech]$(dTech[t,tech] and t2E[t])..			pKEOP[t,tech]		=E= rDeprEOP[tech]+Rrate[t]-1;
+	# E_{name}_pKT[t,tech]$(dTech[t,tech] and t2E[t])..			pKEOP[t,tech]		=E= Sqrt(Sqr(Rrate[t]*(1+adjCostParEOP[tech]*( (qIEOP[t-1,tech]+qKmin[t-1,tech]*(rDeprEOP[tech]+g_LR))/(qKEOP[t-1,tech]+qKmin[t-1,tech])-(rDeprEOP[tech]+g_LR)))/(1+infl_LR)+rDeprEOP[tech]-1)); # steady state approximation of Tobin's Q
 	E_{name}_Ktvc[t,tech]$(dTech[t,tech] and tE[t])..			qKEOP[t,tech]	 	=E= (1+KtvcEOP[tech])*qKEOP[t-1,tech]/(1+g_LR); # TVC condition for abatement capital
 	E_{name}_divd[t,tech]$(dTech[t,tech] and txE[t])..			divdEOP[t,tech]		=E= pKEOP[t,tech]*qKEOP[t,tech]-qIEOP[t,tech]-(qKEOP[t,tech]+qKmin[t,tech])*adjCostParEOP[tech]*0.5*sqr((qIEOP[t,tech]+qKmin[t,tech]*(rDeprEOP[tech]+g_LR))/(qKEOP[t,tech]+qKmin[t,tech])-(rDeprEOP[tech]+g_LR));
 $ENDBLOCK

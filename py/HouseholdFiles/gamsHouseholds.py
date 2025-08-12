@@ -74,6 +74,16 @@ $BLOCK B_{name}
 $ENDBLOCK
 """
 
+
+def CRRA_GHH_Euler(name, m):
+	return f"""
+$BLOCK B_{name}
+	E_{name}_Euler[t,s]$({m}_sm[s] and tx0E[t])..		qC[t,s]		=E= qC[t-1,s]*(discF[s]*Rrate[t]*sum(n$({m}_C[s,n]), (pD[t-1,s,n]/pD[t,s,n])))**(1/crra[s])/(1+g_LR);
+	E_{name}_TVC[t,s]$({m}_sm[s] and tE[t])..			vA[t,s]		=E= vA[t-1,s]*(1+vA_tvc[s])/(1+g_LR);
+$ENDBLOCK
+"""
+
+
 ############################################################
 ################		3. IdxFund			################
 ############################################################
