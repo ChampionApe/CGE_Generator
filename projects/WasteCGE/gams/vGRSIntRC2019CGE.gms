@@ -1234,8 +1234,8 @@ E_C_taxCalib_taxRevPar
 # ----------------------------------------------B_C_Euler---------------------------------------------
 #  Initialize B_C_Euler equation block
 # ----------------------------------------------------------------------------------------------------
-EQUATION E_C_Euler_Euler[t,s,n];
-E_C_Euler_Euler[t,s,n]$(c_c[s,n] and tx0e[t]).. 	qD[t,s,n]	 =E=  qD[t-1,s,n]*(discF[s]*Rrate[t]*(pD[t-1,s,n]/pD[t,s,n]))**(1/crra[s])/(1+g_LR);
+EQUATION E_C_Euler_Euler[t,s];
+E_C_Euler_Euler[t,s]$(c_sm[s] and tx0e[t]).. 		qC[t,s]		 =E=  qC[t-1,s]*(discF[s]*Rrate[t]*sum(n$(C_C[s,n]), (pD[t-1,s,n]/pD[t,s,n])))**(1/crra[s])/(1+g_LR);
 EQUATION E_C_Euler_TVC[t,s];
 E_C_Euler_TVC[t,s]$(c_sm[s] and te[t]).. 			vA[t,s]		 =E=  vA[t-1,s]*(1+vA_tvc[s])/(1+g_LR);
 
