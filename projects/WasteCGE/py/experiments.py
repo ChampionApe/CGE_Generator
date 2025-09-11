@@ -110,7 +110,7 @@ def runTaxWasteGen(Mi, Rep, d0, Δ = .1, solDict = None, **kwargs):
 
 def experimentTaxWasteGen(Mi, solDict, Δ = .1):
 	uWS_adValorem = (Mi.db('uWS').groupby(['t','s','n']).sum() / Mi.db('p')).dropna() # unit tax per ton of waste across m types
-	solDict['shock'] = (uWS_adValorem * Δ).rename('tauD')
+	solDict['shock'] = Mi.db('tauD').add(uWS_adValorem * Δ, fill_value = 0).rename('tauD') # add on top of existing taxes
 	return solDict
 
 def runSubsidyRecycledInputs(Mi, Rep, d0, Δ = .1, solDict = None, **kwargs):
