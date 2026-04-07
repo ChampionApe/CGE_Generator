@@ -19,7 +19,7 @@ class Standard:
 		if d0 is not None:
 			if 'Δexp' not in solDict:
 				solDict['Δexp'] = noneInit(Δexp, pd.Series(1, index = self.db('t'))) # if the shock does not have an expected effect --> insert 1 to avoid errors in reporting functions
-			solDict.update({k: getattr(self,f'get{k}')(solDict, d0) for k in ('Rbv','Rbr','Rbt','RbvTot','RbrTot','RbtTot','ΔQv_Qv','ΔQr_Qr','ΔQt_Qt','ΔQvTot_QvTot','ΔQrTot_QrTot','ΔQtTot_QtTot')})
+			solDict.update({k: getattr(self,f'get{k}')(solDict, d0) for k in ('Rbv','Rbr','Rbt','RbvTot','RbrTot','RbtTot','ΔQv', 'ΔQr', 'ΔQv_Qv','ΔQr_Qr','ΔQt_Qt','ΔQvTot_QvTot','ΔQrTot_QrTot','ΔQtTot_QtTot')})
 		return solDict
 
 	@property
@@ -106,6 +106,12 @@ class Standard:
 		""" ΔMaterials/mechanical effect of shock"""
 		return ((di['Δexp'].groupby('t').sum()-(di['QtTot']-d0['QtTot']))/di['Δexp'].groupby('t').sum()).dropna()
 
+	def getΔQv(self, di, d0, **kwargs):
+		""" Absolute change in virgin material use"""
+		return ((di['Qv']-d0['Qv'])).dropna()
+	def getΔQr(self, di, d0, **kwargs):
+		""" Absolute change in virgin material use"""
+		return ((di['Qr']-d0['Qr'])).dropna()
 	def getΔQv_Qv(self, di,d0,**kwargs):
 		""" Percentage change in virgin material use"""		
 		return ((di['Qv']-d0['Qv'])/d0['Qv']).dropna()

@@ -223,7 +223,8 @@ class CalibToGR(Model):
 		self.db['gammaAvg'] = 0 # aux. variable in initialization
 		self.db['obj'] = 0 # only used if we need to turn the problem into an NLP problem
 		# Exogenous parameters:
-		self.db.aom(gpy(pd.Series(1, index = self.db('m'), name = 'betaTarget'), type = 'par'), priority='first')
+		self.db.aom(gpy(self.db('beta').copy(), type = 'par', name = 'betaTarget'), priority='first')
+		# self.db.aom(gpy(pd.Series(1, index = self.db('m'), name = 'betaTarget'), type = 'par'), priority='first')
 		self.db.aom(gpy(pd.Series(.1, index = self.db('m'), name = 'dAdR'), type = 'par'), priority='first')
 		self.db.aom(gpy(pd.Series(1, index = self.db('m'), name = 'parAlpha_l'), type = 'par'), priority='first')
 		self.db.aom(gpy(pd.Series(1/100, index = self.db('m'), name = 'parBeta'), type = 'par'), priority='first')
