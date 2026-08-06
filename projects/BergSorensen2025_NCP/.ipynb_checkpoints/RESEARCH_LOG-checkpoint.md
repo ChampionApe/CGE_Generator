@@ -1,0 +1,2 @@
+## 2026-08-03
+Researched elasticity of substitution between clean and dirty energy for CGE calibration. Wrote `notes/elasticity_clean_dirty_energy.md`: recommend σ ≈ 2 central (range 1–3 for sensitivity), based on Papageorgiou, Saam & Schulte (2017, ReStat) and a 2026 Groningen reconciliation paper. Next: decide whether to apply a single economy-wide σ or sector-specific values, and consider robustness checks at σ = 1 and σ = 3.

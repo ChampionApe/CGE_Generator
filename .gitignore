@@ -1,5 +1,6 @@
 projects/NCPConfidential
 projects/BergSorensen2025_NCP/data/confidentialData
+projects/BergSorensen2025_NCP/local
 work_folder/
 *.ipynb
 *.pyc
